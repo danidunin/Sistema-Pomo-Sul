@@ -1,0 +1,251 @@
+// Schema do POMO SUL — ver plano de arquitetura em CLAUDE.md
+// Fazenda única (não multi-propriedade); talhão é a entidade central do sistema.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Usuários — todos com as mesmas permissões (sem RBAC)
+// ---------------------------------------------------------------------------
+
+model Usuario {
+  id        String   @id @default(cuid())
+  nome      String
+  email     String   @unique
+  senhaHash String   @map("senha_hash")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  operacoesResponsavel  OperacaoAgricola[]  @relation("OperacaoResponsavel")
+  operacoesOperador     OperacaoAgricola[]  @relation("OperacaoOperador")
+  atividadeFuncionarios AtividadeFuncionario[]
+
+  @@map("usuarios")
+}
+
+// ---------------------------------------------------------------------------
+// Talhões — entidade central do sistema
+// ---------------------------------------------------------------------------
+
+model Talhao {
+  id            String   @id @default(cuid())
+  nomeCodinome  String   @map("nome_codinome")
+  areaHa        Decimal? @map("area_ha") @db.Decimal(10, 2)
+  cultura       String?
+  especie       String?
+  variedade     String?
+  portaEnxerto  String?  @map("porta_enxerto")
+  anoPlantio    Int?     @map("ano_plantio")
+  espacamento   String?
+  numeroPlantas Int?     @map("numero_plantas")
+  observacoes   String?
+  fotoUrl       String?  @map("foto_url")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  operacoes  OperacaoAgricola[]
+  atividades Atividade[]
+  fotos      Foto[]
+
+  @@index([nomeCodinome])
+  @@map("talhoes")
+}
+
+// ---------------------------------------------------------------------------
+// Estoque — lista única de produtos, sem subgrupos
+// ---------------------------------------------------------------------------
+
+model Produto {
+  id                   String   @id @default(cuid())
+  nome                 String
+  unidade              String
+  quantidadeDisponivel Decimal  @default(0) @map("quantidade_disponivel") @db.Decimal(12, 3)
+  observacoes          String?
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  itensOperacao  OperacaoProduto[]
+  movimentacoes  EstoqueMovimentacao[]
+
+  @@index([nome])
+  @@map("produtos")
+}
+
+enum TipoMovimentacao {
+  ENTRADA
+  SAIDA
+}
+
+enum OrigemMovimentacao {
+  MANUAL
+  OPERACAO
+}
+
+model EstoqueMovimentacao {
+  id               String              @id @default(cuid())
+  produto          Produto             @relation(fields: [produtoId], references: [id])
+  produtoId        String              @map("produto_id")
+  tipo             TipoMovimentacao
+  quantidade       Decimal             @db.Decimal(12, 3)
+  data             DateTime
+  origemTipo       OrigemMovimentacao  @map("origem_tipo")
+  origemOperacao   OperacaoAgricola?   @relation(fields: [origemOperacaoId], references: [id])
+  origemOperacaoId String?             @map("origem_operacao_id")
+  observacoes      String?
+  createdAt        DateTime            @default(now()) @map("created_at")
+
+  @@index([produtoId, data])
+  @@map("estoque_movimentacoes")
+}
+
+// ---------------------------------------------------------------------------
+// Operações agrícolas — tipo discriminador único (fito/herbicida/adubação/outra)
+// ---------------------------------------------------------------------------
+
+enum TipoOperacao {
+  FITOSSANITARIO
+  HERBICIDA
+  ADUBACAO
+  OUTRA
+}
+
+model OperacaoAgricola {
+  id             String       @id @default(cuid())
+  tipo           TipoOperacao
+  data           DateTime
+  talhao         Talhao       @relation(fields: [talhaoId], references: [id])
+  talhaoId       String       @map("talhao_id")
+  responsavel    Usuario      @relation("OperacaoResponsavel", fields: [responsavelId], references: [id])
+  responsavelId  String       @map("responsavel_id")
+  operador       Usuario?     @relation("OperacaoOperador", fields: [operadorId], references: [id])
+  operadorId     String?      @map("operador_id")
+  maquina        Maquina?     @relation(fields: [maquinaId], references: [id])
+  maquinaId      String?      @map("maquina_id")
+  volumeCalda    Decimal?     @map("volume_calda") @db.Decimal(10, 2)
+  observacoes    String?
+  fotoUrl        String?      @map("foto_url")
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  produtos      OperacaoProduto[]
+  movimentacoes EstoqueMovimentacao[]
+
+  @@index([talhaoId, data])
+  @@map("operacoes_agricolas")
+}
+
+model OperacaoProduto {
+  id          String           @id @default(cuid())
+  operacao    OperacaoAgricola @relation(fields: [operacaoId], references: [id], onDelete: Cascade)
+  operacaoId  String           @map("operacao_id")
+  produto     Produto          @relation(fields: [produtoId], references: [id])
+  produtoId   String           @map("produto_id")
+  quantidade  Decimal          @db.Decimal(12, 3)
+  unidade     String
+
+  @@map("operacao_produtos")
+}
+
+// ---------------------------------------------------------------------------
+// Atividades e horas-homem
+// ---------------------------------------------------------------------------
+
+model TipoAtividade {
+  id    String  @id @default(cuid())
+  nome  String  @unique
+  ativo Boolean @default(true)
+
+  atividades Atividade[]
+
+  @@map("tipos_atividade")
+}
+
+model Atividade {
+  id              String        @id @default(cuid())
+  data            DateTime
+  tipoAtividade   TipoAtividade @relation(fields: [tipoAtividadeId], references: [id])
+  tipoAtividadeId String        @map("tipo_atividade_id")
+  talhao          Talhao        @relation(fields: [talhaoId], references: [id])
+  talhaoId        String        @map("talhao_id")
+  observacoes     String?
+  fotoUrl         String?       @map("foto_url")
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  funcionarios AtividadeFuncionario[]
+
+  @@index([talhaoId, data])
+  @@map("atividades")
+}
+
+model AtividadeFuncionario {
+  id               String    @id @default(cuid())
+  atividade        Atividade @relation(fields: [atividadeId], references: [id], onDelete: Cascade)
+  atividadeId      String    @map("atividade_id")
+  usuario          Usuario   @relation(fields: [usuarioId], references: [id])
+  usuarioId        String    @map("usuario_id")
+  horasTrabalhadas Decimal   @map("horas_trabalhadas") @db.Decimal(6, 2)
+
+  @@map("atividade_funcionarios")
+}
+
+// ---------------------------------------------------------------------------
+// Máquinas e manutenção
+// ---------------------------------------------------------------------------
+
+model Maquina {
+  id             String   @id @default(cuid())
+  nome           String
+  marca          String?
+  modelo         String?
+  ano            Int?
+  fotoUrl        String?  @map("foto_url")
+  horimetroAtual Decimal? @map("horimetro_atual") @db.Decimal(10, 1)
+  observacoes    String?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  manutencoes Manutencao[]
+  operacoes   OperacaoAgricola[]
+  fotos       Foto[]
+
+  @@map("maquinas")
+}
+
+model Manutencao {
+  id               String   @id @default(cuid())
+  maquina          Maquina  @relation(fields: [maquinaId], references: [id])
+  maquinaId        String   @map("maquina_id")
+  data             DateTime
+  servicoRealizado String   @map("servico_realizado")
+  pecasUtilizadas  String?  @map("pecas_utilizadas")
+  valor            Decimal? @db.Decimal(10, 2)
+  horimetro        Decimal? @db.Decimal(10, 1)
+  mecanico         String?
+  observacoes      String?
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([maquinaId, data])
+  @@map("manutencoes")
+}
+
+// ---------------------------------------------------------------------------
+// Fotos e observações — vínculo com talhão OU máquina (FK dupla nullable)
+// ---------------------------------------------------------------------------
+
+model Foto {
+  id          String   @id @default(cuid())
+  data        DateTime
+  descricao   String?
+  talhao      Talhao?  @relation(fields: [talhaoId], references: [id])
+  talhaoId    String?  @map("talhao_id")
+  maquina     Maquina? @relation(fields: [maquinaId], references: [id])
+  maquinaId   String?  @map("maquina_id")
+  url         String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([talhaoId, data])
+  @@index([maquinaId, data])
+  @@map("fotos")
+}
