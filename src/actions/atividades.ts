@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { exigirPropriedadeAtual } from "@/lib/propriedade";
 
 export async function criarAtividade(
   _prevState: string | undefined,
@@ -11,44 +12,36 @@ export async function criarAtividade(
   const tipoAtividadeId = String(formData.get("tipoAtividadeId") ?? "");
   const talhaoId = String(formData.get("talhaoId") ?? "");
   const dataStr = String(formData.get("data") ?? "");
+  const numeroPessoas = Number(formData.get("numeroPessoas") ?? 0);
+  const horasPorPessoa = Number(formData.get("horasPorPessoa") ?? 0);
+  const horasMaquinaRaw = formData.get("horasMaquina");
+  const horasMaquina = horasMaquinaRaw ? Number(horasMaquinaRaw) : null;
   const observacoes = String(formData.get("observacoes") ?? "").trim() || null;
-
-  const usuarioIds = formData.getAll("usuarioId[]").map(String);
-  const horas = formData.getAll("horas[]").map(Number);
 
   if (!tipoAtividadeId || !talhaoId || !dataStr) {
     return "Preencha o tipo de atividade, o talhão e a data.";
   }
 
-  const funcionarios = usuarioIds
-    .map((usuarioId, i) => ({ usuarioId, horasTrabalhadas: horas[i] }))
-    .filter((item) => item.usuarioId && item.horasTrabalhadas > 0);
-
-  if (funcionarios.length === 0) {
-    return "Adicione ao menos um funcionário com horas trabalhadas maior que zero.";
+  if (!numeroPessoas || numeroPessoas < 1 || !horasPorPessoa || horasPorPessoa <= 0) {
+    return "Informe a quantidade de pessoas e as horas por pessoa, maior que zero.";
   }
 
-  const atividade = await db.$transaction(async (tx) => {
-    const novaAtividade = await tx.atividade.create({
-      data: {
-        tipoAtividadeId,
-        talhaoId,
-        data: new Date(dataStr),
-        observacoes,
-      },
-    });
+  const propriedadeId = await exigirPropriedadeAtual();
+  const talhao = await db.talhao.findUnique({ where: { id: talhaoId }, select: { propriedadeId: true } });
+  if (!talhao || talhao.propriedadeId !== propriedadeId) {
+    return "Talhão inválido para a propriedade atual.";
+  }
 
-    for (const funcionario of funcionarios) {
-      await tx.atividadeFuncionario.create({
-        data: {
-          atividadeId: novaAtividade.id,
-          usuarioId: funcionario.usuarioId,
-          horasTrabalhadas: funcionario.horasTrabalhadas,
-        },
-      });
-    }
-
-    return novaAtividade;
+  const atividade = await db.atividade.create({
+    data: {
+      tipoAtividadeId,
+      talhaoId,
+      data: new Date(dataStr),
+      numeroPessoas,
+      horasPorPessoa,
+      horasMaquina,
+      observacoes,
+    },
   });
 
   revalidatePath("/atividades");

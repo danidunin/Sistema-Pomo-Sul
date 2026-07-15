@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { exigirPropriedadeAtual } from "@/lib/propriedade";
 
 function parseTalhaoForm(formData: FormData) {
   const nomeCodinome = String(formData.get("nomeCodinome") ?? "").trim();
@@ -13,7 +14,6 @@ function parseTalhaoForm(formData: FormData) {
   return {
     nomeCodinome,
     areaHa: areaHa ? Number(areaHa) : null,
-    cultura: String(formData.get("cultura") ?? "").trim() || null,
     especie: String(formData.get("especie") ?? "").trim() || null,
     variedade: String(formData.get("variedade") ?? "").trim() || null,
     portaEnxerto: String(formData.get("portaEnxerto") ?? "").trim() || null,
@@ -34,7 +34,8 @@ export async function criarTalhao(
     return "Informe o nome/codinome do talhão.";
   }
 
-  const talhao = await db.talhao.create({ data: dados });
+  const propriedadeId = await exigirPropriedadeAtual();
+  const talhao = await db.talhao.create({ data: { ...dados, propriedadeId } });
 
   revalidatePath("/talhoes");
   redirect(`/talhoes/${talhao.id}`);

@@ -5,7 +5,6 @@ import { useActionState } from "react";
 type TalhaoFormValues = {
   nomeCodinome: string;
   areaHa: string;
-  cultura: string;
   especie: string;
   variedade: string;
   portaEnxerto: string;
@@ -62,20 +61,6 @@ export function TalhaoForm({
           />
         </div>
         <div>
-          <label htmlFor="cultura" className="mb-1 block text-sm font-medium text-neutral-700">
-            Cultura
-          </label>
-          <input
-            id="cultura"
-            name="cultura"
-            defaultValue={defaultValues?.cultura}
-            className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
           <label htmlFor="especie" className="mb-1 block text-sm font-medium text-neutral-700">
             Espécie
           </label>
@@ -86,6 +71,9 @@ export function TalhaoForm({
             className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           />
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="variedade" className="mb-1 block text-sm font-medium text-neutral-700">
             Variedade
@@ -97,9 +85,6 @@ export function TalhaoForm({
             className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           />
         </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="portaEnxerto" className="mb-1 block text-sm font-medium text-neutral-700">
             Porta-enxerto
@@ -111,6 +96,9 @@ export function TalhaoForm({
             className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           />
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="anoPlantio" className="mb-1 block text-sm font-medium text-neutral-700">
             Ano de plantio
@@ -124,9 +112,6 @@ export function TalhaoForm({
             className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           />
         </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="espacamento" className="mb-1 block text-sm font-medium text-neutral-700">
             Espaçamento
@@ -139,19 +124,20 @@ export function TalhaoForm({
             className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           />
         </div>
-        <div>
-          <label htmlFor="numeroPlantas" className="mb-1 block text-sm font-medium text-neutral-700">
-            Número de plantas
-          </label>
-          <input
-            id="numeroPlantas"
-            name="numeroPlantas"
-            type="number"
-            inputMode="numeric"
-            defaultValue={defaultValues?.numeroPlantas}
-            className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
-          />
-        </div>
+      </div>
+
+      <div>
+        <label htmlFor="numeroPlantas" className="mb-1 block text-sm font-medium text-neutral-700">
+          Número de plantas
+        </label>
+        <input
+          id="numeroPlantas"
+          name="numeroPlantas"
+          type="number"
+          inputMode="numeric"
+          defaultValue={defaultValues?.numeroPlantas}
+          className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
+        />
       </div>
 
       <div>

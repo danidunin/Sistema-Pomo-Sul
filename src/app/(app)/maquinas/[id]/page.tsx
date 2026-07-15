@@ -2,25 +2,35 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { buscarHistoricoManutencao } from "@/lib/maquinas";
-import { Timeline } from "@/components/historico/timeline";
+import { exigirPropriedadeAtual } from "@/lib/propriedade";
+import { HistoricoManutencao } from "@/components/maquinas/historico-manutencao";
+import { FotoPrincipal } from "@/components/maquinas/foto-principal";
+import { AbasMaquina } from "@/components/maquinas/abas-maquina";
+import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
+import { VoltarLink } from "@/components/nav/voltar-link";
 
 export default async function MaquinaDetalhePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const propriedadeId = await exigirPropriedadeAtual();
 
   const [maquina, historico] = await Promise.all([
     db.maquina.findUnique({ where: { id } }),
     buscarHistoricoManutencao(id),
   ]);
 
-  if (!maquina) notFound();
+  if (!maquina || maquina.propriedadeId !== propriedadeId) notFound();
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-neutral-900">{maquina.nome}</h1>
+      <VoltarLink href="/maquinas" label="Voltar às máquinas" />
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <FotoPrincipal maquinaId={maquina.id} fotoUrl={maquina.fotoUrl} />
+          <h1 className="text-xl font-semibold text-neutral-900">{maquina.nome}</h1>
+        </div>
         <Link
           href={`/maquinas/${maquina.id}/manutencoes/nova`}
-          className="rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white active:bg-green-800"
+          className="shrink-0 rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white active:bg-green-800"
         >
           + Manutenção
         </Link>
@@ -40,9 +50,25 @@ export default async function MaquinaDetalhePage({ params }: { params: Promise<{
         </div>
       )}
 
+      <AbasMaquina maquinaId={maquina.id} atual="manutencoes" />
+
+      <ExportarBotoes recurso="manutencoes" filtros={`maquinaId=${maquina.id}`} />
+
       <div>
-        <h2 className="mb-2 text-sm font-medium text-neutral-700">Histórico de manutenção</h2>
-        <Timeline itens={historico} />
+        <HistoricoManutencao
+          maquinaId={maquina.id}
+          manutencoes={historico.map((m) => ({
+            id: m.id,
+            data: m.data,
+            servicoRealizado: m.servicoRealizado,
+            tiposConserto: m.tiposConserto,
+            pecasUtilizadas: m.pecasUtilizadas,
+            valor: m.valor?.toString() ?? null,
+            mecanico: m.mecanico,
+            observacoes: m.observacoes,
+            documentos: m.documentos.map((d) => ({ id: d.id, nome: d.nome, url: d.url })),
+          }))}
+        />
       </div>
     </div>
   );

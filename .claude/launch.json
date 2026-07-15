@@ -6,6 +6,12 @@
       "runtimeExecutable": "/Users/daniel.dunin/.nvm/versions/node/v24.18.0/bin/node",
       "runtimeArgs": ["node_modules/next/dist/bin/next", "dev", "--webpack"],
       "port": 3000
+    },
+    {
+      "name": "pomo-sul-prod",
+      "runtimeExecutable": "/Users/daniel.dunin/.nvm/versions/node/v24.18.0/bin/node",
+      "runtimeArgs": ["node_modules/next/dist/bin/next", "start"],
+      "port": 3000
     }
   ]
 }

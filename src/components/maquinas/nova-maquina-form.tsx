@@ -2,12 +2,15 @@
 
 import { useActionState } from "react";
 import { criarMaquina } from "@/actions/maquinas";
+import { FotoInput } from "@/components/upload/foto-input";
 
 export function NovaMaquinaForm() {
   const [errorMessage, formAction, isPending] = useActionState(criarMaquina, undefined);
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      <FotoInput name="fotoUrl" pasta="maquinas" label="Foto da máquina" />
+
       <div>
         <label htmlFor="nome" className="mb-1 block text-sm font-medium text-neutral-700">
           Nome *

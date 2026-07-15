@@ -1,6 +1,11 @@
 @import "tailwindcss";
 
+/* O app é desenhado só para modo claro (cartões brancos, cores fixas em toda
+   a interface) — força isso mesmo se o sistema operacional estiver em modo
+   escuro, senão o texto digitado em campos herda uma cor clara do body e
+   fica quase ilegível sobre o fundo branco dos inputs. */
 :root {
+  color-scheme: light;
   --background: #ffffff;
   --foreground: #171717;
 }
@@ -8,19 +13,39 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-work-sans);
+  --font-display: var(--font-archivo);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Verde do pomar (copa), substituindo o verde padrão do Tailwind em toda a
+   interface — mesmas classes (bg-green-700, focus:ring-green-600 etc.), cor
+   nova. Mantém apenas os tons realmente usados no app. */
+@theme {
+  --color-green-50: #eaf1e6;
+  --color-green-600: #3e7f52;
+  --color-green-700: #2b6b42;
+  --color-green-800: #1e4f30;
+
+  /* Cor por cultura — usada nas tags de talhão/cultura em toda a interface. */
+  --color-maca: #b5342a;
+  --color-maca-soft: #f4e2df;
+  --color-ameixa: #5b4570;
+  --color-ameixa-soft: #eae4ef;
+  --color-pessego: #c97a3b;
+  --color-pessego-soft: #f5e5d6;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-work-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Tipografia de destaque (Archivo) para todos os títulos — aplicada pelo
+   elemento, não por classe, para não exigir tocar em cada página. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-archivo), -apple-system, sans-serif;
+  letter-spacing: -0.01em;
 }

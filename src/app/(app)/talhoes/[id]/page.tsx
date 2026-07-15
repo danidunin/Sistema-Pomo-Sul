@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { buscarHistoricoTalhao } from "@/lib/historico";
+import { buscarHistorico } from "@/lib/historico";
 import { buscarHorasHomemTalhao } from "@/lib/atividades";
+import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { Timeline } from "@/components/historico/timeline";
+import { VoltarLink } from "@/components/nav/voltar-link";
 
 const CAMPOS: { label: string; key: keyof NonNullable<Awaited<ReturnType<typeof buscarTalhao>>> }[] = [
   { label: "Área", key: "areaHa" },
-  { label: "Cultura", key: "cultura" },
   { label: "Espécie", key: "especie" },
   { label: "Variedade", key: "variedade" },
   { label: "Porta-enxerto", key: "portaEnxerto" },
@@ -22,16 +23,18 @@ async function buscarTalhao(id: string) {
 
 export default async function TalhaoDetalhePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const propriedadeId = await exigirPropriedadeAtual();
   const [talhao, historico, horasHomem] = await Promise.all([
     buscarTalhao(id),
-    buscarHistoricoTalhao(id),
+    buscarHistorico({ talhaoId: id }),
     buscarHorasHomemTalhao(id),
   ]);
 
-  if (!talhao) notFound();
+  if (!talhao || talhao.propriedadeId !== propriedadeId) notFound();
 
   return (
     <div className="flex flex-col gap-4">
+      <VoltarLink href="/talhoes" label="Voltar aos talhões" />
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-neutral-900">{talhao.nomeCodinome}</h1>
         <Link
@@ -71,7 +74,12 @@ export default async function TalhaoDetalhePage({ params }: { params: Promise<{ 
       )}
 
       <div>
-        <h2 className="mb-2 text-sm font-medium text-neutral-700">Histórico</h2>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-sm font-medium text-neutral-700">Histórico</h2>
+          <Link href={`/historico-pomar/nova?talhaoId=${talhao.id}`} className="text-sm font-medium text-green-700">
+            + Registrar visita
+          </Link>
+        </div>
         <Timeline itens={historico} />
       </div>
     </div>

@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { exigirPropriedadeAtual } from "@/lib/propriedade";
+import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
+import { CulturaTag } from "@/components/ui/cultura-tag";
 
 export default async function TalhoesPage() {
-  const talhoes = await db.talhao.findMany({ orderBy: { nomeCodinome: "asc" } });
+  const propriedadeId = await exigirPropriedadeAtual();
+  const talhoes = await db.talhao.findMany({ where: { propriedadeId }, orderBy: { nomeCodinome: "asc" } });
 
   return (
     <div className="flex flex-col gap-4">
@@ -16,6 +20,8 @@ export default async function TalhoesPage() {
         </Link>
       </div>
 
+      <ExportarBotoes recurso="talhoes" />
+
       {talhoes.length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhum talhão cadastrado ainda.</p>
       ) : (
@@ -28,10 +34,13 @@ export default async function TalhoesPage() {
             >
               <div>
                 <p className="text-sm font-medium text-neutral-900">{talhao.nomeCodinome}</p>
-                <p className="text-xs text-neutral-500">
-                  {[talhao.cultura, talhao.especie, talhao.variedade].filter(Boolean).join(" · ") ||
-                    "Sem detalhes cadastrados"}
-                </p>
+                <div className="mt-1 flex items-center gap-1.5">
+                  <CulturaTag cultura={talhao.especie} />
+                  {talhao.variedade && <span className="text-xs text-neutral-500">{talhao.variedade}</span>}
+                  {!talhao.especie && !talhao.variedade && (
+                    <span className="text-xs text-neutral-500">Sem detalhes cadastrados</span>
+                  )}
+                </div>
               </div>
               {talhao.areaHa && (
                 <span className="text-xs text-neutral-500">{talhao.areaHa.toString()} ha</span>

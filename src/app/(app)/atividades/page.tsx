@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { formatarData } from "@/lib/format";
+import { exigirPropriedadeAtual } from "@/lib/propriedade";
+import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
 
 export default async function AtividadesPage() {
+  const propriedadeId = await exigirPropriedadeAtual();
   const atividades = await db.atividade.findMany({
+    where: { talhao: { propriedadeId } },
     orderBy: { data: "desc" },
-    include: { tipoAtividade: true, talhao: true, funcionarios: true },
+    include: { tipoAtividade: true, talhao: true },
   });
 
   return (
@@ -20,15 +24,14 @@ export default async function AtividadesPage() {
         </Link>
       </div>
 
+      <ExportarBotoes recurso="atividades" />
+
       {atividades.length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhuma atividade registrada ainda.</p>
       ) : (
         <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
           {atividades.map((atividade) => {
-            const horasHomem = atividade.funcionarios.reduce(
-              (soma, f) => soma + Number(f.horasTrabalhadas),
-              0,
-            );
+            const horasHomem = atividade.numeroPessoas * Number(atividade.horasPorPessoa);
             return (
               <Link
                 key={atividade.id}

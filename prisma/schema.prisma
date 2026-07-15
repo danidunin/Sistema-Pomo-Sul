@@ -1,5 +1,5 @@
 // Schema do POMO SUL — ver plano de arquitetura em CLAUDE.md
-// Fazenda única (não multi-propriedade); talhão é a entidade central do sistema.
+// Multi-propriedade: talhão é a entidade central do sistema, sempre vinculada a uma Propriedade.
 
 generator client {
   provider = "prisma-client"
@@ -11,7 +11,26 @@ datasource db {
 }
 
 // ---------------------------------------------------------------------------
-// Usuários — todos com as mesmas permissões (sem RBAC)
+// Propriedades — cada uma com talhões, máquinas, operadores e estoque próprios
+// ---------------------------------------------------------------------------
+
+model Propriedade {
+  id        String   @id @default(cuid())
+  nome      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  talhoes         Talhao[]
+  maquinas        Maquina[]
+  operadores      Operador[]
+  produtos        Produto[]
+  contagensFrutos ContagemFrutos[]
+
+  @@map("propriedades")
+}
+
+// ---------------------------------------------------------------------------
+// Usuários — todos com as mesmas permissões (sem RBAC), contas globais
+// (uma pessoa loga uma vez e escolhe em qual propriedade quer trabalhar)
 // ---------------------------------------------------------------------------
 
 model Usuario {
@@ -21,9 +40,7 @@ model Usuario {
   senhaHash String   @map("senha_hash")
   createdAt DateTime @default(now()) @map("created_at")
 
-  operacoesResponsavel  OperacaoAgricola[]  @relation("OperacaoResponsavel")
-  operacoesOperador     OperacaoAgricola[]  @relation("OperacaoOperador")
-  atividadeFuncionarios AtividadeFuncionario[]
+  operacoesResponsavel OperacaoAgricola[] @relation("OperacaoResponsavel")
 
   @@map("usuarios")
 }
@@ -34,9 +51,10 @@ model Usuario {
 
 model Talhao {
   id            String   @id @default(cuid())
+  propriedade   Propriedade @relation(fields: [propriedadeId], references: [id])
+  propriedadeId String   @map("propriedade_id")
   nomeCodinome  String   @map("nome_codinome")
   areaHa        Decimal? @map("area_ha") @db.Decimal(10, 2)
-  cultura       String?
   especie       String?
   variedade     String?
   portaEnxerto  String?  @map("porta_enxerto")
@@ -48,30 +66,123 @@ model Talhao {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
-  operacoes  OperacaoAgricola[]
-  atividades Atividade[]
-  fotos      Foto[]
+  operacoes       OperacaoAgricola[]
+  atividades      Atividade[]
+  fotos           Foto[]
+  visitas         VisitaCampo[]
+  contagensFrutos ContagemFrutos[]
+  metasSafra      MetaSafra[]
 
   @@index([nomeCodinome])
+  @@index([propriedadeId])
   @@map("talhoes")
+}
+
+// ---------------------------------------------------------------------------
+// Contagem de Frutos / Estimativa de Safra
+// ---------------------------------------------------------------------------
+
+// Meta de frutos por planta — única por talhão + safra. Definida na primeira
+// contagem de uma safra e reaplicada (e editável) para todas as contagens
+// daquele talhão na mesma safra, em vez de ser digitada em cada registro.
+model MetaSafra {
+  id                  String   @id @default(cuid())
+  talhao              Talhao   @relation(fields: [talhaoId], references: [id])
+  talhaoId            String   @map("talhao_id")
+  safra               String
+  metaFrutosPorPlanta Decimal  @map("meta_frutos_por_planta") @db.Decimal(10, 2)
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  contagens ContagemFrutos[]
+
+  @@unique([talhaoId, safra])
+  @@map("metas_safra")
+}
+
+model ContagemFrutos {
+  id                      String      @id @default(cuid())
+  propriedade             Propriedade @relation(fields: [propriedadeId], references: [id])
+  propriedadeId           String      @map("propriedade_id")
+  talhao                  Talhao      @relation(fields: [talhaoId], references: [id])
+  talhaoId                String      @map("talhao_id")
+  metaSafra               MetaSafra   @relation(fields: [metaSafraId], references: [id])
+  metaSafraId             String      @map("meta_safra_id")
+  data                    DateTime
+  numeroPlantasAmostradas Int         @map("numero_plantas_amostradas")
+  // Total de frutos somado nas plantas amostradas (não é a média por planta).
+  frutosContados          Int         @map("frutos_contados")
+  // Congelado no momento do registro — não recalcula se a área do talhão mudar
+  // depois, para não alterar retroativamente estimativas antigas.
+  areaHa                  Decimal     @map("area_ha") @db.Decimal(10, 2)
+  plantasPorHectare       Decimal     @map("plantas_por_hectare") @db.Decimal(10, 2)
+  pesoMedioFrutoG         Decimal     @map("peso_medio_fruto_g") @db.Decimal(10, 2)
+  observacoes             String?
+  createdAt               DateTime    @default(now()) @map("created_at")
+
+  @@index([talhaoId, data])
+  @@index([metaSafraId])
+  @@map("contagens_frutos")
+}
+
+// ---------------------------------------------------------------------------
+// Operadores — equipe de campo (tratoristas, aplicadores etc.), sem login
+// ---------------------------------------------------------------------------
+
+model Operador {
+  id            String   @id @default(cuid())
+  propriedade   Propriedade @relation(fields: [propriedadeId], references: [id])
+  propriedadeId String   @map("propriedade_id")
+  nomeCompleto  String   @map("nome_completo")
+  apelido       String?
+  cpf           String?
+  telefone      String?
+  funcao        String?
+  equipe        String?
+  ativo         Boolean  @default(true)
+  observacoes   String?
+  fotoUrl       String?  @map("foto_url")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  operacoes OperacaoAgricola[]
+
+  @@index([nomeCompleto])
+  @@index([propriedadeId])
+  @@map("operadores")
 }
 
 // ---------------------------------------------------------------------------
 // Estoque — lista única de produtos, sem subgrupos
 // ---------------------------------------------------------------------------
 
+// Unidade em que a dosagem/concentração do produto é expressa.
+// PERCENTUAL, ML_100L e G_100L usam a fórmula: quantidade = (concentração / 100) × volume de calda.
+// L_HA e KG_HA usam a fórmula: quantidade = concentração × área do talhão.
+enum UnidadeDosagem {
+  PERCENTUAL
+  ML_100L
+  G_100L
+  L_HA
+  KG_HA
+}
+
 model Produto {
-  id                   String   @id @default(cuid())
+  id                   String          @id @default(cuid())
+  propriedade          Propriedade     @relation(fields: [propriedadeId], references: [id])
+  propriedadeId        String          @map("propriedade_id")
   nome                 String
   unidade              String
-  quantidadeDisponivel Decimal  @default(0) @map("quantidade_disponivel") @db.Decimal(12, 3)
+  unidadeDosagem       UnidadeDosagem? @map("unidade_dosagem")
+  quantidadeDisponivel Decimal         @default(0) @map("quantidade_disponivel") @db.Decimal(12, 3)
+  ativo                Boolean         @default(true)
   observacoes          String?
-  createdAt            DateTime @default(now()) @map("created_at")
+  createdAt            DateTime        @default(now()) @map("created_at")
 
   itensOperacao  OperacaoProduto[]
   movimentacoes  EstoqueMovimentacao[]
 
   @@index([nome])
+  @@index([propriedadeId])
   @@map("produtos")
 }
 
@@ -121,11 +232,14 @@ model OperacaoAgricola {
   talhaoId       String       @map("talhao_id")
   responsavel    Usuario      @relation("OperacaoResponsavel", fields: [responsavelId], references: [id])
   responsavelId  String       @map("responsavel_id")
-  operador       Usuario?     @relation("OperacaoOperador", fields: [operadorId], references: [id])
+  operador       Operador?    @relation(fields: [operadorId], references: [id])
   operadorId     String?      @map("operador_id")
   maquina        Maquina?     @relation(fields: [maquinaId], references: [id])
   maquinaId      String?      @map("maquina_id")
   volumeCalda    Decimal?     @map("volume_calda") @db.Decimal(10, 2)
+  numeroPessoas  Int?         @map("numero_pessoas")
+  horasPorPessoa Decimal?     @map("horas_por_pessoa") @db.Decimal(6, 2)
+  horasMaquina   Decimal?     @map("horas_maquina") @db.Decimal(6, 2)
   observacoes    String?
   fotoUrl        String?      @map("foto_url")
   createdAt      DateTime     @default(now()) @map("created_at")
@@ -138,13 +252,17 @@ model OperacaoAgricola {
 }
 
 model OperacaoProduto {
-  id          String           @id @default(cuid())
-  operacao    OperacaoAgricola @relation(fields: [operacaoId], references: [id], onDelete: Cascade)
-  operacaoId  String           @map("operacao_id")
-  produto     Produto          @relation(fields: [produtoId], references: [id])
-  produtoId   String           @map("produto_id")
-  quantidade  Decimal          @db.Decimal(12, 3)
-  unidade     String
+  id            String           @id @default(cuid())
+  operacao      OperacaoAgricola @relation(fields: [operacaoId], references: [id], onDelete: Cascade)
+  operacaoId    String           @map("operacao_id")
+  produto       Produto          @relation(fields: [produtoId], references: [id])
+  produtoId     String           @map("produto_id")
+  // Concentração informada pelo usuário (na unidade de dosagem do produto).
+  concentracao  Decimal?         @db.Decimal(10, 3)
+  // Quantidade final, sempre calculada a partir da concentração — nunca digitada
+  // manualmente. É o valor usado na baixa de estoque.
+  quantidade    Decimal          @db.Decimal(12, 3)
+  unidade       String
 
   @@map("operacao_produtos")
 }
@@ -170,25 +288,15 @@ model Atividade {
   tipoAtividadeId String        @map("tipo_atividade_id")
   talhao          Talhao        @relation(fields: [talhaoId], references: [id])
   talhaoId        String        @map("talhao_id")
+  numeroPessoas   Int           @map("numero_pessoas")
+  horasPorPessoa  Decimal       @map("horas_por_pessoa") @db.Decimal(6, 2)
+  horasMaquina    Decimal?      @map("horas_maquina") @db.Decimal(6, 2)
   observacoes     String?
   fotoUrl         String?       @map("foto_url")
   createdAt       DateTime      @default(now()) @map("created_at")
 
-  funcionarios AtividadeFuncionario[]
-
   @@index([talhaoId, data])
   @@map("atividades")
-}
-
-model AtividadeFuncionario {
-  id               String    @id @default(cuid())
-  atividade        Atividade @relation(fields: [atividadeId], references: [id], onDelete: Cascade)
-  atividadeId      String    @map("atividade_id")
-  usuario          Usuario   @relation(fields: [usuarioId], references: [id])
-  usuarioId        String    @map("usuario_id")
-  horasTrabalhadas Decimal   @map("horas_trabalhadas") @db.Decimal(6, 2)
-
-  @@map("atividade_funcionarios")
 }
 
 // ---------------------------------------------------------------------------
@@ -197,6 +305,8 @@ model AtividadeFuncionario {
 
 model Maquina {
   id             String   @id @default(cuid())
+  propriedade    Propriedade @relation(fields: [propriedadeId], references: [id])
+  propriedadeId  String   @map("propriedade_id")
   nome           String
   marca          String?
   modelo         String?
@@ -207,45 +317,117 @@ model Maquina {
   createdAt      DateTime @default(now()) @map("created_at")
 
   manutencoes Manutencao[]
+  revisoes    Revisao[]
   operacoes   OperacaoAgricola[]
   fotos       Foto[]
 
+  @@index([propriedadeId])
   @@map("maquinas")
 }
 
+// Categorias fixas de conserto — uma manutenção pode envolver mais de um sistema.
+enum TipoConserto {
+  MOTOR
+  TRANSMISSAO
+  DIRECAO
+  RODADO
+  ELETRICO
+  HIDRAULICO
+}
+
 model Manutencao {
-  id               String   @id @default(cuid())
-  maquina          Maquina  @relation(fields: [maquinaId], references: [id])
-  maquinaId        String   @map("maquina_id")
+  id               String         @id @default(cuid())
+  maquina          Maquina        @relation(fields: [maquinaId], references: [id])
+  maquinaId        String         @map("maquina_id")
   data             DateTime
-  servicoRealizado String   @map("servico_realizado")
-  pecasUtilizadas  String?  @map("pecas_utilizadas")
-  valor            Decimal? @db.Decimal(10, 2)
-  horimetro        Decimal? @db.Decimal(10, 1)
+  servicoRealizado String         @map("servico_realizado")
+  tiposConserto    TipoConserto[] @map("tipos_conserto")
+  pecasUtilizadas  String?        @map("pecas_utilizadas")
+  valor            Decimal?       @db.Decimal(10, 2)
+  horimetro        Decimal?       @db.Decimal(10, 1)
   mecanico         String?
   observacoes      String?
-  createdAt        DateTime @default(now()) @map("created_at")
+  createdAt        DateTime       @default(now()) @map("created_at")
+
+  documentos DocumentoManutencao[]
+  fotos      Foto[]
 
   @@index([maquinaId, data])
   @@map("manutencoes")
 }
 
+// Revisões preventivas (troca de óleo, filtros etc.), baseadas em horas de trabalho —
+// separado de Manutencao (corretiva), que não usa mais horímetro.
+model Revisao {
+  id               String   @id @default(cuid())
+  maquina          Maquina  @relation(fields: [maquinaId], references: [id])
+  maquinaId        String   @map("maquina_id")
+  data             DateTime
+  horimetro        Decimal  @db.Decimal(10, 1)
+  servicoRealizado String   @map("servico_realizado")
+  observacoes      String?
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([maquinaId, data])
+  @@map("revisoes")
+}
+
+// Documentos anexados a uma manutenção (notas fiscais de peças/serviço, principalmente PDF).
+model DocumentoManutencao {
+  id           String     @id @default(cuid())
+  manutencao   Manutencao @relation(fields: [manutencaoId], references: [id], onDelete: Cascade)
+  manutencaoId String     @map("manutencao_id")
+  nome         String
+  url          String
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  @@index([manutencaoId])
+  @@map("documentos_manutencao")
+}
+
 // ---------------------------------------------------------------------------
-// Fotos e observações — vínculo com talhão OU máquina (FK dupla nullable)
+// Fotos e observações — vínculo com talhão, máquina, manutenção OU visita de campo
 // ---------------------------------------------------------------------------
 
 model Foto {
-  id          String   @id @default(cuid())
-  data        DateTime
-  descricao   String?
-  talhao      Talhao?  @relation(fields: [talhaoId], references: [id])
-  talhaoId    String?  @map("talhao_id")
-  maquina     Maquina? @relation(fields: [maquinaId], references: [id])
-  maquinaId   String?  @map("maquina_id")
-  url         String
-  createdAt   DateTime @default(now()) @map("created_at")
+  id            String       @id @default(cuid())
+  data          DateTime
+  descricao     String?
+  talhao        Talhao?      @relation(fields: [talhaoId], references: [id])
+  talhaoId      String?      @map("talhao_id")
+  maquina       Maquina?     @relation(fields: [maquinaId], references: [id])
+  maquinaId     String?      @map("maquina_id")
+  manutencao    Manutencao?  @relation(fields: [manutencaoId], references: [id], onDelete: Cascade)
+  manutencaoId  String?      @map("manutencao_id")
+  visitaCampo   VisitaCampo? @relation(fields: [visitaCampoId], references: [id], onDelete: Cascade)
+  visitaCampoId String?      @map("visita_campo_id")
+  url           String
+  createdAt     DateTime     @default(now()) @map("created_at")
 
   @@index([talhaoId, data])
   @@index([maquinaId, data])
+  @@index([manutencaoId])
+  @@index([visitaCampoId])
   @@map("fotos")
+}
+
+// ---------------------------------------------------------------------------
+// Histórico do Pomar — registro manual de visita a campo (clima, folhas etc.)
+// ---------------------------------------------------------------------------
+
+model VisitaCampo {
+  id                     String   @id @default(cuid())
+  data                   DateTime
+  talhao                 Talhao   @relation(fields: [talhaoId], references: [id])
+  talhaoId               String   @map("talhao_id")
+  temperatura            Decimal? @db.Decimal(4, 1)
+  // Percentual aproximado de enfolhamento (0 a 100, passos de 10).
+  percentualEnfolhamento Int?     @map("percentual_enfolhamento")
+  observacoes            String?
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  fotos Foto[]
+
+  @@index([talhaoId, data])
+  @@map("visitas_campo")
 }
