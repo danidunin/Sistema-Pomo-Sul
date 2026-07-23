@@ -25,6 +25,8 @@ model Propriedade {
   produtos        Produto[]
   contagensFrutos ContagemFrutos[]
   tanquesDiesel   TanqueDiesel[]
+  atividades      Atividade[]
+  chuvaRegistros  ChuvaRegistro[]
 
   @@map("propriedades")
 }
@@ -287,8 +289,10 @@ model Atividade {
   data            DateTime
   tipoAtividade   TipoAtividade @relation(fields: [tipoAtividadeId], references: [id])
   tipoAtividadeId String        @map("tipo_atividade_id")
-  talhao          Talhao        @relation(fields: [talhaoId], references: [id])
-  talhaoId        String        @map("talhao_id")
+  propriedade     Propriedade   @relation(fields: [propriedadeId], references: [id])
+  propriedadeId   String        @map("propriedade_id")
+  talhao          Talhao?       @relation(fields: [talhaoId], references: [id])
+  talhaoId        String?       @map("talhao_id")
   numeroPessoas   Int           @map("numero_pessoas")
   horasPorPessoa  Decimal       @map("horas_por_pessoa") @db.Decimal(6, 2)
   horasMaquina    Decimal?      @map("horas_maquina") @db.Decimal(6, 2)
@@ -297,6 +301,7 @@ model Atividade {
   createdAt       DateTime      @default(now()) @map("created_at")
 
   @@index([talhaoId, data])
+  @@index([propriedadeId, data])
   @@map("atividades")
 }
 
@@ -466,4 +471,29 @@ model DieselMovimentacao {
 
   @@index([tanqueId, data])
   @@map("diesel_movimentacoes")
+}
+
+// ---------------------------------------------------------------------------
+// Controle de Chuva — leitura manual de pluviômetro, única por propriedade
+// (não há leitura por talhão)
+// ---------------------------------------------------------------------------
+
+model ChuvaRegistro {
+  id                   String                @id @default(cuid())
+  propriedade          Propriedade           @relation(fields: [propriedadeId], references: [id])
+  propriedadeId        String                @map("propriedade_id")
+  data                 DateTime
+  quantidadeMm         Decimal               @map("quantidade_mm") @db.Decimal(6, 2)
+  relacaoTratamentoDia RelacaoTratamentoDia? @map("relacao_tratamento_dia")
+  observacoes          String?
+  createdAt            DateTime              @default(now()) @map("created_at")
+  updatedAt            DateTime              @updatedAt @map("updated_at")
+
+  @@index([propriedadeId, data])
+  @@map("chuva_registros")
+}
+
+enum RelacaoTratamentoDia {
+  ANTES
+  DEPOIS
 }
