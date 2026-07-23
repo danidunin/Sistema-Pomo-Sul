@@ -24,6 +24,7 @@ model Propriedade {
   operadores      Operador[]
   produtos        Produto[]
   contagensFrutos ContagemFrutos[]
+  tanquesDiesel   TanqueDiesel[]
 
   @@map("propriedades")
 }
@@ -430,4 +431,39 @@ model VisitaCampo {
 
   @@index([talhaoId, data])
   @@map("visitas_campo")
+}
+
+// ---------------------------------------------------------------------------
+// Diesel — controle de estoque de combustível do(s) tanque(s) da propriedade
+// ---------------------------------------------------------------------------
+
+model TanqueDiesel {
+  id                  String   @id @default(cuid())
+  propriedade         Propriedade @relation(fields: [propriedadeId], references: [id])
+  propriedadeId       String   @map("propriedade_id")
+  nome                String
+  capacidadeLitros    Decimal  @map("capacidade_litros") @db.Decimal(10, 2)
+  estoqueAtualLitros  Decimal  @default(0) @map("estoque_atual_litros") @db.Decimal(10, 2)
+  estoqueMinimoLitros Decimal  @map("estoque_minimo_litros") @db.Decimal(10, 2)
+  ativo               Boolean  @default(true)
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  movimentacoes DieselMovimentacao[]
+
+  @@index([propriedadeId])
+  @@map("tanques_diesel")
+}
+
+model DieselMovimentacao {
+  id               String           @id @default(cuid())
+  tanque           TanqueDiesel     @relation(fields: [tanqueId], references: [id])
+  tanqueId         String           @map("tanque_id")
+  tipo             TipoMovimentacao
+  quantidadeLitros Decimal          @map("quantidade_litros") @db.Decimal(10, 2)
+  data             DateTime
+  observacoes      String?
+  createdAt        DateTime         @default(now()) @map("created_at")
+
+  @@index([tanqueId, data])
+  @@map("diesel_movimentacoes")
 }
