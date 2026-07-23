@@ -83,3 +83,8 @@ export async function garantirVisitaDaPropriedade(visitaId: string, propriedadeI
   });
   return visita?.talhao.propriedadeId === propriedadeId;
 }
+
+export async function garantirTanqueDaPropriedade(tanqueId: string, propriedadeId: string): Promise<boolean> {
+  const tanque = await db.tanqueDiesel.findUnique({ where: { id: tanqueId }, select: { propriedadeId: true } });
+  return tanque?.propriedadeId === propriedadeId;
+}
