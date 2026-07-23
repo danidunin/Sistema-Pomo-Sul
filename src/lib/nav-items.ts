@@ -12,6 +12,7 @@ import {
   HardHat,
   Users,
   User,
+  Droplet,
 } from "lucide-react";
 
 export type NavItem = {
@@ -34,6 +35,7 @@ export const NAV_ITEMS: NavItem[] = [
 export const SECONDARY_NAV_ITEMS: NavItem[] = [
   { href: "/historico-pomar", label: "Histórico do Pomar", icon: History },
   { href: "/contagem-frutos", label: "Contagem de Frutos", icon: Apple },
+  { href: "/diesel", label: "Controle de Diesel", icon: Droplet },
   { href: "/relatorios/horas-maquina", label: "Horas de Máquina", icon: Fuel },
   { href: "/relatorios/horas-homem", label: "Hora-Homem", icon: HardHat },
   { href: "/operadores", label: "Operadores", icon: Users },
