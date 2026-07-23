@@ -1,20 +1,41 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { criarAtividade } from "@/actions/atividades";
+import { useState } from "react";
+import { useFormularioAcao } from "@/hooks/use-formulario-acao";
 
 type Opcao = { id: string; nome: string };
+
+type AtividadeFormValues = {
+  tipoAtividadeId: string;
+  talhaoId: string;
+  data: string;
+  numeroPessoas: string;
+  horasPorPessoa: string;
+  horasMaquina: string;
+  observacoes: string;
+};
+
+type AtividadeAction = (
+  prevState: string | undefined,
+  formData: FormData,
+) => Promise<string | undefined>;
 
 export function AtividadeForm({
   tiposAtividade,
   talhoes,
+  action,
+  defaultValues,
+  submitLabel = "Registrar atividade",
 }: {
   tiposAtividade: Opcao[];
   talhoes: Opcao[];
+  action: AtividadeAction;
+  defaultValues?: Partial<AtividadeFormValues>;
+  submitLabel?: string;
 }) {
-  const [errorMessage, formAction, isPending] = useActionState(criarAtividade, undefined);
-  const [numeroPessoas, setNumeroPessoas] = useState("");
-  const [horasPorPessoa, setHorasPorPessoa] = useState("");
+  const { formAction, isPending, erro, rotulo } = useFormularioAcao(action);
+  const [numeroPessoas, setNumeroPessoas] = useState(defaultValues?.numeroPessoas ?? "");
+  const [horasPorPessoa, setHorasPorPessoa] = useState(defaultValues?.horasPorPessoa ?? "");
 
   const horasHomem =
     numeroPessoas && horasPorPessoa ? Number(numeroPessoas) * Number(horasPorPessoa) : null;
@@ -30,7 +51,7 @@ export function AtividadeForm({
             id="tipoAtividadeId"
             name="tipoAtividadeId"
             required
-            defaultValue=""
+            defaultValue={defaultValues?.tipoAtividadeId ?? ""}
             className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           >
             <option value="" disabled>
@@ -52,7 +73,7 @@ export function AtividadeForm({
             name="data"
             type="date"
             required
-            defaultValue={new Date().toISOString().slice(0, 10)}
+            defaultValue={defaultValues?.data ?? new Date().toISOString().slice(0, 10)}
             className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           />
         </div>
@@ -66,7 +87,7 @@ export function AtividadeForm({
           id="talhaoId"
           name="talhaoId"
           required
-          defaultValue=""
+          defaultValue={defaultValues?.talhaoId ?? ""}
           className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
         >
           <option value="" disabled>
@@ -134,6 +155,7 @@ export function AtividadeForm({
           inputMode="decimal"
           step="0.5"
           placeholder="Se utilizou mecanização"
+          defaultValue={defaultValues?.horasMaquina}
           className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
         />
       </div>
@@ -146,22 +168,19 @@ export function AtividadeForm({
           id="observacoes"
           name="observacoes"
           rows={3}
+          defaultValue={defaultValues?.observacoes}
           className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
         />
       </div>
 
-      {errorMessage && (
-        <p className="text-sm text-red-600" role="alert">
-          {errorMessage}
-        </p>
-      )}
+      {erro}
 
       <button
         type="submit"
         disabled={isPending}
         className="rounded-lg bg-green-700 py-3 text-base font-medium text-white active:bg-green-800 disabled:opacity-60"
       >
-        {isPending ? "Salvando..." : "Registrar atividade"}
+        {rotulo(submitLabel)}
       </button>
     </form>
   );

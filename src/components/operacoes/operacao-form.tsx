@@ -1,9 +1,13 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useState } from "react";
 import { criarOperacao, atualizarOperacao } from "@/actions/operacoes";
+import { criarOperadorRapido } from "@/actions/operadores";
+import { criarMaquinaRapido } from "@/actions/maquinas";
 import { calcularQuantidade, unidadeCanonica, converterParaUnidadeEstoque, UNIDADE_DOSAGEM_LABELS } from "@/lib/concentracao";
 import type { UnidadeDosagem } from "@/generated/prisma/enums";
+import { AdicionarRapido } from "@/components/operacoes/adicionar-rapido";
+import { useFormularioAcao } from "@/hooks/use-formulario-acao";
 
 type Opcao = { id: string; nome: string };
 type TalhaoOpcao = { id: string; nome: string; areaHa: number | null };
@@ -55,10 +59,14 @@ export function OperacaoForm({
   valoresIniciais?: ValoresIniciaisOperacao;
 }) {
   const action = modo === "editar" ? atualizarOperacao.bind(null, operacaoId!) : criarOperacao;
-  const [errorMessage, formAction, isPending] = useActionState(action, undefined);
+  const { formAction, isPending, erro, rotulo } = useFormularioAcao(action);
   const [tipo, setTipo] = useState(valoresIniciais?.tipo ?? "FITOSSANITARIO");
   const [talhaoId, setTalhaoId] = useState(valoresIniciais?.talhaoId ?? talhaoIdInicial ?? "");
   const [volumeCalda, setVolumeCalda] = useState(valoresIniciais?.volumeCalda ?? "");
+  const [operadoresLista, setOperadoresLista] = useState(operadores);
+  const [operadorId, setOperadorId] = useState(valoresIniciais?.operadorId ?? "");
+  const [maquinasLista, setMaquinasLista] = useState(maquinas);
+  const [maquinaId, setMaquinaId] = useState(valoresIniciais?.maquinaId ?? "");
   const [numeroPessoas, setNumeroPessoas] = useState(valoresIniciais?.numeroPessoas ?? "");
   const [horasPorPessoa, setHorasPorPessoa] = useState(valoresIniciais?.horasPorPessoa ?? "");
   const [linhas, setLinhas] = useState<LinhaState[]>(() =>
@@ -188,16 +196,25 @@ export function OperacaoForm({
           <select
             id="operadorId"
             name="operadorId"
-            defaultValue={valoresIniciais?.operadorId ?? ""}
+            value={operadorId}
+            onChange={(e) => setOperadorId(e.target.value)}
             className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           >
             <option value="">Não informado</option>
-            {operadores.map((o) => (
+            {operadoresLista.map((o) => (
               <option key={o.id} value={o.id}>
                 {o.nome}
               </option>
             ))}
           </select>
+          <AdicionarRapido
+            label="Novo operador"
+            action={criarOperadorRapido}
+            onCriado={(novo) => {
+              setOperadoresLista((atual) => [...atual, novo].sort((a, b) => a.nome.localeCompare(b.nome)));
+              setOperadorId(novo.id);
+            }}
+          />
         </div>
         <div>
           <label htmlFor="maquinaId" className="mb-1 block text-sm font-medium text-neutral-700">
@@ -206,16 +223,25 @@ export function OperacaoForm({
           <select
             id="maquinaId"
             name="maquinaId"
-            defaultValue={valoresIniciais?.maquinaId ?? ""}
+            value={maquinaId}
+            onChange={(e) => setMaquinaId(e.target.value)}
             className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           >
             <option value="">Nenhuma</option>
-            {maquinas.map((m) => (
+            {maquinasLista.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.nome}
               </option>
             ))}
           </select>
+          <AdicionarRapido
+            label="Nova máquina"
+            action={criarMaquinaRapido}
+            onCriado={(novo) => {
+              setMaquinasLista((atual) => [...atual, novo].sort((a, b) => a.nome.localeCompare(b.nome)));
+              setMaquinaId(novo.id);
+            }}
+          />
         </div>
       </div>
 
@@ -292,18 +318,14 @@ export function OperacaoForm({
         />
       </div>
 
-      {errorMessage && (
-        <p className="text-sm text-red-600" role="alert">
-          {errorMessage}
-        </p>
-      )}
+      {erro}
 
       <button
         type="submit"
         disabled={isPending}
         className="rounded-lg bg-green-700 py-3 text-base font-medium text-white active:bg-green-800 disabled:opacity-60"
       >
-        {isPending ? "Salvando..." : modo === "editar" ? "Salvar alterações" : "Registrar operação"}
+        {rotulo(modo === "editar" ? "Salvar alterações" : "Registrar operação")}
       </button>
     </form>
   );

@@ -1,44 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { excluirProduto } from "@/actions/estoque";
+import { ConfirmarExclusao } from "@/components/ui/confirmar-exclusao";
 
-/**
- * Confirmação de exclusão feita na própria interface (dois cliques), em vez de
- * window.confirm() — diálogos nativos do navegador não são confiáveis em todo
- * contexto (ex: PWA instalado na tela do celular), e podiam fazer o clique em
- * "Excluir" simplesmente não funcionar sem nenhum aviso.
- */
 export function ExcluirProdutoForm({ produtoId }: { produtoId: string }) {
-  const [confirmando, setConfirmando] = useState(false);
-
-  if (!confirmando) {
-    return (
-      <button
-        type="button"
-        onClick={() => setConfirmando(true)}
-        className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600"
-      >
-        Excluir
-      </button>
-    );
-  }
-
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm text-neutral-600">Confirma excluir?</span>
-      <form action={excluirProduto.bind(null, produtoId)}>
-        <button type="submit" className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white active:bg-red-700">
-          Sim, excluir
-        </button>
-      </form>
-      <button
-        type="button"
-        onClick={() => setConfirmando(false)}
-        className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
-      >
-        Cancelar
-      </button>
-    </div>
-  );
+  return <ConfirmarExclusao action={excluirProduto.bind(null, produtoId)} />;
 }

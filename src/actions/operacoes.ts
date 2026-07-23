@@ -4,9 +4,10 @@ import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { TipoOperacao } from "@/generated/prisma/enums";
+import { TipoOperacao } from "@/generated/prisma/enums";
 import { calcularQuantidade, unidadeCanonica, converterParaUnidadeEstoque } from "@/lib/concentracao";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
+import { ehValorDoEnum } from "@/lib/enum";
 
 type ItemOperacao = { produtoId: string; concentracao: number; quantidade: number; unidade: string };
 
@@ -124,6 +125,12 @@ export async function criarOperacao(
   if (!dados.tipo || !dados.dataStr || !dados.talhaoId) {
     return "Preencha o tipo, a data e o talhão.";
   }
+  if (!ehValorDoEnum(TipoOperacao, dados.tipo)) {
+    return "Tipo de operação inválido.";
+  }
+  if (dados.volumeCalda !== null && !Number.isFinite(dados.volumeCalda)) {
+    return "Volume de calda deve conter apenas números.";
+  }
   if (dados.itensBrutos.length === 0) {
     return "Adicione ao menos um produto com concentração maior que zero.";
   }
@@ -201,6 +208,12 @@ export async function atualizarOperacao(
 
   if (!dados.tipo || !dados.dataStr || !dados.talhaoId) {
     return "Preencha o tipo, a data e o talhão.";
+  }
+  if (!ehValorDoEnum(TipoOperacao, dados.tipo)) {
+    return "Tipo de operação inválido.";
+  }
+  if (dados.volumeCalda !== null && !Number.isFinite(dados.volumeCalda)) {
+    return "Volume de calda deve conter apenas números.";
   }
   if (dados.itensBrutos.length === 0) {
     return "Adicione ao menos um produto com concentração maior que zero.";

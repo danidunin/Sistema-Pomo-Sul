@@ -72,7 +72,10 @@ export function HistoricoManutencao({ maquinaId, manutencoes }: { maquinaId: str
           )}
 
           <div className="mt-3 flex items-center gap-3 border-t border-neutral-100 pt-3">
-            <Link href={`/maquinas/${maquinaId}/manutencoes/${m.id}/editar`} className="text-xs font-medium text-green-700">
+            <Link
+              href={`/maquinas/${maquinaId}/manutencoes/${m.id}/editar`}
+              className="rounded-md px-2 py-1.5 text-sm font-medium text-green-700"
+            >
               Editar
             </Link>
             <ExcluirManutencaoForm maquinaId={maquinaId} manutencaoId={m.id} />

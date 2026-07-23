@@ -77,7 +77,7 @@ export default async function OperacoesPage({
               </h2>
 
               {itensDoDia.map((operacao, indice) => (
-                <div key={operacao.id} className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+                <div key={operacao.id} className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
                   <Link
                     href={`/tratamentos/${operacao.id}`}
                     className="flex items-center justify-between border-b border-neutral-100 bg-neutral-50 px-4 py-2 hover:bg-neutral-100"

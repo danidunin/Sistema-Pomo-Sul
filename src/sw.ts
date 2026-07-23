@@ -41,6 +41,17 @@ const serwist = new Serwist({
   clientsClaim: true,
   navigationPreload: true,
   runtimeCaching: [...semCacheDeNavegacao, ...defaultCache],
+  // Só entra em ação quando a estratégia de navegação (NetworkOnly, acima) falha de
+  // verdade por falta de rede — nunca substitui uma resposta de rede bem-sucedida,
+  // então não reintroduz o bug de cache de navegação que o NetworkOnly corrigiu.
+  fallbacks: {
+    entries: [
+      {
+        url: "/offline",
+        matcher: ({ request }) => request.mode === "navigate",
+      },
+    ],
+  },
 });
 
 serwist.addEventListeners();

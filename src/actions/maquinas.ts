@@ -3,55 +3,123 @@
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { exigirPropriedadeAtual } from "@/lib/propriedade";
-import type { TipoConserto } from "@/generated/prisma/enums";
+import {
+  exigirPropriedadeAtual,
+  garantirMaquinaDaPropriedade,
+  garantirManutencaoDaPropriedade,
+  garantirRevisaoDaPropriedade,
+} from "@/lib/propriedade";
+import { TipoConserto } from "@/generated/prisma/enums";
+import { ehValorDoEnum } from "@/lib/enum";
+
+function parseMaquinaForm(formData: FormData) {
+  const anoRaw = formData.get("ano");
+  const horimetroRaw = formData.get("horimetroAtual");
+  return {
+    nome: String(formData.get("nome") ?? "").trim(),
+    marca: String(formData.get("marca") ?? "").trim() || null,
+    modelo: String(formData.get("modelo") ?? "").trim() || null,
+    ano: anoRaw ? Number(anoRaw) : null,
+    horimetroAtual: horimetroRaw ? Number(horimetroRaw) : null,
+    observacoes: String(formData.get("observacoes") ?? "").trim() || null,
+    fotoUrl: String(formData.get("fotoUrl") ?? "").trim() || null,
+  };
+}
+
+function validarNumerosMaquina(dados: ReturnType<typeof parseMaquinaForm>): string | undefined {
+  if (
+    (dados.ano !== null && !Number.isFinite(dados.ano)) ||
+    (dados.horimetroAtual !== null && !Number.isFinite(dados.horimetroAtual))
+  ) {
+    return "Ano e horímetro devem conter apenas números.";
+  }
+  return undefined;
+}
 
 export async function criarMaquina(
   _prevState: string | undefined,
   formData: FormData,
 ): Promise<string | undefined> {
-  const nome = String(formData.get("nome") ?? "").trim();
-  const marca = String(formData.get("marca") ?? "").trim() || null;
-  const modelo = String(formData.get("modelo") ?? "").trim() || null;
-  const anoRaw = formData.get("ano");
-  const horimetroRaw = formData.get("horimetroAtual");
-  const observacoes = String(formData.get("observacoes") ?? "").trim() || null;
-  const fotoUrl = String(formData.get("fotoUrl") ?? "").trim() || null;
+  const dados = parseMaquinaForm(formData);
 
-  if (!nome) {
+  if (!dados.nome) {
     return "Informe o nome da máquina.";
   }
+  const erroNumeros = validarNumerosMaquina(dados);
+  if (erroNumeros) return erroNumeros;
 
   const propriedadeId = await exigirPropriedadeAtual();
-  const maquina = await db.maquina.create({
-    data: {
-      propriedadeId,
-      nome,
-      marca,
-      modelo,
-      ano: anoRaw ? Number(anoRaw) : null,
-      horimetroAtual: horimetroRaw ? Number(horimetroRaw) : null,
-      observacoes,
-      fotoUrl,
-    },
-  });
+  const maquina = await db.maquina.create({ data: { ...dados, propriedadeId } });
 
   revalidatePath("/maquinas");
   redirect(`/maquinas/${maquina.id}`);
 }
 
+export async function atualizarMaquina(
+  maquinaId: string,
+  _prevState: string | undefined,
+  formData: FormData,
+): Promise<string | undefined> {
+  const dados = parseMaquinaForm(formData);
+
+  if (!dados.nome) {
+    return "Informe o nome da máquina.";
+  }
+  const erroNumeros = validarNumerosMaquina(dados);
+  if (erroNumeros) return erroNumeros;
+
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirMaquinaDaPropriedade(maquinaId, propriedadeId))) {
+    return "Máquina inválida para a propriedade atual.";
+  }
+
+  await db.maquina.update({ where: { id: maquinaId }, data: dados });
+
+  revalidatePath("/maquinas");
+  revalidatePath(`/maquinas/${maquinaId}`);
+  redirect(`/maquinas/${maquinaId}`);
+}
+
+/**
+ * Cadastro rápido (só o nome) usado pelo atalho "+ Nova máquina" dentro do
+ * formulário de Tratamento — não redireciona, para não perder o formulário
+ * de tratamento em andamento.
+ */
+export async function criarMaquinaRapido(
+  nome: string,
+): Promise<{ id: string; nome: string } | { erro: string }> {
+  const nomeAparado = nome.trim();
+  if (!nomeAparado) {
+    return { erro: "Informe o nome da máquina." };
+  }
+
+  const propriedadeId = await exigirPropriedadeAtual();
+  const maquina = await db.maquina.create({ data: { nome: nomeAparado, propriedadeId } });
+
+  revalidatePath("/maquinas");
+  return { id: maquina.id, nome: maquina.nome };
+}
+
 function parseManutencaoForm(formData: FormData) {
+  const valorRaw = formData.get("valor");
   return {
     dataStr: String(formData.get("data") ?? ""),
     servicoRealizado: String(formData.get("servicoRealizado") ?? "").trim(),
     tiposConserto: formData.getAll("tiposConserto[]").map(String) as TipoConserto[],
     pecasUtilizadas: String(formData.get("pecasUtilizadas") ?? "").trim() || null,
-    valorRaw: formData.get("valor"),
+    valor: valorRaw ? Number(valorRaw) : null,
     mecanico: String(formData.get("mecanico") ?? "").trim() || null,
     observacoes: String(formData.get("observacoes") ?? "").trim() || null,
     documentoUrls: formData.getAll("documentos[]").map(String),
     documentoNomes: formData.getAll("documentosNomes[]").map(String),
   };
+}
+
+function validarValorManutencao(dados: ReturnType<typeof parseManutencaoForm>): string | undefined {
+  if (dados.valor !== null && !Number.isFinite(dados.valor)) {
+    return "Valor deve conter apenas números.";
+  }
+  return undefined;
 }
 
 export async function criarManutencao(
@@ -64,6 +132,16 @@ export async function criarManutencao(
   if (!dados.dataStr || !dados.servicoRealizado) {
     return "Preencha a data e o serviço realizado.";
   }
+  if (dados.tiposConserto.some((tipo) => !ehValorDoEnum(TipoConserto, tipo))) {
+    return "Tipo de conserto inválido.";
+  }
+  const erroValor = validarValorManutencao(dados);
+  if (erroValor) return erroValor;
+
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirMaquinaDaPropriedade(maquinaId, propriedadeId))) {
+    return "Máquina inválida para a propriedade atual.";
+  }
 
   await db.$transaction(async (tx) => {
     const manutencao = await tx.manutencao.create({
@@ -73,7 +151,7 @@ export async function criarManutencao(
         servicoRealizado: dados.servicoRealizado,
         tiposConserto: dados.tiposConserto,
         pecasUtilizadas: dados.pecasUtilizadas,
-        valor: dados.valorRaw ? Number(dados.valorRaw) : null,
+        valor: dados.valor,
         mecanico: dados.mecanico,
         observacoes: dados.observacoes,
       },
@@ -101,6 +179,16 @@ export async function atualizarManutencao(
   if (!dados.dataStr || !dados.servicoRealizado) {
     return "Preencha a data e o serviço realizado.";
   }
+  if (dados.tiposConserto.some((tipo) => !ehValorDoEnum(TipoConserto, tipo))) {
+    return "Tipo de conserto inválido.";
+  }
+  const erroValor = validarValorManutencao(dados);
+  if (erroValor) return erroValor;
+
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirManutencaoDaPropriedade(manutencaoId, propriedadeId))) {
+    return "Manutenção inválida para a propriedade atual.";
+  }
 
   await db.$transaction(async (tx) => {
     await tx.manutencao.update({
@@ -110,7 +198,7 @@ export async function atualizarManutencao(
         servicoRealizado: dados.servicoRealizado,
         tiposConserto: dados.tiposConserto,
         pecasUtilizadas: dados.pecasUtilizadas,
-        valor: dados.valorRaw ? Number(dados.valorRaw) : null,
+        valor: dados.valor,
         mecanico: dados.mecanico,
         observacoes: dados.observacoes,
       },
@@ -128,6 +216,9 @@ export async function atualizarManutencao(
 }
 
 export async function excluirManutencao(maquinaId: string, manutencaoId: string) {
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirManutencaoDaPropriedade(manutencaoId, propriedadeId))) return;
+
   await db.manutencao.delete({ where: { id: manutencaoId } });
   revalidatePath(`/maquinas/${maquinaId}`);
   redirect(`/maquinas/${maquinaId}`);
@@ -142,6 +233,13 @@ function parseRevisaoForm(formData: FormData) {
   };
 }
 
+function validarHorimetroRevisao(dados: ReturnType<typeof parseRevisaoForm>): string | undefined {
+  if (!Number.isFinite(Number(dados.horimetroRaw))) {
+    return "Horímetro deve conter apenas números.";
+  }
+  return undefined;
+}
+
 export async function criarRevisao(
   maquinaId: string,
   _prevState: string | undefined,
@@ -151,6 +249,13 @@ export async function criarRevisao(
 
   if (!dados.dataStr || !dados.servicoRealizado || !dados.horimetroRaw) {
     return "Preencha a data, o serviço realizado e o horímetro.";
+  }
+  const erroHorimetro = validarHorimetroRevisao(dados);
+  if (erroHorimetro) return erroHorimetro;
+
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirMaquinaDaPropriedade(maquinaId, propriedadeId))) {
+    return "Máquina inválida para a propriedade atual.";
   }
 
   await db.$transaction([
@@ -185,6 +290,13 @@ export async function atualizarRevisao(
   if (!dados.dataStr || !dados.servicoRealizado || !dados.horimetroRaw) {
     return "Preencha a data, o serviço realizado e o horímetro.";
   }
+  const erroHorimetro = validarHorimetroRevisao(dados);
+  if (erroHorimetro) return erroHorimetro;
+
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirRevisaoDaPropriedade(revisaoId, propriedadeId))) {
+    return "Revisão inválida para a propriedade atual.";
+  }
 
   await db.revisao.update({
     where: { id: revisaoId },
@@ -202,6 +314,9 @@ export async function atualizarRevisao(
 }
 
 export async function excluirRevisao(maquinaId: string, revisaoId: string) {
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirRevisaoDaPropriedade(revisaoId, propriedadeId))) return;
+
   await db.revisao.delete({ where: { id: revisaoId } });
   revalidatePath(`/maquinas/${maquinaId}`);
   revalidatePath(`/maquinas/${maquinaId}/revisoes`);

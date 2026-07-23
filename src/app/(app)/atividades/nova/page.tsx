@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
+import { criarAtividade } from "@/actions/atividades";
 import { AtividadeForm } from "@/components/atividades/atividade-form";
 import { VoltarLink } from "@/components/nav/voltar-link";
 
@@ -29,6 +30,7 @@ export default async function NovaAtividadePage() {
       <VoltarLink href="/atividades" label="Voltar às atividades" />
       <h1 className="text-xl font-semibold text-neutral-900">Nova atividade</h1>
       <AtividadeForm
+        action={criarAtividade}
         tiposAtividade={tiposAtividade}
         talhoes={talhoes.map((t) => ({ id: t.id, nome: t.nomeCodinome }))}
       />

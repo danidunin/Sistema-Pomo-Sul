@@ -3,8 +3,9 @@
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { UnidadeDosagem } from "@/generated/prisma/enums";
-import { exigirPropriedadeAtual } from "@/lib/propriedade";
+import { UnidadeDosagem } from "@/generated/prisma/enums";
+import { exigirPropriedadeAtual, garantirProdutoDaPropriedade } from "@/lib/propriedade";
+import { ehValorDoEnum } from "@/lib/enum";
 
 function parseProdutoForm(formData: FormData) {
   const unidadeDosagemRaw = String(formData.get("unidadeDosagem") ?? "");
@@ -25,6 +26,9 @@ export async function criarProduto(
   if (!dados.nome || !dados.unidade) {
     return "Informe o nome e a unidade do produto.";
   }
+  if (dados.unidadeDosagem && !ehValorDoEnum(UnidadeDosagem, dados.unidadeDosagem)) {
+    return "Unidade de dosagem inválida.";
+  }
 
   const propriedadeId = await exigirPropriedadeAtual();
   await db.produto.create({ data: { ...dados, propriedadeId } });
@@ -43,6 +47,14 @@ export async function atualizarProduto(
   if (!dados.nome || !dados.unidade) {
     return "Informe o nome e a unidade do produto.";
   }
+  if (dados.unidadeDosagem && !ehValorDoEnum(UnidadeDosagem, dados.unidadeDosagem)) {
+    return "Unidade de dosagem inválida.";
+  }
+
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirProdutoDaPropriedade(produtoId, propriedadeId))) {
+    return "Produto inválido para a propriedade atual.";
+  }
 
   await db.produto.update({ where: { id: produtoId }, data: dados });
 
@@ -51,6 +63,9 @@ export async function atualizarProduto(
 }
 
 export async function excluirProduto(produtoId: string) {
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirProdutoDaPropriedade(produtoId, propriedadeId))) return;
+
   // Só o uso em tratamentos (operacao_produtos) bloqueia a exclusão definitiva —
   // é o único vínculo que não pode ser desfeito sem quebrar o histórico de tratamentos.
   // Movimentações manuais de estoque (entradas/saídas avulsas) não bloqueiam: são
@@ -74,6 +89,9 @@ export async function excluirProduto(produtoId: string) {
 }
 
 export async function alternarAtivoProduto(produtoId: string, ativo: boolean) {
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirProdutoDaPropriedade(produtoId, propriedadeId))) return;
+
   await db.produto.update({ where: { id: produtoId }, data: { ativo } });
   revalidatePath("/estoque");
   revalidatePath(`/estoque/produtos/${produtoId}/editar`);
@@ -93,31 +111,57 @@ export async function criarMovimentacaoEstoque(
     return "Selecione o tipo, o produto, a data e uma quantidade maior que zero.";
   }
 
-  if (tipoRaw === "SAIDA") {
-    const produto = await db.produto.findUnique({ where: { id: produtoId }, select: { quantidadeDisponivel: true } });
-    if (!produto || quantidade > Number(produto.quantidadeDisponivel)) {
-      return "Quantidade de saída maior que o disponível em estoque.";
-    }
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirProdutoDaPropriedade(produtoId, propriedadeId))) {
+    return "Produto inválido para a propriedade atual.";
   }
 
-  await db.$transaction([
-    db.estoqueMovimentacao.create({
-      data: {
-        produtoId,
-        tipo: tipoRaw,
-        quantidade,
-        data: new Date(dataStr),
-        origemTipo: "MANUAL",
-        observacoes,
-      },
-    }),
-    db.produto.update({
-      where: { id: produtoId },
-      data: {
-        quantidadeDisponivel: tipoRaw === "ENTRADA" ? { increment: quantidade } : { decrement: quantidade },
-      },
-    }),
-  ]);
+  if (tipoRaw === "SAIDA") {
+    // Checagem e baixa acontecem atomicamente dentro da mesma transação: o
+    // updateMany só afeta a linha se quantidadeDisponivel ainda for >= a saída
+    // no momento exato do commit. Isso evita que duas saídas simultâneas leiam
+    // o mesmo saldo "por fora" e ambas passem, deixando o estoque negativo.
+    const saidaAplicada = await db.$transaction(async (tx) => {
+      const baixa = await tx.produto.updateMany({
+        where: { id: produtoId, quantidadeDisponivel: { gte: quantidade } },
+        data: { quantidadeDisponivel: { decrement: quantidade } },
+      });
+      if (baixa.count === 0) return false;
+
+      await tx.estoqueMovimentacao.create({
+        data: {
+          produtoId,
+          tipo: "SAIDA",
+          quantidade,
+          data: new Date(dataStr),
+          origemTipo: "MANUAL",
+          observacoes,
+        },
+      });
+      return true;
+    });
+
+    if (!saidaAplicada) {
+      return "Quantidade de saída maior que o disponível em estoque.";
+    }
+  } else {
+    await db.$transaction([
+      db.estoqueMovimentacao.create({
+        data: {
+          produtoId,
+          tipo: "ENTRADA",
+          quantidade,
+          data: new Date(dataStr),
+          origemTipo: "MANUAL",
+          observacoes,
+        },
+      }),
+      db.produto.update({
+        where: { id: produtoId },
+        data: { quantidadeDisponivel: { increment: quantidade } },
+      }),
+    ]);
+  }
 
   revalidatePath("/estoque");
   redirect("/estoque");

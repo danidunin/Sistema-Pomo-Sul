@@ -82,16 +82,25 @@ function mapearVisita(visita: {
 }
 
 /** Histórico do Pomar: só as visitas de campo (diário de campo) — data, fotos e observações. */
-export async function buscarVisitas(filtro?: FiltroHistorico): Promise<ItemHistorico[]> {
+export async function buscarVisitas(
+  filtro?: FiltroHistorico,
+  paginacao?: { pagina: number; porPagina: number },
+): Promise<{ itens: ItemHistorico[]; total: number }> {
   const where = montarWhere(filtro);
 
-  const visitas = await db.visitaCampo.findMany({
-    where,
-    orderBy: { data: "desc" },
-    include: { talhao: true, fotos: true },
-  });
+  const [visitas, total] = await Promise.all([
+    db.visitaCampo.findMany({
+      where,
+      orderBy: { data: "desc" },
+      include: { talhao: true, fotos: true },
+      ...(paginacao
+        ? { skip: (paginacao.pagina - 1) * paginacao.porPagina, take: paginacao.porPagina }
+        : {}),
+    }),
+    db.visitaCampo.count({ where }),
+  ]);
 
-  return visitas.map(mapearVisita);
+  return { itens: visitas.map(mapearVisita), total };
 }
 
 /**

@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
 import { UNIDADE_DOSAGEM_LABELS } from "@/lib/concentracao";
+import { useFormularioAcao } from "@/hooks/use-formulario-acao";
 
 type ProdutoFormValues = {
   nome: string;
@@ -24,7 +24,7 @@ export function ProdutoForm({
   defaultValues?: Partial<ProdutoFormValues>;
   submitLabel: string;
 }) {
-  const [errorMessage, formAction, isPending] = useActionState(action, undefined);
+  const { formAction, isPending, erro, rotulo } = useFormularioAcao(action);
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -90,18 +90,14 @@ export function ProdutoForm({
         />
       </div>
 
-      {errorMessage && (
-        <p className="text-sm text-red-600" role="alert">
-          {errorMessage}
-        </p>
-      )}
+      {erro}
 
       <button
         type="submit"
         disabled={isPending}
         className="rounded-lg bg-green-700 py-3 text-base font-medium text-white active:bg-green-800 disabled:opacity-60"
       >
-        {isPending ? "Salvando..." : submitLabel}
+        {rotulo(submitLabel)}
       </button>
     </form>
   );

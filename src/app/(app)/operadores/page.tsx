@@ -7,9 +7,9 @@ import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
 export default async function OperadoresPage({
   searchParams,
 }: {
-  searchParams: Promise<{ busca?: string; status?: string }>;
+  searchParams: Promise<{ busca?: string; status?: string; resultado?: string }>;
 }) {
-  const { busca, status } = await searchParams;
+  const { busca, status, resultado } = await searchParams;
   const propriedadeId = await exigirPropriedadeAtual();
 
   const where: Prisma.OperadorWhereInput = { propriedadeId };
@@ -39,6 +39,16 @@ export default async function OperadoresPage({
       </div>
 
       <ExportarBotoes recurso="operadores" />
+
+      {resultado === "excluido" && (
+        <p className="rounded-lg bg-green-50 px-4 py-2 text-sm text-green-800">Operador excluído.</p>
+      )}
+      {resultado === "inativado" && (
+        <p className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-800">
+          Este operador já tinha tratamentos registrados, então foi marcado como inativo em vez de
+          excluído, para não perder esse histórico. Ele some das listas de novos lançamentos.
+        </p>
+      )}
 
       <form className="flex gap-2">
         <input

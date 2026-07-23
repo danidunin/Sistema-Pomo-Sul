@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { VisitaForm } from "@/components/historico/visita-form";
 import { GaleriaFotosVisita } from "@/components/historico/galeria-fotos-visita";
+import { VoltarLink } from "@/components/nav/voltar-link";
 
 export default async function VisitaDetalhePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -24,9 +24,7 @@ export default async function VisitaDetalhePage({ params }: { params: Promise<{ 
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href={`/historico-pomar?talhaoId=${visita.talhaoId}`} className="text-sm font-medium text-green-700">
-        ← Voltar ao histórico
-      </Link>
+      <VoltarLink href={`/historico-pomar?talhaoId=${visita.talhaoId}`} label="Voltar ao histórico" />
 
       <h1 className="text-xl font-semibold text-neutral-900">Visita de campo — {visita.talhao.nomeCodinome}</h1>
 

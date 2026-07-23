@@ -25,15 +25,23 @@ export default async function MaquinaDetalhePage({ params }: { params: Promise<{
       <VoltarLink href="/maquinas" label="Voltar às máquinas" />
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <FotoPrincipal maquinaId={maquina.id} fotoUrl={maquina.fotoUrl} />
+          <FotoPrincipal maquinaId={maquina.id} fotoUrl={maquina.fotoUrl} nome={maquina.nome} />
           <h1 className="text-xl font-semibold text-neutral-900">{maquina.nome}</h1>
         </div>
-        <Link
-          href={`/maquinas/${maquina.id}/manutencoes/nova`}
-          className="shrink-0 rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white active:bg-green-800"
-        >
-          + Manutenção
-        </Link>
+        <div className="flex shrink-0 gap-2">
+          <Link
+            href={`/maquinas/${maquina.id}/editar`}
+            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+          >
+            Editar
+          </Link>
+          <Link
+            href={`/maquinas/${maquina.id}/manutencoes/nova`}
+            className="rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white active:bg-green-800"
+          >
+            + Manutenção
+          </Link>
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">

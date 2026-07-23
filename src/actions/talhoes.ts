@@ -3,7 +3,7 @@
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { exigirPropriedadeAtual } from "@/lib/propriedade";
+import { exigirPropriedadeAtual, garantirTalhaoDaPropriedade } from "@/lib/propriedade";
 
 function parseTalhaoForm(formData: FormData) {
   const nomeCodinome = String(formData.get("nomeCodinome") ?? "").trim();
@@ -24,6 +24,14 @@ function parseTalhaoForm(formData: FormData) {
   };
 }
 
+function validarNumerosTalhao(dados: ReturnType<typeof parseTalhaoForm>): string | undefined {
+  const camposNumericos = [dados.areaHa, dados.anoPlantio, dados.numeroPlantas];
+  if (camposNumericos.some((valor) => valor !== null && !Number.isFinite(valor))) {
+    return "Área, ano de plantio e número de plantas devem conter apenas números.";
+  }
+  return undefined;
+}
+
 export async function criarTalhao(
   _prevState: string | undefined,
   formData: FormData,
@@ -33,6 +41,8 @@ export async function criarTalhao(
   if (!dados.nomeCodinome) {
     return "Informe o nome/codinome do talhão.";
   }
+  const erroNumeros = validarNumerosTalhao(dados);
+  if (erroNumeros) return erroNumeros;
 
   const propriedadeId = await exigirPropriedadeAtual();
   const talhao = await db.talhao.create({ data: { ...dados, propriedadeId } });
@@ -50,6 +60,13 @@ export async function atualizarTalhao(
 
   if (!dados.nomeCodinome) {
     return "Informe o nome/codinome do talhão.";
+  }
+  const erroNumeros = validarNumerosTalhao(dados);
+  if (erroNumeros) return erroNumeros;
+
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirTalhaoDaPropriedade(talhaoId, propriedadeId))) {
+    return "Talhão inválido para a propriedade atual.";
   }
 
   await db.talhao.update({ where: { id: talhaoId }, data: dados });

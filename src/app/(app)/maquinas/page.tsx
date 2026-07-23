@@ -39,7 +39,7 @@ export default async function MaquinasPage() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={maquina.fotoUrl ?? maquina.fotos[0].url}
-                  alt=""
+                  alt={maquina.nome}
                   className="h-12 w-12 shrink-0 rounded-lg border border-neutral-200 object-cover"
                 />
               ) : (

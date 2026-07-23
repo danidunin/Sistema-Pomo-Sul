@@ -12,6 +12,7 @@ export function GaleriaFotosVisita({ visitaId, fotosIniciais }: { visitaId: stri
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
+  const [confirmandoExclusao, setConfirmandoExclusao] = useState<string | null>(null);
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const arquivoSelecionado = e.target.files?.[0];
@@ -42,6 +43,7 @@ export function GaleriaFotosVisita({ visitaId, fotosIniciais }: { visitaId: stri
   }
 
   async function handleExcluir(fotoId: string) {
+    setConfirmandoExclusao(null);
     setFotos((atual) => atual.filter((f) => f.id !== fotoId));
     await excluirFotoVisita(visitaId, fotoId);
   }
@@ -70,14 +72,35 @@ export function GaleriaFotosVisita({ visitaId, fotosIniciais }: { visitaId: stri
                 className="h-full w-full"
                 onClick={() => setFotoAmpliada(foto.url)}
               />
-              <button
-                type="button"
-                onClick={() => handleExcluir(foto.id)}
-                aria-label="Excluir foto"
-                className="absolute right-1 top-1 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white"
-              >
-                ✕
-              </button>
+              {confirmandoExclusao === foto.id ? (
+                <div className="absolute inset-x-1 top-1 flex items-center justify-end gap-1">
+                  <button
+                    type="button"
+                    onClick={() => handleExcluir(foto.id)}
+                    aria-label="Confirmar exclusão da foto"
+                    className="rounded-full bg-red-600 px-2 py-1.5 text-xs font-medium text-white"
+                  >
+                    Excluir
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmandoExclusao(null)}
+                    aria-label="Cancelar exclusão"
+                    className="rounded-full bg-black/60 px-2 py-1.5 text-xs text-white"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmandoExclusao(foto.id)}
+                  aria-label="Excluir foto"
+                  className="absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-sm text-white"
+                >
+                  ✕
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -89,7 +112,7 @@ export function GaleriaFotosVisita({ visitaId, fotosIniciais }: { visitaId: stri
           onClick={() => setFotoAmpliada(null)}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={fotoAmpliada} alt="" className="max-h-full max-w-full rounded-lg object-contain" />
+          <img src={fotoAmpliada} alt="Foto da visita de campo" className="max-h-full max-w-full rounded-lg object-contain" />
         </div>
       )}
     </div>

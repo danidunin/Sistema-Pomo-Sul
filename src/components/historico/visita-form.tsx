@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
 import { criarVisitaCampo, atualizarVisitaCampo } from "@/actions/visitas";
+import { useFormularioAcao } from "@/hooks/use-formulario-acao";
 import { MultiFotoInput } from "@/components/upload/multi-foto-input";
 
 const OPCOES_ENFOLHAMENTO = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
@@ -28,7 +28,7 @@ export function VisitaForm({
   valoresIniciais?: ValoresIniciaisVisita;
 }) {
   const action = modo === "editar" ? atualizarVisitaCampo.bind(null, visitaId!) : criarVisitaCampo;
-  const [errorMessage, formAction, isPending] = useActionState(action, undefined);
+  const { formAction, isPending, erro, rotulo } = useFormularioAcao(action);
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -119,18 +119,14 @@ export function VisitaForm({
         />
       </div>
 
-      {errorMessage && (
-        <p className="text-sm text-red-600" role="alert">
-          {errorMessage}
-        </p>
-      )}
+      {erro}
 
       <button
         type="submit"
         disabled={isPending}
         className="rounded-lg bg-green-700 py-3 text-base font-medium text-white active:bg-green-800 disabled:opacity-60"
       >
-        {isPending ? "Salvando..." : modo === "editar" ? "Salvar alterações" : "Registrar visita"}
+        {rotulo(modo === "editar" ? "Salvar alterações" : "Registrar visita")}
       </button>
     </form>
   );

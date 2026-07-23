@@ -11,6 +11,8 @@ const ROTAS_ESCOPADAS = [
   "/maquinas",
   "/operadores",
   "/historico-pomar",
+  "/contagem-frutos",
+  "/relatorios",
 ];
 
 export default auth((req) => {

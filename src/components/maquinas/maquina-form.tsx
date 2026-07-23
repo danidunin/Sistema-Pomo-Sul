@@ -1,15 +1,37 @@
 "use client";
 
-import { useActionState } from "react";
-import { criarMaquina } from "@/actions/maquinas";
 import { FotoInput } from "@/components/upload/foto-input";
+import { useFormularioAcao } from "@/hooks/use-formulario-acao";
 
-export function NovaMaquinaForm() {
-  const [errorMessage, formAction, isPending] = useActionState(criarMaquina, undefined);
+type MaquinaFormValues = {
+  nome: string;
+  marca: string;
+  modelo: string;
+  ano: string;
+  horimetroAtual: string;
+  observacoes: string;
+  fotoUrl: string;
+};
+
+type MaquinaAction = (
+  prevState: string | undefined,
+  formData: FormData,
+) => Promise<string | undefined>;
+
+export function MaquinaForm({
+  action,
+  defaultValues,
+  submitLabel,
+}: {
+  action: MaquinaAction;
+  defaultValues?: Partial<MaquinaFormValues>;
+  submitLabel: string;
+}) {
+  const { formAction, isPending, erro, rotulo } = useFormularioAcao(action);
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
-      <FotoInput name="fotoUrl" pasta="maquinas" label="Foto da máquina" />
+      <FotoInput name="fotoUrl" pasta="maquinas" label="Foto da máquina" defaultUrl={defaultValues?.fotoUrl} />
 
       <div>
         <label htmlFor="nome" className="mb-1 block text-sm font-medium text-neutral-700">
@@ -20,6 +42,7 @@ export function NovaMaquinaForm() {
           name="nome"
           required
           placeholder="ex: Trator Valtra 07"
+          defaultValue={defaultValues?.nome}
           className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
         />
       </div>
@@ -32,6 +55,7 @@ export function NovaMaquinaForm() {
           <input
             id="marca"
             name="marca"
+            defaultValue={defaultValues?.marca}
             className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           />
         </div>
@@ -42,6 +66,7 @@ export function NovaMaquinaForm() {
           <input
             id="modelo"
             name="modelo"
+            defaultValue={defaultValues?.modelo}
             className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           />
         </div>
@@ -57,6 +82,7 @@ export function NovaMaquinaForm() {
             name="ano"
             type="number"
             inputMode="numeric"
+            defaultValue={defaultValues?.ano}
             className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           />
         </div>
@@ -70,6 +96,7 @@ export function NovaMaquinaForm() {
             type="number"
             inputMode="decimal"
             step="0.1"
+            defaultValue={defaultValues?.horimetroAtual}
             className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           />
         </div>
@@ -83,22 +110,19 @@ export function NovaMaquinaForm() {
           id="observacoes"
           name="observacoes"
           rows={3}
+          defaultValue={defaultValues?.observacoes}
           className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
         />
       </div>
 
-      {errorMessage && (
-        <p className="text-sm text-red-600" role="alert">
-          {errorMessage}
-        </p>
-      )}
+      {erro}
 
       <button
         type="submit"
         disabled={isPending}
         className="rounded-lg bg-green-700 py-3 text-base font-medium text-white active:bg-green-800 disabled:opacity-60"
       >
-        {isPending ? "Salvando..." : "Criar máquina"}
+        {rotulo(submitLabel)}
       </button>
     </form>
   );

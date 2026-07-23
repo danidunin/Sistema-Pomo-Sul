@@ -2,8 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
-import { excluirOperador } from "@/actions/operadores";
 import { VoltarLink } from "@/components/nav/voltar-link";
+import { ExcluirOperadorForm } from "./excluir-operador-form";
 
 export default async function OperadorDetalhePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -27,14 +27,7 @@ export default async function OperadorDetalhePage({ params }: { params: Promise<
           >
             Editar
           </Link>
-          <form action={excluirOperador.bind(null, operador.id)}>
-            <button
-              type="submit"
-              className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600"
-            >
-              Excluir
-            </button>
-          </form>
+          <ExcluirOperadorForm operadorId={operador.id} />
         </div>
       </div>
 

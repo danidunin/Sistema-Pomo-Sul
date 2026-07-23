@@ -50,7 +50,7 @@ export function FotoInput({
 
       {url && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={url} alt="" className="mb-2 h-32 w-32 rounded-lg border border-neutral-200 object-cover" />
+        <img src={url} alt={label} className="mb-2 h-32 w-32 rounded-lg border border-neutral-200 object-cover" />
       )}
 
       <input

@@ -47,7 +47,7 @@ export function MultiFotoInput({ name, pasta, label }: { name: string; pasta: st
           {urls.map((url) => (
             <div key={url} className="relative aspect-square overflow-hidden rounded-lg border border-neutral-200">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={url} alt="" className="h-full w-full object-cover" />
+              <img src={url} alt={label} className="h-full w-full object-cover" />
               <button
                 type="button"
                 onClick={() => setUrls((atual) => atual.filter((u) => u !== url))}

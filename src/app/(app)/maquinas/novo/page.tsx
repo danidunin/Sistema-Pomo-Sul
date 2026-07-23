@@ -1,4 +1,5 @@
-import { NovaMaquinaForm } from "@/components/maquinas/nova-maquina-form";
+import { MaquinaForm } from "@/components/maquinas/maquina-form";
+import { criarMaquina } from "@/actions/maquinas";
 import { VoltarLink } from "@/components/nav/voltar-link";
 
 export default function NovaMaquinaPage() {
@@ -6,7 +7,7 @@ export default function NovaMaquinaPage() {
     <div className="flex flex-col gap-4">
       <VoltarLink href="/maquinas" label="Voltar às máquinas" />
       <h1 className="text-xl font-semibold text-neutral-900">Nova máquina</h1>
-      <NovaMaquinaForm />
+      <MaquinaForm action={criarMaquina} submitLabel="Criar máquina" />
     </div>
   );
 }

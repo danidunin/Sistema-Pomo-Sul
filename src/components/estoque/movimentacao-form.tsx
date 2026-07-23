@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useState } from "react";
 import { criarMovimentacaoEstoque } from "@/actions/estoque";
+import { useFormularioAcao } from "@/hooks/use-formulario-acao";
 
 type Produto = { id: string; nome: string; unidade: string; quantidadeDisponivel: number };
 
 export function MovimentacaoForm({ produtos, tipoInicial }: { produtos: Produto[]; tipoInicial: "ENTRADA" | "SAIDA" }) {
-  const [errorMessage, formAction, isPending] = useActionState(criarMovimentacaoEstoque, undefined);
+  const { formAction, isPending, erro, rotulo } = useFormularioAcao(criarMovimentacaoEstoque);
   const [tipo, setTipo] = useState<"ENTRADA" | "SAIDA">(tipoInicial);
   const [produtoId, setProdutoId] = useState("");
 
@@ -113,18 +114,14 @@ export function MovimentacaoForm({ produtos, tipoInicial }: { produtos: Produto[
         />
       </div>
 
-      {errorMessage && (
-        <p className="text-sm text-red-600" role="alert">
-          {errorMessage}
-        </p>
-      )}
+      {erro}
 
       <button
         type="submit"
         disabled={isPending}
         className="rounded-lg bg-green-700 py-3 text-base font-medium text-white active:bg-green-800 disabled:opacity-60"
       >
-        {isPending ? "Salvando..." : tipo === "ENTRADA" ? "Registrar entrada" : "Registrar saída"}
+        {rotulo(tipo === "ENTRADA" ? "Registrar entrada" : "Registrar saída")}
       </button>
     </form>
   );

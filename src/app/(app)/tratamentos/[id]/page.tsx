@@ -6,6 +6,7 @@ import { UNIDADE_DOSAGEM_LABELS } from "@/lib/concentracao";
 import { formatarData } from "@/lib/format";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { ExcluirTratamentoForm } from "@/components/operacoes/excluir-tratamento-form";
+import { VoltarLink } from "@/components/nav/voltar-link";
 
 export default async function OperacaoDetalhePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -26,9 +27,7 @@ export default async function OperacaoDetalhePage({ params }: { params: Promise<
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href={`/tratamentos?talhaoId=${operacao.talhaoId}`} className="text-sm font-medium text-green-700">
-        ← Voltar aos tratamentos
-      </Link>
+      <VoltarLink href={`/tratamentos?talhaoId=${operacao.talhaoId}`} label="Voltar aos tratamentos" />
 
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-neutral-900">

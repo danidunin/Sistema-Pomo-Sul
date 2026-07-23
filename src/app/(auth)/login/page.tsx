@@ -1,11 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
 import Image from "next/image";
 import { login } from "@/actions/auth";
+import { useFormularioAcao } from "@/hooks/use-formulario-acao";
 
 export default function LoginPage() {
-  const [errorMessage, formAction, isPending] = useActionState(login, undefined);
+  const { formAction, isPending, erro, rotulo } = useFormularioAcao(login);
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
@@ -68,18 +68,14 @@ export default function LoginPage() {
               />
             </div>
 
-            {errorMessage && (
-              <p className="text-sm text-red-600" role="alert">
-                {errorMessage}
-              </p>
-            )}
+            {erro}
 
             <button
               type="submit"
               disabled={isPending}
               className="mt-2 w-full rounded-lg bg-green-700 py-3 text-base font-medium text-white active:bg-green-800 disabled:opacity-60"
             >
-              {isPending ? "Entrando..." : "Entrar"}
+              {rotulo("Entrar", "Entrando...")}
             </button>
           </form>
         </div>

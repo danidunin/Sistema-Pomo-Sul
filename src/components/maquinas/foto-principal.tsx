@@ -4,7 +4,15 @@ import { useState } from "react";
 import { atualizarFotoPrincipalMaquina } from "@/actions/fotos";
 import { converterSeHeic } from "@/lib/converter-heic";
 
-export function FotoPrincipal({ maquinaId, fotoUrl }: { maquinaId: string; fotoUrl: string | null }) {
+export function FotoPrincipal({
+  maquinaId,
+  fotoUrl,
+  nome,
+}: {
+  maquinaId: string;
+  fotoUrl: string | null;
+  nome: string;
+}) {
   const [url, setUrl] = useState(fotoUrl);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -42,7 +50,7 @@ export function FotoPrincipal({ maquinaId, fotoUrl }: { maquinaId: string; fotoU
       <label className="relative block h-[125px] w-[125px] cursor-pointer overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 sm:h-[146px] sm:w-[146px]">
         {url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt="" className="h-full w-full object-cover" />
+          <img src={url} alt={nome} className="h-full w-full object-cover" />
         ) : (
           <span className="flex h-full w-full flex-col items-center justify-center gap-1 text-center text-[11px] text-neutral-400">
             <span className="text-lg">+</span>

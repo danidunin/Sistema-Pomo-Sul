@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { formatarData } from "@/lib/format";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
+import { excluirAtividade } from "@/actions/atividades";
 import { VoltarLink } from "@/components/nav/voltar-link";
+import { ConfirmarExclusao } from "@/components/ui/confirmar-exclusao";
 
 export default async function AtividadeDetalhePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -27,9 +29,18 @@ export default async function AtividadeDetalhePage({ params }: { params: Promise
 
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-neutral-900">{atividade.tipoAtividade.nome}</h1>
-        <Link href={`/talhoes/${atividade.talhaoId}`} className="text-sm font-medium text-green-700">
-          Ver talhão
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href={`/talhoes/${atividade.talhaoId}`} className="text-sm font-medium text-green-700">
+            Ver talhão
+          </Link>
+          <Link
+            href={`/atividades/${atividade.id}/editar`}
+            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+          >
+            Editar
+          </Link>
+          <ConfirmarExclusao action={excluirAtividade.bind(null, atividade.id)} />
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">

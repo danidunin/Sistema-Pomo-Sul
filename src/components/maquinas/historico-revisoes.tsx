@@ -29,7 +29,10 @@ export function HistoricoRevisoes({ maquinaId, revisoes }: { maquinaId: string; 
           {r.observacoes && <p className="mt-2 text-sm text-neutral-600">{r.observacoes}</p>}
 
           <div className="mt-3 flex items-center gap-3 border-t border-neutral-100 pt-3">
-            <Link href={`/maquinas/${maquinaId}/revisoes/${r.id}/editar`} className="text-xs font-medium text-green-700">
+            <Link
+              href={`/maquinas/${maquinaId}/revisoes/${r.id}/editar`}
+              className="rounded-md px-2 py-1.5 text-sm font-medium text-green-700"
+            >
               Editar
             </Link>
             <ExcluirRevisaoForm maquinaId={maquinaId} revisaoId={r.id} />

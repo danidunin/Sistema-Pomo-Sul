@@ -7,13 +7,22 @@ import { exigirPropriedadeAtual } from "@/lib/propriedade";
 
 function lerFormularioVisita(formData: FormData) {
   const percentualRaw = String(formData.get("percentualEnfolhamento") ?? "");
+  const temperaturaRaw = formData.get("temperatura");
   return {
     talhaoId: String(formData.get("talhaoId") ?? ""),
     dataStr: String(formData.get("data") ?? ""),
-    temperaturaRaw: formData.get("temperatura"),
+    temperatura: temperaturaRaw ? Number(temperaturaRaw) : null,
     percentualEnfolhamento: percentualRaw === "" ? null : Number(percentualRaw),
     observacoes: String(formData.get("observacoes") ?? "").trim() || null,
   };
+}
+
+function validarNumerosVisita(dados: ReturnType<typeof lerFormularioVisita>): string | undefined {
+  const camposNumericos = [dados.temperatura, dados.percentualEnfolhamento];
+  if (camposNumericos.some((valor) => valor !== null && !Number.isFinite(valor))) {
+    return "Temperatura e percentual de enfolhamento devem conter apenas números.";
+  }
+  return undefined;
 }
 
 export async function criarVisitaCampo(
@@ -26,6 +35,8 @@ export async function criarVisitaCampo(
   if (!dados.talhaoId || !dados.dataStr) {
     return "Selecione o talhão e a data da visita.";
   }
+  const erroNumeros = validarNumerosVisita(dados);
+  if (erroNumeros) return erroNumeros;
 
   const propriedadeId = await exigirPropriedadeAtual();
   const talhao = await db.talhao.findUnique({ where: { id: dados.talhaoId }, select: { propriedadeId: true } });
@@ -38,7 +49,7 @@ export async function criarVisitaCampo(
       data: {
         talhaoId: dados.talhaoId,
         data: new Date(dados.dataStr),
-        temperatura: dados.temperaturaRaw ? Number(dados.temperaturaRaw) : null,
+        temperatura: dados.temperatura,
         percentualEnfolhamento: dados.percentualEnfolhamento,
         observacoes: dados.observacoes,
       },
@@ -68,6 +79,8 @@ export async function atualizarVisitaCampo(
   if (!dados.talhaoId || !dados.dataStr) {
     return "Selecione o talhão e a data da visita.";
   }
+  const erroNumeros = validarNumerosVisita(dados);
+  if (erroNumeros) return erroNumeros;
 
   const propriedadeId = await exigirPropriedadeAtual();
   const talhao = await db.talhao.findUnique({ where: { id: dados.talhaoId }, select: { propriedadeId: true } });
@@ -80,7 +93,7 @@ export async function atualizarVisitaCampo(
     data: {
       talhaoId: dados.talhaoId,
       data: new Date(dados.dataStr),
-      temperatura: dados.temperaturaRaw ? Number(dados.temperaturaRaw) : null,
+      temperatura: dados.temperatura,
       percentualEnfolhamento: dados.percentualEnfolhamento,
       observacoes: dados.observacoes,
     },

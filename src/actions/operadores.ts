@@ -3,7 +3,7 @@
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { exigirPropriedadeAtual } from "@/lib/propriedade";
+import { exigirPropriedadeAtual, garantirOperadorDaPropriedade } from "@/lib/propriedade";
 
 function parseOperadorForm(formData: FormData) {
   return {
@@ -36,6 +36,26 @@ export async function criarOperador(
   redirect(`/operadores/${operador.id}`);
 }
 
+/**
+ * Cadastro rápido (só o nome) usado pelo atalho "+ Novo operador" dentro do
+ * formulário de Tratamento — não redireciona, para não perder o formulário
+ * de tratamento em andamento.
+ */
+export async function criarOperadorRapido(
+  nome: string,
+): Promise<{ id: string; nome: string } | { erro: string }> {
+  const nomeCompleto = nome.trim();
+  if (!nomeCompleto) {
+    return { erro: "Informe o nome do operador." };
+  }
+
+  const propriedadeId = await exigirPropriedadeAtual();
+  const operador = await db.operador.create({ data: { nomeCompleto, propriedadeId } });
+
+  revalidatePath("/operadores");
+  return { id: operador.id, nome: operador.nomeCompleto };
+}
+
 export async function atualizarOperador(
   operadorId: string,
   _prevState: string | undefined,
@@ -47,6 +67,11 @@ export async function atualizarOperador(
     return "Informe o nome completo do operador.";
   }
 
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirOperadorDaPropriedade(operadorId, propriedadeId))) {
+    return "Operador inválido para a propriedade atual.";
+  }
+
   await db.operador.update({ where: { id: operadorId }, data: dados });
 
   revalidatePath("/operadores");
@@ -55,7 +80,23 @@ export async function atualizarOperador(
 }
 
 export async function excluirOperador(operadorId: string) {
-  await db.operador.delete({ where: { id: operadorId } });
-  revalidatePath("/operadores");
-  redirect("/operadores");
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirOperadorDaPropriedade(operadorId, propriedadeId))) return;
+
+  // Só o uso em tratamentos (operacoes_agricolas) bloqueia a exclusão definitiva —
+  // a FK é RESTRICT por padrão, então excluir um operador já usado em tratamento
+  // quebraria esse histórico (ou lançaria um erro cru do Postgres). Mesmo critério
+  // já usado em excluirProduto.
+  const totalUsosEmOperacoes = await db.operacaoAgricola.count({ where: { operadorId } });
+
+  if (totalUsosEmOperacoes === 0) {
+    await db.operador.delete({ where: { id: operadorId } });
+    revalidatePath("/operadores");
+    redirect("/operadores?resultado=excluido");
+  } else {
+    await db.operador.update({ where: { id: operadorId }, data: { ativo: false } });
+    revalidatePath("/operadores");
+    revalidatePath(`/operadores/${operadorId}`);
+    redirect("/operadores?resultado=inativado");
+  }
 }

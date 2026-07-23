@@ -50,7 +50,7 @@ export default async function RelatorioHorasHomemPage({ searchParams }: { search
             type="date"
             name="dataInicio"
             defaultValue={filtros.dataInicio ?? ""}
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           />
         </div>
         <div>
@@ -59,7 +59,7 @@ export default async function RelatorioHorasHomemPage({ searchParams }: { search
             type="date"
             name="dataFim"
             defaultValue={filtros.dataFim ?? ""}
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           />
         </div>
         <div>
@@ -67,7 +67,7 @@ export default async function RelatorioHorasHomemPage({ searchParams }: { search
           <select
             name="talhaoId"
             defaultValue={filtros.talhaoId ?? ""}
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           >
             <option value="">Todos</option>
             {talhoes.map((t) => (
@@ -82,7 +82,7 @@ export default async function RelatorioHorasHomemPage({ searchParams }: { search
           <select
             name="cultura"
             defaultValue={filtros.cultura ?? ""}
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           >
             <option value="">Todas</option>
             {culturas.map((c) => (
@@ -97,7 +97,7 @@ export default async function RelatorioHorasHomemPage({ searchParams }: { search
           <select
             name="tipoAtividadeId"
             defaultValue={filtros.tipoAtividadeId ?? ""}
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           >
             <option value="">Todas</option>
             {tiposAtividade.map((t) => (
@@ -112,7 +112,7 @@ export default async function RelatorioHorasHomemPage({ searchParams }: { search
           <select
             name="tipoTratamento"
             defaultValue={filtros.tipoTratamento ?? ""}
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           >
             <option value="">Todos</option>
             {Object.entries(TIPO_OPERACAO_LABELS).map(([valor, label]) => (

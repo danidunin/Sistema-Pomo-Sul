@@ -3,7 +3,7 @@
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { exigirPropriedadeAtual } from "@/lib/propriedade";
+import { exigirPropriedadeAtual, garantirContagemFrutosDaPropriedade } from "@/lib/propriedade";
 
 function lerFormularioContagem(formData: FormData) {
   return {
@@ -34,6 +34,19 @@ function validarContagem(dados: ReturnType<typeof lerFormularioContagem>) {
   ) {
     return "Preencha o talhão, a safra, a data e todos os campos de contagem.";
   }
+
+  const camposNumericos = [
+    dados.metaFrutosPorPlantaRaw,
+    dados.numeroPlantasAmostradasRaw,
+    dados.frutosContadosRaw,
+    dados.areaHaRaw,
+    dados.plantasPorHectareRaw,
+    dados.pesoMedioFrutoGRaw,
+  ];
+  if (camposNumericos.some((valor) => !Number.isFinite(Number(valor)))) {
+    return "Os campos de contagem devem conter apenas números.";
+  }
+
   return undefined;
 }
 
@@ -121,6 +134,9 @@ export async function atualizarContagemFrutos(
 }
 
 export async function excluirContagemFrutos(contagemId: string) {
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirContagemFrutosDaPropriedade(contagemId, propriedadeId))) return;
+
   await db.contagemFrutos.delete({ where: { id: contagemId } });
   revalidatePath("/contagem-frutos");
   redirect("/contagem-frutos");
