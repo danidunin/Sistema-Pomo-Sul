@@ -39,7 +39,7 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="flex-1 px-4 pb-20 pt-4 md:px-6 md:pb-6">{children}</main>
+        <main className="flex-1 px-4 pb-24 pt-4 md:px-6 md:pb-6">{children}</main>
       </div>
 
       <BottomNav />
