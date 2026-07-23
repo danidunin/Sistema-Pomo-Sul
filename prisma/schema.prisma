@@ -301,7 +301,7 @@ model Atividade {
   createdAt       DateTime      @default(now()) @map("created_at")
 
   @@index([talhaoId, data])
-  @@index([propriedadeId, data])
+  @@index([propriedadeId])
   @@map("atividades")
 }
 
