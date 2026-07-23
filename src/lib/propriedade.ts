@@ -69,11 +69,8 @@ export async function garantirContagemFrutosDaPropriedade(contagemId: string, pr
 }
 
 export async function garantirAtividadeDaPropriedade(atividadeId: string, propriedadeId: string): Promise<boolean> {
-  const atividade = await db.atividade.findUnique({
-    where: { id: atividadeId },
-    select: { talhao: { select: { propriedadeId: true } } },
-  });
-  return atividade?.talhao.propriedadeId === propriedadeId;
+  const atividade = await db.atividade.findUnique({ where: { id: atividadeId }, select: { propriedadeId: true } });
+  return atividade?.propriedadeId === propriedadeId;
 }
 
 export async function garantirVisitaDaPropriedade(visitaId: string, propriedadeId: string): Promise<boolean> {
@@ -87,4 +84,9 @@ export async function garantirVisitaDaPropriedade(visitaId: string, propriedadeI
 export async function garantirTanqueDaPropriedade(tanqueId: string, propriedadeId: string): Promise<boolean> {
   const tanque = await db.tanqueDiesel.findUnique({ where: { id: tanqueId }, select: { propriedadeId: true } });
   return tanque?.propriedadeId === propriedadeId;
+}
+
+export async function garantirChuvaDaPropriedade(chuvaId: string, propriedadeId: string): Promise<boolean> {
+  const chuva = await db.chuvaRegistro.findUnique({ where: { id: chuvaId }, select: { propriedadeId: true } });
+  return chuva?.propriedadeId === propriedadeId;
 }
