@@ -36,6 +36,10 @@ export function AtividadeForm({
   const { formAction, isPending, erro, rotulo } = useFormularioAcao(action);
   const [numeroPessoas, setNumeroPessoas] = useState(defaultValues?.numeroPessoas ?? "");
   const [horasPorPessoa, setHorasPorPessoa] = useState(defaultValues?.horasPorPessoa ?? "");
+  const [tipoAtividadeId, setTipoAtividadeId] = useState(defaultValues?.tipoAtividadeId ?? "");
+
+  const tipoSelecionado = tiposAtividade.find((t) => t.id === tipoAtividadeId);
+  const talhaoObrigatorio = tipoSelecionado?.nome !== "Chuva";
 
   const horasHomem =
     numeroPessoas && horasPorPessoa ? Number(numeroPessoas) * Number(horasPorPessoa) : null;
@@ -51,7 +55,8 @@ export function AtividadeForm({
             id="tipoAtividadeId"
             name="tipoAtividadeId"
             required
-            defaultValue={defaultValues?.tipoAtividadeId ?? ""}
+            value={tipoAtividadeId}
+            onChange={(e) => setTipoAtividadeId(e.target.value)}
             className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           >
             <option value="" disabled>
@@ -81,24 +86,27 @@ export function AtividadeForm({
 
       <div>
         <label htmlFor="talhaoId" className="mb-1 block text-sm font-medium text-neutral-700">
-          Talhão *
+          Talhão{talhaoObrigatorio ? " *" : ""}
         </label>
         <select
           id="talhaoId"
           name="talhaoId"
-          required
+          required={talhaoObrigatorio}
           defaultValue={defaultValues?.talhaoId ?? ""}
           className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
         >
-          <option value="" disabled>
-            Selecione...
-          </option>
+          <option value="">{talhaoObrigatorio ? "Selecione..." : "Nenhum (atividade geral)"}</option>
           {talhoes.map((t) => (
             <option key={t.id} value={t.id}>
               {t.nome}
             </option>
           ))}
         </select>
+        {!talhaoObrigatorio && (
+          <p className="mt-1 text-xs text-neutral-500">
+            "Chuva" é uma parada geral da equipe — não precisa de um talhão específico.
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
