@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { VisitaForm } from "@/components/historico/visita-form";
 import { GaleriaFotosVisita } from "@/components/historico/galeria-fotos-visita";
+import { ExcluirVisitaForm } from "@/components/historico/excluir-visita-form";
 import { VoltarLink } from "@/components/nav/voltar-link";
 
 export default async function VisitaDetalhePage({ params }: { params: Promise<{ id: string }> }) {
@@ -26,7 +27,10 @@ export default async function VisitaDetalhePage({ params }: { params: Promise<{ 
     <div className="flex flex-col gap-4">
       <VoltarLink href={`/historico-pomar?talhaoId=${visita.talhaoId}`} label="Voltar ao histórico" />
 
-      <h1 className="text-xl font-semibold text-neutral-900">Visita de campo — {visita.talhao.nomeCodinome}</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-xl font-semibold text-neutral-900">Visita de campo — {visita.talhao.nomeCodinome}</h1>
+        <ExcluirVisitaForm visitaId={visita.id} />
+      </div>
 
       <VisitaForm
         modo="editar"

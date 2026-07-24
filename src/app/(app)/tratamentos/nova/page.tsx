@@ -26,7 +26,11 @@ export default async function NovaOperacaoPage({
       orderBy: { nomeCompleto: "asc" },
       select: { id: true, nomeCompleto: true },
     }),
-    db.maquina.findMany({ where: { propriedadeId }, orderBy: { nome: "asc" }, select: { id: true, nome: true } }),
+    db.maquina.findMany({
+      where: { propriedadeId, ativo: true },
+      orderBy: { nome: "asc" },
+      select: { id: true, nome: true },
+    }),
   ]);
 
   if (talhoes.length === 0) {

@@ -32,7 +32,7 @@ export function ConfirmarExclusao({ action, onConfirm, pergunta = "Confirma excl
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <span className="text-sm text-neutral-600">{pergunta}</span>
       {action ? (
         <form action={action}>

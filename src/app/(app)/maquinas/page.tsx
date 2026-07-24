@@ -3,10 +3,15 @@ import { db } from "@/lib/db";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
 
-export default async function MaquinasPage() {
+export default async function MaquinasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ resultado?: string }>;
+}) {
+  const { resultado } = await searchParams;
   const propriedadeId = await exigirPropriedadeAtual();
   const maquinas = await db.maquina.findMany({
-    where: { propriedadeId },
+    where: { propriedadeId, ativo: true },
     orderBy: { nome: "asc" },
     include: { fotos: { take: 1, orderBy: { createdAt: "desc" }, select: { url: true } } },
   });
@@ -24,6 +29,16 @@ export default async function MaquinasPage() {
       </div>
 
       <ExportarBotoes recurso="maquinas" />
+
+      {resultado === "excluida" && (
+        <p className="rounded-lg bg-green-50 px-4 py-2 text-sm text-green-800">Máquina excluída.</p>
+      )}
+      {resultado === "inativada" && (
+        <p className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-800">
+          Esta máquina já tinha manutenções, revisões ou operações registradas, então foi marcada como inativa em vez
+          de excluída, para não perder esse histórico.
+        </p>
+      )}
 
       {maquinas.length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhuma máquina cadastrada ainda.</p>

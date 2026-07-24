@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { converterSeHeic } from "@/lib/converter-heic";
 
 export function MultiFotoInput({ name, pasta, label }: { name: string; pasta: string; label: string }) {
   const [urls, setUrls] = useState<string[]>([]);
@@ -16,9 +15,8 @@ export function MultiFotoInput({ name, pasta, label }: { name: string; pasta: st
     setErro(null);
 
     try {
-      const file = await converterSeHeic(arquivoSelecionado);
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", arquivoSelecionado);
       formData.append("pasta", pasta);
 
       const res = await fetch("/api/upload", { method: "POST", body: formData });
@@ -64,7 +62,6 @@ export function MultiFotoInput({ name, pasta, label }: { name: string; pasta: st
       <input
         type="file"
         accept="image/*"
-        capture="environment"
         onChange={handleChange}
         className="block w-full text-sm text-neutral-600 file:mr-3 file:rounded-lg file:border-0 file:bg-neutral-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-neutral-700"
       />

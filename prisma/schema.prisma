@@ -320,6 +320,7 @@ model Maquina {
   fotoUrl        String?  @map("foto_url")
   horimetroAtual Decimal? @map("horimetro_atual") @db.Decimal(10, 1)
   observacoes    String?
+  ativo          Boolean  @default(true)
   createdAt      DateTime @default(now()) @map("created_at")
 
   manutencoes Manutencao[]
