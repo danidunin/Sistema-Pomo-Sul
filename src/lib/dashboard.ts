@@ -22,7 +22,7 @@ export async function buscarResumoPropriedade(propriedadeId: string): Promise<Re
         select: { createdAt: true },
       }),
       db.atividade.findFirst({
-        where: { talhao: { propriedadeId } },
+        where: { propriedadeId },
         orderBy: { createdAt: "desc" },
         select: { createdAt: true },
       }),
