@@ -6,6 +6,7 @@ import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { HistoricoManutencao } from "@/components/maquinas/historico-manutencao";
 import { FotoPrincipal } from "@/components/maquinas/foto-principal";
 import { AbasMaquina } from "@/components/maquinas/abas-maquina";
+import { ExcluirMaquinaForm } from "@/components/maquinas/excluir-maquina-form";
 import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
 import { VoltarLink } from "@/components/nav/voltar-link";
 
@@ -23,24 +24,25 @@ export default async function MaquinaDetalhePage({ params }: { params: Promise<{
   return (
     <div className="flex flex-col gap-4">
       <VoltarLink href="/maquinas" label="Voltar às máquinas" />
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-4">
           <FotoPrincipal maquinaId={maquina.id} fotoUrl={maquina.fotoUrl} nome={maquina.nome} />
-          <h1 className="text-xl font-semibold text-neutral-900">{maquina.nome}</h1>
+          <h1 className="min-w-0 break-words text-xl font-semibold text-neutral-900">{maquina.nome}</h1>
         </div>
-        <div className="flex shrink-0 gap-2">
+        <div className="flex gap-2 sm:shrink-0">
           <Link
             href={`/maquinas/${maquina.id}/editar`}
-            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+            className="flex-1 rounded-lg border border-neutral-300 px-4 py-2 text-center text-sm font-medium text-neutral-700 sm:flex-none"
           >
             Editar
           </Link>
           <Link
             href={`/maquinas/${maquina.id}/manutencoes/nova`}
-            className="rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white active:bg-green-800"
+            className="flex-1 rounded-lg bg-green-700 px-4 py-2 text-center text-sm font-medium text-white active:bg-green-800 sm:flex-none"
           >
             + Manutenção
           </Link>
+          <ExcluirMaquinaForm maquinaId={maquina.id} />
         </div>
       </div>
 

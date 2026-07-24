@@ -1,3 +1,6 @@
+import type { LucideIcon } from "lucide-react";
+import { CloudLightning, CloudRain, CloudFog, CloudSun, Cloud, Sun } from "lucide-react";
+
 // Código do município (IBGE) da propriedade (Lapa, PR) — usado na API pública do INMET.
 const CODIGO_IBGE = "4113205";
 
@@ -100,4 +103,22 @@ export async function buscarClima(): Promise<Clima | null> {
   } catch {
     return null;
   }
+}
+
+/**
+ * Mapeia o texto livre do INMET (ex: "Sol", "Chuvoso", "Nublado com poucas nuvens") para um
+ * ícone de condição. A ordem importa: condições mais específicas/severas são checadas antes
+ * das genéricas (ex: "trovoada" antes de "chuva", "chuva" antes de "nuvens").
+ */
+export function iconePorResumo(resumo: string): LucideIcon {
+  const texto = resumo.toLowerCase();
+
+  if (texto.includes("trovoada") || texto.includes("tempestade")) return CloudLightning;
+  if (texto.includes("chuv")) return CloudRain;
+  if (texto.includes("nevoeiro") || texto.includes("neblina") || texto.includes("bruma")) return CloudFog;
+  if (texto.includes("sol") && (texto.includes("nuvens") || texto.includes("nublado"))) return CloudSun;
+  if (texto.includes("nublado") || texto.includes("encoberto") || texto.includes("nuvens")) return Cloud;
+  if (texto.includes("sol")) return Sun;
+
+  return Cloud;
 }

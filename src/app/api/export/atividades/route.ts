@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   const formato = new URL(request.url).searchParams.get("formato");
 
   const atividades = await db.atividade.findMany({
-    where: { talhao: { propriedadeId } },
+    where: { propriedadeId },
     orderBy: { data: "desc" },
     include: { tipoAtividade: true, talhao: true },
   });
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
   const linhas = atividades.map((atividade) => ({
     data: formatarData(atividade.data),
     tipo: atividade.tipoAtividade.nome,
-    talhao: atividade.talhao.nomeCodinome,
+    talhao: atividade.talhao?.nomeCodinome ?? "—",
     pessoas: atividade.numeroPessoas,
     horasPorPessoa: Number(atividade.horasPorPessoa),
     horasHomem: atividade.numeroPessoas * Number(atividade.horasPorPessoa),

@@ -5,6 +5,7 @@ import { UNIDADE_DOSAGEM_LABELS } from "@/lib/concentracao";
 import { formatarData } from "@/lib/format";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
+import { buscarChuvaRegistros, calcularAcumuladoPorTratamento } from "@/lib/chuva";
 
 export default async function OperacoesPage({
   searchParams,
@@ -30,6 +31,15 @@ export default async function OperacoesPage({
       produtos: { include: { produto: true } },
     },
   });
+
+  const chuvas = await buscarChuvaRegistros(propriedadeId);
+  const fitossanitarios = operacoes
+    .filter((o) => o.tipo === "FITOSSANITARIO")
+    .map((o) => ({ id: o.id, talhaoId: o.talhaoId, data: o.data, createdAt: o.createdAt }));
+  const acumulados = calcularAcumuladoPorTratamento(
+    fitossanitarios,
+    chuvas.map((c) => ({ data: c.data, quantidadeMm: c.quantidadeMm.toString(), relacaoTratamentoDia: c.relacaoTratamentoDia })),
+  );
 
   // Agrupa por data e numera as aplicações do dia em ordem cronológica de lançamento.
   const grupos = new Map<string, typeof operacoes>();
@@ -76,51 +86,61 @@ export default async function OperacoesPage({
                 {formatarData(itensDoDia[0].data)}
               </h2>
 
-              {itensDoDia.map((operacao, indice) => (
-                <div key={operacao.id} className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
-                  <Link
-                    href={`/tratamentos/${operacao.id}`}
-                    className="flex items-center justify-between border-b border-neutral-100 bg-neutral-50 px-4 py-2 hover:bg-neutral-100"
-                  >
-                    <span className="text-sm font-medium text-neutral-900">
-                      Aplicação #{indice + 1} — {TIPO_OPERACAO_LABELS[operacao.tipo]}
-                      {!talhaoSelecionado ? ` · ${operacao.talhao.nomeCodinome}` : ""}
-                    </span>
-                    {operacao.volumeCalda && (
-                      <span className="text-xs text-neutral-500">{operacao.volumeCalda.toString()} L de calda</span>
+              {itensDoDia.map((operacao, indice) => {
+                const acumulado = acumulados.get(operacao.id) ?? 0;
+                return (
+                  <div key={operacao.id} className="flex flex-col gap-1">
+                    {operacao.tipo === "FITOSSANITARIO" && acumulado > 0 && (
+                      <p className="px-1 text-xs text-neutral-400">
+                        🌧 {acumulado.toLocaleString("pt-BR")}mm acumulados desde a aplicação
+                      </p>
                     )}
-                  </Link>
+                    <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
+                      <Link
+                        href={`/tratamentos/${operacao.id}`}
+                        className="flex items-center justify-between border-b border-neutral-100 bg-neutral-50 px-4 py-2 hover:bg-neutral-100"
+                      >
+                        <span className="text-sm font-medium text-neutral-900">
+                          Aplicação #{indice + 1} — {TIPO_OPERACAO_LABELS[operacao.tipo]}
+                          {!talhaoSelecionado ? ` · ${operacao.talhao.nomeCodinome}` : ""}
+                        </span>
+                        {operacao.volumeCalda && (
+                          <span className="text-xs text-neutral-500">{operacao.volumeCalda.toString()} L de calda</span>
+                        )}
+                      </Link>
 
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-xs text-neutral-500">
-                        <th className="px-4 py-2 font-normal">Produto</th>
-                        <th className="px-4 py-2 font-normal">Concentração</th>
-                        <th className="px-4 py-2 font-normal">Quantidade</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {operacao.produtos.map((item) => (
-                        <tr key={item.id} className="border-t border-neutral-100">
-                          <td className="px-4 py-2 text-neutral-900">{item.produto.nome}</td>
-                          <td className="px-4 py-2 text-neutral-600">
-                            {item.concentracao
-                              ? `${item.concentracao.toString()} ${
-                                  item.produto.unidadeDosagem
-                                    ? UNIDADE_DOSAGEM_LABELS[item.produto.unidadeDosagem]
-                                    : ""
-                                }`
-                              : "—"}
-                          </td>
-                          <td className="px-4 py-2 text-neutral-600">
-                            {item.quantidade.toString()} {item.unidade}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ))}
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-left text-xs text-neutral-500">
+                            <th className="px-4 py-2 font-normal">Produto</th>
+                            <th className="px-4 py-2 font-normal">Concentração</th>
+                            <th className="px-4 py-2 font-normal">Quantidade</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {operacao.produtos.map((item) => (
+                            <tr key={item.id} className="border-t border-neutral-100">
+                              <td className="px-4 py-2 text-neutral-900">{item.produto.nome}</td>
+                              <td className="px-4 py-2 text-neutral-600">
+                                {item.concentracao
+                                  ? `${item.concentracao.toString()} ${
+                                      item.produto.unidadeDosagem
+                                        ? UNIDADE_DOSAGEM_LABELS[item.produto.unidadeDosagem]
+                                        : ""
+                                    }`
+                                  : "—"}
+                              </td>
+                              <td className="px-4 py-2 text-neutral-600">
+                                {item.quantidade.toString()} {item.unidade}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ))}
         </div>

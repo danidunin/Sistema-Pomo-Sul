@@ -1,12 +1,14 @@
 import type { Clima, DiaDetalhado } from "@/lib/clima";
+import { iconePorResumo } from "@/lib/clima";
 
 /**
  * Painel de campo: previsão de temperatura oficial do INMET (Manhã/Tarde/Noite
- * para hoje e amanhã, resumo diário para os dias seguintes). Só texto — sem
- * ícones/emoji, é um painel de trabalho. Fundo sempre escuro de propósito
- * (mostrador de instrumento), independente do resto do app, que é claro —
- * por isso usa cores fixas via classes arbitrárias do Tailwind, em vez da
- * paleta clara do resto do sistema.
+ * para hoje e amanhã, resumo diário para os dias seguintes). Cada período mostra
+ * o texto do resumo do INMET acompanhado de um ícone de condição (sol, nuvem,
+ * chuva etc. — ver iconePorResumo em src/lib/clima.ts). Fundo sempre escuro de
+ * propósito (mostrador de instrumento), independente do resto do app, que é
+ * claro — por isso usa cores fixas via classes arbitrárias do Tailwind, em vez
+ * da paleta clara do resto do sistema.
  */
 export function PainelClima({ clima }: { clima: Clima | null }) {
   if (!clima) {
@@ -34,16 +36,20 @@ export function PainelClima({ clima }: { clima: Clima | null }) {
             Próximos dias
           </p>
           <div className="grid grid-cols-3 gap-2">
-            {clima.proximosDias.map((dia) => (
-              <div key={dia.data} className="flex flex-col gap-0.5 rounded-lg bg-[#212a27] p-3">
-                <span className="text-[11px] font-bold uppercase tracking-wide text-[#8fa398]">
-                  {dia.diaSemana.replace("-Feira", "").slice(0, 3)}
-                </span>
-                <span className="text-lg font-bold tabular-nums">
-                  {dia.temperaturaMaxima}° <span className="text-sm font-normal text-[#8fa398]">{dia.temperaturaMinima}°</span>
-                </span>
-              </div>
-            ))}
+            {clima.proximosDias.map((dia) => {
+              const Icone = iconePorResumo(dia.resumo);
+              return (
+                <div key={dia.data} className="flex flex-col gap-0.5 rounded-lg bg-[#212a27] p-3">
+                  <span className="text-[11px] font-bold uppercase tracking-wide text-[#8fa398]">
+                    {dia.diaSemana.replace("-Feira", "").slice(0, 3)}
+                  </span>
+                  <Icone className="h-4 w-4 text-[#8fa398]" strokeWidth={1.75} />
+                  <span className="text-lg font-bold tabular-nums">
+                    {dia.temperaturaMaxima}° <span className="text-sm font-normal text-[#8fa398]">{dia.temperaturaMinima}°</span>
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -62,14 +68,20 @@ function BlocoDia({ titulo, data, dia }: { titulo: string; data: string; dia: Di
         </span>
       </p>
       <div className="grid grid-cols-3 gap-2">
-        {dia.periodos.map((p) => (
-          <div key={p.nome} className="flex flex-col gap-1 rounded-lg bg-[#212a27] p-3">
-            <span className="text-[10px] font-bold uppercase tracking-wide text-[#8fa398]">
-              {p.nome}
-            </span>
-            <span className="text-[11px] leading-snug">{p.resumo}</span>
-          </div>
-        ))}
+        {dia.periodos.map((p) => {
+          const Icone = iconePorResumo(p.resumo);
+          return (
+            <div key={p.nome} className="flex flex-col gap-1 rounded-lg bg-[#212a27] p-3">
+              <span className="text-[10px] font-bold uppercase tracking-wide text-[#8fa398]">
+                {p.nome}
+              </span>
+              <div className="flex items-center gap-1.5">
+                <Icone className="h-4 w-4 shrink-0 text-[#8fa398]" strokeWidth={1.75} />
+                <span className="text-[11px] leading-snug">{p.resumo}</span>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

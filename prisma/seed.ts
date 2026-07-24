@@ -15,6 +15,7 @@ const TIPOS_ATIVIDADE = [
   "Cortar cavalos",
   "Plantio",
   "Replantio",
+  "Chuva",
   "Outros",
 ];
 
