@@ -29,7 +29,7 @@ export default async function ChuvaPage() {
               key={mes.mes}
               className="flex items-center justify-between border-b border-neutral-100 px-4 py-3 last:border-b-0"
             >
-              <span className="text-sm font-medium capitalize text-neutral-900">{mes.label}</span>
+              <span className="text-sm font-medium text-neutral-900">{mes.label}</span>
               <span className="text-sm text-neutral-600">
                 {mes.quantidadeEventos} {mes.quantidadeEventos === 1 ? "evento" : "eventos"} ·{" "}
                 {mes.totalMm.toLocaleString("pt-BR")} mm
