@@ -16,6 +16,50 @@ export async function buscarDatasComTratamentoFitossanitario(propriedadeId: stri
   return Array.from(datas);
 }
 
+const MESES_PT = [
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
+];
+
+export type ResumoMensalChuva = {
+  mes: string;
+  label: string;
+  quantidadeEventos: number;
+  totalMm: number;
+};
+
+/** Agrupa leituras de chuva por mês (UTC), mais recente primeiro. */
+export function resumirChuvaPorMes(
+  leituras: { data: Date; quantidadeMm: number | string }[],
+): ResumoMensalChuva[] {
+  const porMes = new Map<string, { quantidadeEventos: number; totalMm: number }>();
+
+  for (const leitura of leituras) {
+    const chave = leitura.data.toISOString().slice(0, 7);
+    const atual = porMes.get(chave) ?? { quantidadeEventos: 0, totalMm: 0 };
+    atual.quantidadeEventos += 1;
+    atual.totalMm += Number(leitura.quantidadeMm);
+    porMes.set(chave, atual);
+  }
+
+  return Array.from(porMes.entries())
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([mes, dados]) => {
+      const [ano, mesNumero] = mes.split("-").map(Number);
+      return { mes, label: `${MESES_PT[mesNumero - 1]} de ${ano}`, ...dados };
+    });
+}
+
 export type OperacaoParaAcumulo = {
   id: string;
   talhaoId: string;

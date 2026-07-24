@@ -69,19 +69,33 @@ export function ChuvaForm({
 
       {coincideComTratamento && (
         <div>
-          <label htmlFor="relacaoTratamentoDia" className="mb-1 block text-sm font-medium text-neutral-700">
-            Essa chuva caiu antes ou depois da aplicação desse dia?
-          </label>
-          <select
-            id="relacaoTratamentoDia"
-            name="relacaoTratamentoDia"
-            defaultValue={defaultValues?.relacaoTratamentoDia ?? ""}
-            className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
-          >
-            <option value="">Não sei / não importa</option>
-            <option value="ANTES">Antes da aplicação</option>
-            <option value="DEPOIS">Depois da aplicação</option>
-          </select>
+          <p className="mb-1 block text-sm font-medium text-neutral-700">
+            Choveu antes da aplicação desse dia? *
+          </p>
+          <div className="flex gap-6">
+            <label className="flex items-center gap-2 text-base text-neutral-700">
+              <input
+                type="radio"
+                name="relacaoTratamentoDia"
+                value="ANTES"
+                required
+                defaultChecked={defaultValues?.relacaoTratamentoDia === "ANTES"}
+                className="h-4 w-4 accent-green-700"
+              />
+              Sim
+            </label>
+            <label className="flex items-center gap-2 text-base text-neutral-700">
+              <input
+                type="radio"
+                name="relacaoTratamentoDia"
+                value="DEPOIS"
+                required
+                defaultChecked={defaultValues?.relacaoTratamentoDia === "DEPOIS"}
+                className="h-4 w-4 accent-green-700"
+              />
+              Não
+            </label>
+          </div>
           <p className="mt-1 text-xs text-neutral-500">
             Há um tratamento fitossanitário registrado nessa data — isso define se a chuva
             conta para o tratamento que estava em andamento ou para esse novo.

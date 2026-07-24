@@ -22,9 +22,21 @@ function lerFormularioChuva(formData: FormData): DadosChuva {
   };
 }
 
-function validarChuva(dados: ReturnType<typeof lerFormularioChuva>): string | undefined {
+async function validarChuva(
+  dados: ReturnType<typeof lerFormularioChuva>,
+  propriedadeId: string,
+): Promise<string | undefined> {
   if (!dados.dataStr) return "Informe a data da leitura.";
   if (!dados.quantidadeMm || dados.quantidadeMm <= 0) return "Informe uma quantidade em mm maior que zero.";
+
+  if (!dados.relacaoTratamentoDia) {
+    const coincide = await db.operacaoAgricola.findFirst({
+      where: { tipo: "FITOSSANITARIO", data: new Date(dados.dataStr), talhao: { propriedadeId } },
+      select: { id: true },
+    });
+    if (coincide) return "Informe se a chuva caiu antes ou depois da aplicação desse dia.";
+  }
+
   return undefined;
 }
 
@@ -33,10 +45,10 @@ export async function criarChuvaRegistro(
   formData: FormData,
 ): Promise<string | undefined> {
   const dados = lerFormularioChuva(formData);
-  const erro = validarChuva(dados);
+  const propriedadeId = await exigirPropriedadeAtual();
+  const erro = await validarChuva(dados, propriedadeId);
   if (erro) return erro;
 
-  const propriedadeId = await exigirPropriedadeAtual();
   await db.chuvaRegistro.create({
     data: {
       propriedadeId,
@@ -58,10 +70,10 @@ export async function atualizarChuvaRegistro(
   formData: FormData,
 ): Promise<string | undefined> {
   const dados = lerFormularioChuva(formData);
-  const erro = validarChuva(dados);
+  const propriedadeId = await exigirPropriedadeAtual();
+  const erro = await validarChuva(dados, propriedadeId);
   if (erro) return erro;
 
-  const propriedadeId = await exigirPropriedadeAtual();
   if (!(await garantirChuvaDaPropriedade(chuvaId, propriedadeId))) {
     return "Leitura inválida para a propriedade atual.";
   }

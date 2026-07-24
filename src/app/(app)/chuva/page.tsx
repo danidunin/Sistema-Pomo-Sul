@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { formatarData } from "@/lib/format";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
-import { buscarChuvaRegistros } from "@/lib/chuva";
+import { buscarChuvaRegistros, resumirChuvaPorMes } from "@/lib/chuva";
 
 export default async function ChuvaPage() {
   const propriedadeId = await exigirPropriedadeAtual();
   const leituras = await buscarChuvaRegistros(propriedadeId);
+  const resumoMensal = resumirChuvaPorMes(
+    leituras.map((l) => ({ data: l.data, quantidadeMm: l.quantidadeMm.toString() })),
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -18,6 +21,23 @@ export default async function ChuvaPage() {
           + Nova leitura
         </Link>
       </div>
+
+      {resumoMensal.length > 0 && (
+        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+          {resumoMensal.map((mes) => (
+            <div
+              key={mes.mes}
+              className="flex items-center justify-between border-b border-neutral-100 px-4 py-3 last:border-b-0"
+            >
+              <span className="text-sm font-medium capitalize text-neutral-900">{mes.label}</span>
+              <span className="text-sm text-neutral-600">
+                {mes.quantidadeEventos} {mes.quantidadeEventos === 1 ? "evento" : "eventos"} ·{" "}
+                {mes.totalMm.toLocaleString("pt-BR")} mm
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {leituras.length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhuma leitura registrada ainda.</p>
