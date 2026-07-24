@@ -6,6 +6,7 @@ import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { HistoricoManutencao } from "@/components/maquinas/historico-manutencao";
 import { FotoPrincipal } from "@/components/maquinas/foto-principal";
 import { AbasMaquina } from "@/components/maquinas/abas-maquina";
+import { ExcluirMaquinaForm } from "@/components/maquinas/excluir-maquina-form";
 import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
 import { VoltarLink } from "@/components/nav/voltar-link";
 
@@ -41,6 +42,7 @@ export default async function MaquinaDetalhePage({ params }: { params: Promise<{
           >
             + Manutenção
           </Link>
+          <ExcluirMaquinaForm maquinaId={maquina.id} />
         </div>
       </div>
 

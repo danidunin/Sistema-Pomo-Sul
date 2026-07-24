@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { atualizarFotoPrincipalMaquina } from "@/actions/fotos";
-import { converterSeHeic } from "@/lib/converter-heic";
 
 export function FotoPrincipal({
   maquinaId,
@@ -25,9 +24,8 @@ export function FotoPrincipal({
     setErro(null);
 
     try {
-      const file = await converterSeHeic(arquivoSelecionado);
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", arquivoSelecionado);
       formData.append("pasta", "maquinas");
 
       const res = await fetch("/api/upload", { method: "POST", body: formData });
@@ -57,7 +55,7 @@ export function FotoPrincipal({
             Adicionar foto
           </span>
         )}
-        <input type="file" accept="image/*" capture="environment" onChange={handleUpload} className="hidden" />
+        <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
       </label>
       {enviando && <p className="text-[11px] text-neutral-500">Enviando...</p>}
       {erro && <p className="max-w-[7rem] text-center text-[11px] text-red-600">{erro}</p>}
