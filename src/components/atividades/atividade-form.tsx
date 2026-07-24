@@ -104,7 +104,7 @@ export function AtividadeForm({
         </select>
         {!talhaoObrigatorio && (
           <p className="mt-1 text-xs text-neutral-500">
-            "Chuva" é uma parada geral da equipe — não precisa de um talhão específico.
+            &quot;Chuva&quot; é uma parada geral da equipe — não precisa de um talhão específico.
           </p>
         )}
       </div>
