@@ -34,7 +34,7 @@ async function validarChuva(
       where: { tipo: "FITOSSANITARIO", data: new Date(dados.dataStr), talhao: { propriedadeId } },
       select: { id: true },
     });
-    if (coincide) return "Informe se a chuva caiu antes ou depois da aplicação desse dia.";
+    if (coincide) return "Informe se a chuva caiu antes ou depois do tratamento.";
   }
 
   return undefined;

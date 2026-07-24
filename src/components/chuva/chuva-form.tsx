@@ -70,7 +70,7 @@ export function ChuvaForm({
       {coincideComTratamento && (
         <div>
           <p className="mb-1 block text-sm font-medium text-neutral-700">
-            Choveu antes da aplicação desse dia? *
+            Essa chuva caiu antes ou depois do tratamento? *
           </p>
           <div className="flex gap-6">
             <label className="flex items-center gap-2 text-base text-neutral-700">
@@ -82,7 +82,7 @@ export function ChuvaForm({
                 defaultChecked={defaultValues?.relacaoTratamentoDia === "ANTES"}
                 className="h-4 w-4 accent-green-700"
               />
-              Sim
+              Antes do tratamento
             </label>
             <label className="flex items-center gap-2 text-base text-neutral-700">
               <input
@@ -93,7 +93,7 @@ export function ChuvaForm({
                 defaultChecked={defaultValues?.relacaoTratamentoDia === "DEPOIS"}
                 className="h-4 w-4 accent-green-700"
               />
-              Não
+              Depois do tratamento
             </label>
           </div>
           <p className="mt-1 text-xs text-neutral-500">
