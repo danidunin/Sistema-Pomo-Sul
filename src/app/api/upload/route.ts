@@ -4,6 +4,7 @@ import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import sharp from "sharp";
+import { put } from "@vercel/blob";
 
 const PASTAS_PERMITIDAS = new Set(["maquinas", "operadores", "visitas", "manutencoes"]);
 // Fotos de iPhone costumam vir em HEIC. Antes, a conversão para JPEG rodava no
@@ -32,6 +33,35 @@ async function redimensionarImagem(bytes: Buffer, formatoSaida: "jpeg" | "png" |
   if (formatoSaida === "jpeg") return imagem.jpeg({ quality: 80 }).toBuffer();
   if (formatoSaida === "webp") return imagem.webp({ quality: 80 }).toBuffer();
   return imagem.png({ compressionLevel: 8 }).toBuffer();
+}
+
+const TIPOS_MIME: Record<string, string> = {
+  jpg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+  pdf: "application/pdf",
+};
+
+// Na Vercel, o servidor roda em função serverless com disco só de leitura —
+// gravar em public/uploads (writeFile) derruba com "EROFS: read-only file
+// system". Isso disparava um 500 sem corpo JSON, e o Safari/iOS mostrava
+// "The string did not match the expected pattern" ao tentar interpretar a
+// resposta como JSON — para QUALQUER foto, não só HEIC (bug diferente do da
+// conversão HEIC, embora com o mesmo sintoma). No servidor local (next start,
+// disco de verdade) writeFile sempre funcionou, por isso só apareceu na Vercel.
+async function salvarArquivo(bytes: Buffer, pasta: string, nomeArquivo: string, extensao: string): Promise<string> {
+  if (process.env.VERCEL) {
+    const blob = await put(`${pasta}/${nomeArquivo}`, bytes, {
+      access: "public",
+      contentType: TIPOS_MIME[extensao] ?? "application/octet-stream",
+    });
+    return blob.url;
+  }
+
+  const diretorio = path.join(process.cwd(), "public", "uploads", pasta);
+  await mkdir(diretorio, { recursive: true });
+  await writeFile(path.join(diretorio, nomeArquivo), bytes);
+  return `/api/uploads/${pasta}/${nomeArquivo}`;
 }
 
 export async function POST(request: Request) {
@@ -84,10 +114,7 @@ export async function POST(request: Request) {
   }
 
   const nomeArquivo = `${randomUUID()}.${extensao}`;
-  const diretorio = path.join(process.cwd(), "public", "uploads", pasta);
-  await mkdir(diretorio, { recursive: true });
+  const url = await salvarArquivo(bytes, pasta, nomeArquivo, extensao);
 
-  await writeFile(path.join(diretorio, nomeArquivo), bytes);
-
-  return NextResponse.json({ url: `/api/uploads/${pasta}/${nomeArquivo}` });
+  return NextResponse.json({ url });
 }
