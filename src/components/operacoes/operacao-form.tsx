@@ -5,7 +5,8 @@ import { criarOperacao, atualizarOperacao } from "@/actions/operacoes";
 import { criarOperadorRapido } from "@/actions/operadores";
 import { criarMaquinaRapido } from "@/actions/maquinas";
 import { calcularQuantidade, unidadeCanonica, converterParaUnidadeEstoque, UNIDADE_DOSAGEM_LABELS } from "@/lib/concentracao";
-import type { UnidadeDosagem } from "@/generated/prisma/enums";
+import { tipoUsaCalda, unidadeDosagemEfetiva } from "@/lib/operacoes";
+import type { TipoOperacao, UnidadeDosagem } from "@/generated/prisma/enums";
 import { AdicionarRapido } from "@/components/operacoes/adicionar-rapido";
 import { useFormularioAcao } from "@/hooks/use-formulario-acao";
 
@@ -15,7 +16,7 @@ type ProdutoOpcao = { id: string; nome: string; unidade: string; unidadeDosagem:
 type ProdutoLancado = { produtoId: string; concentracao: string };
 
 export type ValoresIniciaisOperacao = {
-  tipo: string;
+  tipo: TipoOperacao;
   data: string;
   talhaoId: string;
   volumeCalda: string;
@@ -28,7 +29,7 @@ export type ValoresIniciaisOperacao = {
   produtos: ProdutoLancado[];
 };
 
-const TIPOS = [
+const TIPOS: { value: TipoOperacao; label: string }[] = [
   { value: "FITOSSANITARIO", label: "Tratamento fitossanitário" },
   { value: "HERBICIDA", label: "Herbicida" },
   { value: "ADUBACAO", label: "Adubação" },
@@ -60,7 +61,7 @@ export function OperacaoForm({
 }) {
   const action = modo === "editar" ? atualizarOperacao.bind(null, operacaoId!) : criarOperacao;
   const { formAction, isPending, erro, rotulo } = useFormularioAcao(action);
-  const [tipo, setTipo] = useState(valoresIniciais?.tipo ?? "FITOSSANITARIO");
+  const [tipo, setTipo] = useState<TipoOperacao>(valoresIniciais?.tipo ?? "FITOSSANITARIO");
   const [talhaoId, setTalhaoId] = useState(valoresIniciais?.talhaoId ?? talhaoIdInicial ?? "");
   const [volumeCalda, setVolumeCalda] = useState(valoresIniciais?.volumeCalda ?? "");
   const [operadoresLista, setOperadoresLista] = useState(operadores);
@@ -76,6 +77,7 @@ export function OperacaoForm({
   );
 
   const areaHa = talhoes.find((t) => t.id === talhaoId)?.areaHa ?? null;
+  const usaCalda = tipoUsaCalda(tipo);
   const horasHomem =
     numeroPessoas && horasPorPessoa ? Number(numeroPessoas) * Number(horasPorPessoa) : null;
 
@@ -91,7 +93,7 @@ export function OperacaoForm({
             name="tipo"
             required
             value={tipo}
-            onChange={(e) => setTipo(e.target.value)}
+            onChange={(e) => setTipo(e.target.value as TipoOperacao)}
             className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           >
             {TIPOS.map((t) => (
@@ -139,28 +141,33 @@ export function OperacaoForm({
         </select>
       </div>
 
-      <div>
-        <label htmlFor="volumeCalda" className="mb-1 block text-sm font-medium text-neutral-700">
-          Volume de calda (L)
-        </label>
-        <input
-          id="volumeCalda"
-          name="volumeCalda"
-          type="number"
-          inputMode="decimal"
-          step="0.01"
-          value={volumeCalda}
-          onChange={(e) => setVolumeCalda(e.target.value)}
-          className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
-        />
-        <p className="mt-1 text-xs text-neutral-500">
-          Necessário se algum produto usado tiver dosagem por % ou por 100L (a maioria dos casos).
-        </p>
-      </div>
+      {/* Adubação é dosada só por área (kg/ha) — não usa calda. */}
+      {usaCalda && (
+        <div>
+          <label htmlFor="volumeCalda" className="mb-1 block text-sm font-medium text-neutral-700">
+            Volume de calda (L)
+          </label>
+          <input
+            id="volumeCalda"
+            name="volumeCalda"
+            type="number"
+            inputMode="decimal"
+            step="0.01"
+            value={volumeCalda}
+            onChange={(e) => setVolumeCalda(e.target.value)}
+            className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
+          />
+          <p className="mt-1 text-xs text-neutral-500">
+            Necessário se algum produto usado tiver dosagem por % ou por 100L (a maioria dos casos).
+          </p>
+        </div>
+      )}
 
       <div>
         <div className="mb-1 flex items-center justify-between">
-          <span className="text-sm font-medium text-neutral-700">Produtos *</span>
+          <span className="text-sm font-medium text-neutral-700">
+            {usaCalda ? "Produtos *" : "Fertilizantes *"}
+          </span>
           <button
             type="button"
             onClick={() => setLinhas((atual) => [...atual, { chave: proximaChave++ }])}
@@ -174,8 +181,9 @@ export function OperacaoForm({
           {linhas.map((linha) => (
             <LinhaProduto
               key={linha.chave}
+              tipo={tipo}
               produtos={produtos}
-              volumeCalda={volumeCalda ? Number(volumeCalda) : null}
+              volumeCalda={usaCalda && volumeCalda ? Number(volumeCalda) : null}
               areaHa={areaHa}
               valorInicial={linha.valorInicial}
               onRemover={
@@ -332,12 +340,14 @@ export function OperacaoForm({
 }
 
 function LinhaProduto({
+  tipo,
   produtos,
   volumeCalda,
   areaHa,
   onRemover,
   valorInicial,
 }: {
+  tipo: TipoOperacao;
   produtos: ProdutoOpcao[];
   volumeCalda: number | null;
   areaHa: number | null;
@@ -347,26 +357,32 @@ function LinhaProduto({
   const [produtoId, setProdutoId] = useState(valorInicial?.produtoId ?? "");
   const [concentracao, setConcentracao] = useState(valorInicial?.concentracao ?? "");
   const produto = produtos.find((p) => p.id === produtoId);
+  const ehAdubacao = !tipoUsaCalda(tipo);
+  // Em adubação a dose é sempre kg/ha, mesmo para fertilizante sem dosagem cadastrada.
+  const unidadeDosagem = produto ? unidadeDosagemEfetiva(tipo, produto.unidadeDosagem) : null;
 
   const quantidadeCalculada =
-    produto?.unidadeDosagem && concentracao
+    produto && unidadeDosagem && concentracao
       ? calcularQuantidade({
           concentracao: Number(concentracao),
-          unidadeDosagem: produto.unidadeDosagem,
+          unidadeDosagem,
           volumeCalda,
           areaHa,
         })
       : null;
 
   const quantidade =
-    produto?.unidadeDosagem && quantidadeCalculada !== null
-      ? converterParaUnidadeEstoque(quantidadeCalculada, unidadeCanonica(produto.unidadeDosagem), produto.unidade)
+    produto && unidadeDosagem && quantidadeCalculada !== null
+      ? converterParaUnidadeEstoque(quantidadeCalculada, unidadeCanonica(unidadeDosagem), produto.unidade)
       : null;
 
   return (
     <div className="rounded-lg border border-neutral-200 p-3">
       <div className="flex items-end gap-2">
         <div className="flex-1">
+          {ehAdubacao && (
+            <span className="mb-1 block text-xs font-medium text-neutral-600">Fertilizante</span>
+          )}
           <select
             name="produtoId[]"
             required
@@ -378,14 +394,17 @@ function LinhaProduto({
               Selecione o produto...
             </option>
             {produtos.map((p) => (
-              <option key={p.id} value={p.id} disabled={!p.unidadeDosagem}>
+              <option key={p.id} value={p.id} disabled={!ehAdubacao && !p.unidadeDosagem}>
                 {p.nome}
-                {!p.unidadeDosagem ? " (sem dosagem cadastrada)" : ""}
+                {!ehAdubacao && !p.unidadeDosagem ? " (sem dosagem cadastrada)" : ""}
               </option>
             ))}
           </select>
         </div>
         <div className="w-32">
+          {ehAdubacao && (
+            <span className="mb-1 block text-xs font-medium text-neutral-600">Qtd. (kg/ha) *</span>
+          )}
           <input
             name="concentracao[]"
             type="number"
@@ -394,7 +413,14 @@ function LinhaProduto({
             required
             value={concentracao}
             onChange={(e) => setConcentracao(e.target.value)}
-            placeholder={produto?.unidadeDosagem ? UNIDADE_DOSAGEM_LABELS[produto.unidadeDosagem] : "Concentração"}
+            placeholder={
+              ehAdubacao
+                ? UNIDADE_DOSAGEM_LABELS.KG_HA
+                : unidadeDosagem
+                  ? UNIDADE_DOSAGEM_LABELS[unidadeDosagem]
+                  : "Concentração"
+            }
+            aria-label={ehAdubacao ? "Quantidade aplicada (kg/ha)" : "Concentração"}
             className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           />
         </div>
@@ -410,9 +436,24 @@ function LinhaProduto({
         )}
       </div>
 
-      {produto?.unidadeDosagem && (
+      {ehAdubacao && produto && (
         <p className="mt-1 text-xs text-neutral-500">
-          {concentracao ? `${concentracao} ${UNIDADE_DOSAGEM_LABELS[produto.unidadeDosagem]}` : "Informe a concentração"}
+          {!concentracao && "Informe a quantidade aplicada (kg/ha)"}
+          {concentracao && areaHa !== null && quantidade !== null && (
+            <>
+              {areaHa.toLocaleString("pt-BR")} ha × {concentracao} kg/ha ={" "}
+              <span className="font-medium text-neutral-700">
+                {quantidade.toLocaleString("pt-BR")} {produto.unidade}
+              </span>
+            </>
+          )}
+          {concentracao && areaHa === null && "O talhão selecionado não tem área (ha) cadastrada — necessária para calcular o total."}
+        </p>
+      )}
+
+      {!ehAdubacao && produto && unidadeDosagem && (
+        <p className="mt-1 text-xs text-neutral-500">
+          {concentracao ? `${concentracao} ${UNIDADE_DOSAGEM_LABELS[unidadeDosagem]}` : "Informe a concentração"}
           {quantidade !== null && ` → ${quantidade.toLocaleString("pt-BR")} ${produto.unidade}`}
           {quantidade === null && concentracao && " → informe volume de calda/área para calcular"}
         </p>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { TIPO_OPERACAO_LABELS } from "@/lib/operacoes";
+import { TIPO_OPERACAO_LABELS, unidadeDosagemEfetiva } from "@/lib/operacoes";
 import { UNIDADE_DOSAGEM_LABELS } from "@/lib/concentracao";
 import { formatarData } from "@/lib/format";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
@@ -113,20 +113,25 @@ export default async function OperacoesPage({
                         <thead>
                           <tr className="text-left text-xs text-neutral-500">
                             <th className="px-4 py-2 font-normal">Produto</th>
-                            <th className="px-4 py-2 font-normal">Concentração</th>
+                            <th className="px-4 py-2 font-normal">
+                              {operacao.tipo === "ADUBACAO" ? "Dose" : "Concentração"}
+                            </th>
                             <th className="px-4 py-2 font-normal">Quantidade</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {operacao.produtos.map((item) => (
+                          {operacao.produtos.map((item) => {
+                            const unidadeDosagem = unidadeDosagemEfetiva(
+                              operacao.tipo,
+                              item.produto.unidadeDosagem,
+                            );
+                            return (
                             <tr key={item.id} className="border-t border-neutral-100">
                               <td className="px-4 py-2 text-neutral-900">{item.produto.nome}</td>
                               <td className="px-4 py-2 text-neutral-600">
                                 {item.concentracao
                                   ? `${item.concentracao.toString()} ${
-                                      item.produto.unidadeDosagem
-                                        ? UNIDADE_DOSAGEM_LABELS[item.produto.unidadeDosagem]
-                                        : ""
+                                      unidadeDosagem ? UNIDADE_DOSAGEM_LABELS[unidadeDosagem] : ""
                                     }`
                                   : "—"}
                               </td>
@@ -134,7 +139,8 @@ export default async function OperacoesPage({
                                 {item.quantidade.toString()} {item.unidade}
                               </td>
                             </tr>
-                          ))}
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>

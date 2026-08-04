@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { respostaRelatorio } from "@/lib/export-response";
-import { TIPO_OPERACAO_LABELS } from "@/lib/operacoes";
+import { TIPO_OPERACAO_LABELS, unidadeDosagemEfetiva } from "@/lib/operacoes";
 import { UNIDADE_DOSAGEM_LABELS } from "@/lib/concentracao";
 import { formatarData } from "@/lib/format";
 import type { LinhaRelatorio } from "@/lib/export";
@@ -40,11 +40,12 @@ export async function GET(request: Request) {
     }
 
     for (const item of op.produtos) {
+      const unidadeDosagem = unidadeDosagemEfetiva(op.tipo, item.produto.unidadeDosagem);
       linhas.push({
         ...base,
         produto: item.produto.nome,
         concentracao: item.concentracao
-          ? `${item.concentracao.toString()} ${item.produto.unidadeDosagem ? UNIDADE_DOSAGEM_LABELS[item.produto.unidadeDosagem] : ""}`
+          ? `${item.concentracao.toString()} ${unidadeDosagem ? UNIDADE_DOSAGEM_LABELS[unidadeDosagem] : ""}`
           : null,
         quantidade: `${item.quantidade.toString()} ${item.unidade}`,
       });
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
       { chave: "tipo", titulo: "Tipo" },
       { chave: "talhao", titulo: "Talhão", largura: 22 },
       { chave: "produto", titulo: "Produto", largura: 22 },
-      { chave: "concentracao", titulo: "Concentração" },
+      { chave: "concentracao", titulo: "Concentração / dose" },
       { chave: "quantidade", titulo: "Quantidade" },
       { chave: "volumeCalda", titulo: "Volume de calda (L)" },
       { chave: "pessoas", titulo: "Pessoas" },

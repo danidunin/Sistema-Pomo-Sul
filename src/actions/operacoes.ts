@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { TipoOperacao } from "@/generated/prisma/enums";
 import { calcularQuantidade, unidadeCanonica, converterParaUnidadeEstoque } from "@/lib/concentracao";
+import { tipoUsaCalda, unidadeDosagemEfetiva } from "@/lib/operacoes";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { ehValorDoEnum } from "@/lib/enum";
 
@@ -28,14 +29,16 @@ type DadosFormularioOperacao = {
 function lerFormularioOperacao(formData: FormData): DadosFormularioOperacao {
   const produtoIds = formData.getAll("produtoId[]").map(String);
   const concentracoes = formData.getAll("concentracao[]").map(Number);
+  const tipo = String(formData.get("tipo") ?? "") as TipoOperacao;
 
   return {
-    tipo: String(formData.get("tipo") ?? "") as TipoOperacao,
+    tipo,
     dataStr: String(formData.get("data") ?? ""),
     talhaoId: String(formData.get("talhaoId") ?? ""),
     operadorId: String(formData.get("operadorId") ?? "") || null,
     maquinaId: String(formData.get("maquinaId") ?? "") || null,
-    volumeCalda: formData.get("volumeCalda") ? Number(formData.get("volumeCalda")) : null,
+    // Adubação nunca guarda volume de calda, mesmo que algum valor chegue no formulário.
+    volumeCalda: tipoUsaCalda(tipo) && formData.get("volumeCalda") ? Number(formData.get("volumeCalda")) : null,
     numeroPessoas: formData.get("numeroPessoas") ? Number(formData.get("numeroPessoas")) : null,
     horasPorPessoa: formData.get("horasPorPessoa") ? Number(formData.get("horasPorPessoa")) : null,
     horasMaquina: formData.get("horasMaquina") ? Number(formData.get("horasMaquina")) : null,
@@ -71,19 +74,22 @@ async function calcularItensOperacao(
 
   for (const item of dados.itensBrutos) {
     const produto = produtosUsados.find((p) => p.id === item.produtoId);
-    if (!produto?.unidadeDosagem) {
+    // Em adubação a dose é sempre kg/ha, mesmo que o fertilizante não tenha
+    // unidade de dosagem cadastrada no estoque.
+    const unidadeDosagem = produto ? unidadeDosagemEfetiva(dados.tipo, produto.unidadeDosagem) : null;
+    if (!produto || !unidadeDosagem) {
       return { erro: `O produto "${produto?.nome ?? item.produtoId}" não tem unidade de dosagem cadastrada. Defina em Estoque antes de usá-lo em um tratamento.` };
     }
 
     const quantidadeCalculada = calcularQuantidade({
       concentracao: item.concentracao,
-      unidadeDosagem: produto.unidadeDosagem,
+      unidadeDosagem,
       volumeCalda: dados.volumeCalda,
       areaHa: talhao.areaHa ? Number(talhao.areaHa) : null,
     });
 
     if (quantidadeCalculada === null) {
-      const precisaVolume = produto.unidadeDosagem !== "L_HA" && produto.unidadeDosagem !== "KG_HA";
+      const precisaVolume = unidadeDosagem !== "L_HA" && unidadeDosagem !== "KG_HA";
       return {
         erro: precisaVolume
           ? "Informe o volume de calda para calcular a quantidade dos produtos."
@@ -95,7 +101,7 @@ async function calcularItensOperacao(
     // exibida e a baixa de estoque sempre respeitam essa unidade (peso ou volume).
     const quantidadeNaUnidadeDoProduto = converterParaUnidadeEstoque(
       quantidadeCalculada,
-      unidadeCanonica(produto.unidadeDosagem),
+      unidadeCanonica(unidadeDosagem),
       produto.unidade,
     );
 
