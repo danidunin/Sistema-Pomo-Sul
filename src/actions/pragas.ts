@@ -8,6 +8,8 @@ import { ehValorDoEnum } from "@/lib/enum";
 import {
   exigirPropriedadeAtual,
   garantirPontoMonitoramentoDaPropriedade,
+  garantirArmadilhaDaPropriedade,
+  garantirTalhaoDaPropriedade,
 } from "@/lib/propriedade";
 
 // --- Pontos de Monitoramento ------------------------------------------------
@@ -101,5 +103,111 @@ export async function excluirPontoMonitoramento(pontoId: string) {
     await db.pontoMonitoramento.update({ where: { id: pontoId }, data: { ativo: false } });
     revalidatePath("/monitoramento-pragas/pontos");
     redirect("/monitoramento-pragas/pontos?resultado=inativado");
+  }
+}
+
+// --- Armadilhas -------------------------------------------------------------
+
+function lerFormularioArmadilha(formData: FormData) {
+  return {
+    pontoMonitoramentoId: String(formData.get("pontoMonitoramentoId") ?? ""),
+    talhaoId: String(formData.get("talhaoId") ?? ""),
+    rotulo: String(formData.get("rotulo") ?? "").trim(),
+  };
+}
+
+function validarArmadilha(dados: ReturnType<typeof lerFormularioArmadilha>) {
+  if (!dados.pontoMonitoramentoId || !dados.talhaoId || !dados.rotulo) {
+    return "Selecione o ponto de monitoramento, o talhão e informe o rótulo da armadilha.";
+  }
+  return undefined;
+}
+
+export async function criarArmadilha(
+  _prevState: string | undefined,
+  formData: FormData,
+): Promise<string | undefined> {
+  const dados = lerFormularioArmadilha(formData);
+  const erro = validarArmadilha(dados);
+  if (erro) return erro;
+
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirPontoMonitoramentoDaPropriedade(dados.pontoMonitoramentoId, propriedadeId))) {
+    return "Ponto de monitoramento inválido para a propriedade atual.";
+  }
+  if (!(await garantirTalhaoDaPropriedade(dados.talhaoId, propriedadeId))) {
+    return "Talhão inválido para a propriedade atual.";
+  }
+
+  await db.armadilha.create({
+    data: { pontoMonitoramentoId: dados.pontoMonitoramentoId, talhaoId: dados.talhaoId, rotulo: dados.rotulo },
+  });
+
+  revalidatePath("/monitoramento-pragas/armadilhas");
+  revalidatePath(`/monitoramento-pragas/pontos/${dados.pontoMonitoramentoId}`);
+  redirect(`/monitoramento-pragas/pontos/${dados.pontoMonitoramentoId}`);
+}
+
+export async function atualizarArmadilha(
+  armadilhaId: string,
+  _prevState: string | undefined,
+  formData: FormData,
+): Promise<string | undefined> {
+  const dados = lerFormularioArmadilha(formData);
+  const erro = validarArmadilha(dados);
+  if (erro) return erro;
+
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirArmadilhaDaPropriedade(armadilhaId, propriedadeId))) return "Armadilha inválida.";
+  if (!(await garantirPontoMonitoramentoDaPropriedade(dados.pontoMonitoramentoId, propriedadeId))) {
+    return "Ponto de monitoramento inválido para a propriedade atual.";
+  }
+  if (!(await garantirTalhaoDaPropriedade(dados.talhaoId, propriedadeId))) {
+    return "Talhão inválido para a propriedade atual.";
+  }
+
+  await db.armadilha.update({
+    where: { id: armadilhaId },
+    data: { pontoMonitoramentoId: dados.pontoMonitoramentoId, talhaoId: dados.talhaoId, rotulo: dados.rotulo },
+  });
+
+  revalidatePath("/monitoramento-pragas/armadilhas");
+  revalidatePath(`/monitoramento-pragas/pontos/${dados.pontoMonitoramentoId}`);
+  redirect(`/monitoramento-pragas/pontos/${dados.pontoMonitoramentoId}`);
+}
+
+export async function alternarAtivoArmadilha(armadilhaId: string) {
+  const propriedadeId = await exigirPropriedadeAtual();
+  const armadilha = await db.armadilha.findUnique({
+    where: { id: armadilhaId },
+    select: { ativo: true, pontoMonitoramentoId: true, pontoMonitoramento: { select: { propriedadeId: true } } },
+  });
+  if (!armadilha || armadilha.pontoMonitoramento.propriedadeId !== propriedadeId) return;
+
+  await db.armadilha.update({ where: { id: armadilhaId }, data: { ativo: !armadilha.ativo } });
+  revalidatePath("/monitoramento-pragas/armadilhas");
+  revalidatePath(`/monitoramento-pragas/pontos/${armadilha.pontoMonitoramentoId}`);
+}
+
+export async function excluirArmadilha(armadilhaId: string) {
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirArmadilhaDaPropriedade(armadilhaId, propriedadeId))) return;
+
+  const armadilha = await db.armadilha.findUniqueOrThrow({
+    where: { id: armadilhaId },
+    select: { pontoMonitoramentoId: true },
+  });
+  const totalLeituras = await db.leituraArmadilha.count({ where: { armadilhaId } });
+
+  if (totalLeituras === 0) {
+    await db.armadilha.delete({ where: { id: armadilhaId } });
+    revalidatePath("/monitoramento-pragas/armadilhas");
+    revalidatePath(`/monitoramento-pragas/pontos/${armadilha.pontoMonitoramentoId}`);
+    redirect(`/monitoramento-pragas/pontos/${armadilha.pontoMonitoramentoId}?resultado=excluido`);
+  } else {
+    await db.armadilha.update({ where: { id: armadilhaId }, data: { ativo: false } });
+    revalidatePath("/monitoramento-pragas/armadilhas");
+    revalidatePath(`/monitoramento-pragas/pontos/${armadilha.pontoMonitoramentoId}`);
+    redirect(`/monitoramento-pragas/pontos/${armadilha.pontoMonitoramentoId}?resultado=inativado`);
   }
 }
