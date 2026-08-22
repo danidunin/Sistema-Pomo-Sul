@@ -10,6 +10,7 @@ import {
   garantirPontoMonitoramentoDaPropriedade,
   garantirArmadilhaDaPropriedade,
   garantirTalhaoDaPropriedade,
+  garantirLeituraDaPropriedade,
 } from "@/lib/propriedade";
 
 // --- Pontos de Monitoramento ------------------------------------------------
@@ -256,4 +257,46 @@ export async function criarLeiturasEmLote(
 
   revalidatePath("/monitoramento-pragas");
   redirect(`/monitoramento-pragas?tipoPraga=${tipoPragaRaw}&safra=${encodeURIComponent(safra)}`);
+}
+
+// --- Leitura individual (edição/exclusão) -----------------------------------
+
+export async function atualizarLeituraArmadilha(
+  leituraId: string,
+  _prevState: string | undefined,
+  formData: FormData,
+): Promise<string | undefined> {
+  const dataStr = String(formData.get("data") ?? "");
+  const quantidadeRaw = formData.get("quantidade");
+
+  if (!dataStr || !quantidadeRaw || !Number.isFinite(Number(quantidadeRaw)) || Number(quantidadeRaw) < 0) {
+    return "Informe a data e uma quantidade válida (número inteiro não negativo).";
+  }
+
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirLeituraDaPropriedade(leituraId, propriedadeId))) return "Leitura inválida.";
+
+  const leitura = await db.leituraArmadilha.update({
+    where: { id: leituraId },
+    data: { data: new Date(dataStr), quantidade: Number(quantidadeRaw) },
+    select: { armadilha: { select: { pontoMonitoramentoId: true } } },
+  });
+
+  revalidatePath(`/monitoramento-pragas/pontos/${leitura.armadilha.pontoMonitoramentoId}`);
+  revalidatePath("/monitoramento-pragas");
+  redirect(`/monitoramento-pragas/pontos/${leitura.armadilha.pontoMonitoramentoId}`);
+}
+
+export async function excluirLeituraArmadilha(leituraId: string) {
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirLeituraDaPropriedade(leituraId, propriedadeId))) return;
+
+  const leitura = await db.leituraArmadilha.delete({
+    where: { id: leituraId },
+    select: { armadilha: { select: { pontoMonitoramentoId: true } } },
+  });
+
+  revalidatePath(`/monitoramento-pragas/pontos/${leitura.armadilha.pontoMonitoramentoId}`);
+  revalidatePath("/monitoramento-pragas");
+  redirect(`/monitoramento-pragas/pontos/${leitura.armadilha.pontoMonitoramentoId}`);
 }

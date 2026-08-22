@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
-import { TIPO_PRAGA_LABELS } from "@/lib/pragas";
+import { TIPO_PRAGA_LABELS, agruparMediaPorData, calcularSerieNivelControle, CORES_NIVEL } from "@/lib/pragas";
+import { formatarData } from "@/lib/format";
 import { VoltarLink } from "@/components/nav/voltar-link";
 
 export default async function DetalhePontoPage({ params }: { params: Promise<{ id: string }> }) {
@@ -11,7 +12,12 @@ export default async function DetalhePontoPage({ params }: { params: Promise<{ i
 
   const ponto = await db.pontoMonitoramento.findUnique({
     where: { id },
-    include: { armadilhas: { orderBy: { rotulo: "asc" }, include: { talhao: { select: { nomeCodinome: true } } } } },
+    include: {
+      armadilhas: {
+        orderBy: { rotulo: "asc" },
+        include: { talhao: { select: { nomeCodinome: true } }, leituras: { orderBy: { data: "desc" } } },
+      },
+    },
   });
   if (!ponto || ponto.propriedadeId !== propriedadeId) notFound();
 
@@ -56,6 +62,44 @@ export default async function DetalhePontoPage({ params }: { params: Promise<{ i
           </ul>
         )}
       </div>
+
+      <PontoHistorico ponto={ponto} />
+    </div>
+  );
+}
+
+function PontoHistorico({
+  ponto,
+}: {
+  ponto: {
+    tipoPraga: import("@/generated/prisma/enums").TipoPraga;
+    armadilhas: { leituras: { id: string; data: Date; quantidade: number }[] }[];
+  };
+}) {
+  const leiturasBrutas = ponto.armadilhas.flatMap((a) =>
+    a.leituras.map((l) => ({ data: l.data, quantidade: l.quantidade })),
+  );
+  const porData = agruparMediaPorData(leiturasBrutas);
+  const serie = calcularSerieNivelControle(ponto.tipoPraga, porData);
+
+  return (
+    <div className="rounded-xl border border-neutral-200 bg-white p-4">
+      <p className="mb-3 text-sm font-medium text-neutral-700">Histórico de leituras</p>
+      {serie.length === 0 ? (
+        <p className="text-sm text-neutral-500">Nenhuma leitura registrada ainda.</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {[...serie].reverse().map((s) => (
+            <li key={s.data.toISOString()} className="flex items-center justify-between text-sm">
+              <span className="text-neutral-700">{formatarData(s.data)}</span>
+              <span className="text-neutral-500">média {s.mediaAtual.toFixed(1)}</span>
+              <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${CORES_NIVEL[s.nivel].badge}`}>
+                {CORES_NIVEL[s.nivel].texto}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
