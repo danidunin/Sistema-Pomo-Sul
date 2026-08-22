@@ -73,7 +73,7 @@ function PontoHistorico({
 }: {
   ponto: {
     tipoPraga: import("@/generated/prisma/enums").TipoPraga;
-    armadilhas: { leituras: { id: string; data: Date; quantidade: number }[] }[];
+    armadilhas: { id: string; rotulo: string; leituras: { id: string; data: Date; quantidade: number }[] }[];
   };
 }) {
   const leiturasBrutas = ponto.armadilhas.flatMap((a) =>
@@ -82,20 +82,50 @@ function PontoHistorico({
   const porData = agruparMediaPorData(leiturasBrutas);
   const serie = calcularSerieNivelControle(ponto.tipoPraga, porData);
 
+  // Detalhe por armadilha de cada data — para linkar cada leitura individual à sua
+  // página de edição (a série acima é só a média agregada, sem id de leitura).
+  const detalhePorData = new Map<
+    number,
+    { leituraId: string; armadilhaRotulo: string; quantidade: number }[]
+  >();
+  for (const a of ponto.armadilhas) {
+    for (const l of a.leituras) {
+      const chave = l.data.getTime();
+      const lista = detalhePorData.get(chave) ?? [];
+      lista.push({ leituraId: l.id, armadilhaRotulo: a.rotulo, quantidade: l.quantidade });
+      detalhePorData.set(chave, lista);
+    }
+  }
+
   return (
     <div className="rounded-xl border border-neutral-200 bg-white p-4">
       <p className="mb-3 text-sm font-medium text-neutral-700">Histórico de leituras</p>
       {serie.length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhuma leitura registrada ainda.</p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-3">
           {[...serie].reverse().map((s) => (
-            <li key={s.data.toISOString()} className="flex items-center justify-between text-sm">
-              <span className="text-neutral-700">{formatarData(s.data)}</span>
-              <span className="text-neutral-500">média {s.mediaAtual.toFixed(1)}</span>
-              <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${CORES_NIVEL[s.nivel].badge}`}>
-                {CORES_NIVEL[s.nivel].texto}
-              </span>
+            <li key={s.data.toISOString()} className="flex flex-col gap-1">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-neutral-700">{formatarData(s.data)}</span>
+                <span className="text-neutral-500">média {s.mediaAtual.toFixed(1)}</span>
+                <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${CORES_NIVEL[s.nivel].badge}`}>
+                  {CORES_NIVEL[s.nivel].texto}
+                </span>
+              </div>
+              <ul className="flex flex-col gap-0.5 pl-3">
+                {(detalhePorData.get(s.data.getTime()) ?? []).map((d) => (
+                  <li key={d.leituraId} className="flex items-center justify-between text-xs">
+                    <span className="text-neutral-500">{d.armadilhaRotulo}</span>
+                    <Link
+                      href={`/monitoramento-pragas/leituras/${d.leituraId}/editar`}
+                      className="text-green-700"
+                    >
+                      {d.quantidade} · editar
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </li>
           ))}
         </ul>
