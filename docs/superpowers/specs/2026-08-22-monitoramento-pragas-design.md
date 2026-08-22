@@ -17,6 +17,13 @@ Fora de escopo por enquanto: notificação por e-mail/WhatsApp, limiares configu
 (ficam fixos no código, com os valores da Embrapa/planilha), e mudança de armadilha de talhão
 no meio da safra.
 
+> **Nota para fase futura — WhatsApp**: quando for priorizado, o caminho recomendado é a
+> Meta Cloud API (oficial, gratuita na faixa de volume esperada, sem risco de bloqueio),
+> exigindo conta Meta Business verificada e um número dedicado com template de mensagem
+> pré-aprovado. Provedores não-oficiais (Z-API etc.) são mais rápidos de configurar mas
+> correm risco de bloqueio do número por serem automação não sancionada pela Meta. Decisão
+> registrada aqui para não perder o contexto quando essa fase começar.
+
 ## 2. Modelo de dados
 
 ```
