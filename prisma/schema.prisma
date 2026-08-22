@@ -19,11 +19,12 @@ model Propriedade {
   nome      String   @unique
   createdAt DateTime @default(now()) @map("created_at")
 
-  talhoes         Talhao[]
-  maquinas        Maquina[]
-  operadores      Operador[]
-  produtos        Produto[]
-  contagensFrutos ContagemFrutos[]
+  talhoes             Talhao[]
+  maquinas            Maquina[]
+  operadores          Operador[]
+  produtos            Produto[]
+  contagensFrutos     ContagemFrutos[]
+  pontosMonitoramento PontoMonitoramento[]
 
   @@map("propriedades")
 }
@@ -72,6 +73,7 @@ model Talhao {
   visitas         VisitaCampo[]
   contagensFrutos ContagemFrutos[]
   metasSafra      MetaSafra[]
+  armadilhas      Armadilha[]
 
   @@index([nomeCodinome])
   @@index([propriedadeId])
@@ -430,4 +432,63 @@ model VisitaCampo {
 
   @@index([talhaoId, data])
   @@map("visitas_campo")
+}
+
+// ---------------------------------------------------------------------------
+// Monitoramento de Pragas — armadilhas com feromônio lidas 2x/semana,
+// agrupadas em Pontos de Monitoramento (várias armadilhas próximas avaliadas
+// em conjunto, como já é feito na planilha usada hoje pela propriedade)
+// ---------------------------------------------------------------------------
+
+enum TipoPraga {
+  GRAPHOLITA_MOLESTA
+  MOSCA_DAS_FRUTAS
+  BONAGOTA
+  CYDIA
+}
+
+model PontoMonitoramento {
+  id            String      @id @default(cuid())
+  propriedade   Propriedade @relation(fields: [propriedadeId], references: [id])
+  propriedadeId String      @map("propriedade_id")
+  tipoPraga     TipoPraga   @map("tipo_praga")
+  nome          String
+  safra         String
+  ativo         Boolean     @default(true)
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  armadilhas Armadilha[]
+
+  @@unique([propriedadeId, tipoPraga, nome, safra])
+  @@index([propriedadeId, tipoPraga, safra])
+  @@map("pontos_monitoramento")
+}
+
+model Armadilha {
+  id                   String             @id @default(cuid())
+  pontoMonitoramento   PontoMonitoramento @relation(fields: [pontoMonitoramentoId], references: [id])
+  pontoMonitoramentoId String             @map("ponto_monitoramento_id")
+  talhao               Talhao             @relation(fields: [talhaoId], references: [id])
+  talhaoId             String             @map("talhao_id")
+  rotulo               String
+  ativo                Boolean            @default(true)
+  createdAt            DateTime           @default(now()) @map("created_at")
+
+  leituras LeituraArmadilha[]
+
+  @@index([pontoMonitoramentoId])
+  @@index([talhaoId])
+  @@map("armadilhas")
+}
+
+model LeituraArmadilha {
+  id          String    @id @default(cuid())
+  armadilha   Armadilha @relation(fields: [armadilhaId], references: [id])
+  armadilhaId String    @map("armadilha_id")
+  data        DateTime
+  quantidade  Int
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([armadilhaId, data])
+  @@map("leituras_armadilha")
 }

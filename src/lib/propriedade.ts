@@ -83,3 +83,24 @@ export async function garantirVisitaDaPropriedade(visitaId: string, propriedadeI
   });
   return visita?.talhao.propriedadeId === propriedadeId;
 }
+
+export async function garantirPontoMonitoramentoDaPropriedade(pontoId: string, propriedadeId: string): Promise<boolean> {
+  const ponto = await db.pontoMonitoramento.findUnique({ where: { id: pontoId }, select: { propriedadeId: true } });
+  return ponto?.propriedadeId === propriedadeId;
+}
+
+export async function garantirArmadilhaDaPropriedade(armadilhaId: string, propriedadeId: string): Promise<boolean> {
+  const armadilha = await db.armadilha.findUnique({
+    where: { id: armadilhaId },
+    select: { pontoMonitoramento: { select: { propriedadeId: true } } },
+  });
+  return armadilha?.pontoMonitoramento.propriedadeId === propriedadeId;
+}
+
+export async function garantirLeituraDaPropriedade(leituraId: string, propriedadeId: string): Promise<boolean> {
+  const leitura = await db.leituraArmadilha.findUnique({
+    where: { id: leituraId },
+    select: { armadilha: { select: { pontoMonitoramento: { select: { propriedadeId: true } } } } },
+  });
+  return leitura?.armadilha.pontoMonitoramento.propriedadeId === propriedadeId;
+}
