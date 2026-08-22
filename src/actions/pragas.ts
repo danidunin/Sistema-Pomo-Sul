@@ -211,3 +211,49 @@ export async function excluirArmadilha(armadilhaId: string) {
     redirect(`/monitoramento-pragas/pontos/${armadilha.pontoMonitoramentoId}?resultado=inativado`);
   }
 }
+
+// --- Leituras (lançamento em lote) ------------------------------------------
+
+export async function criarLeiturasEmLote(
+  _prevState: string | undefined,
+  formData: FormData,
+): Promise<string | undefined> {
+  const tipoPragaRaw = String(formData.get("tipoPraga") ?? "");
+  const safra = String(formData.get("safra") ?? "").trim();
+  const dataStr = String(formData.get("data") ?? "");
+  const armadilhaIds = formData.getAll("armadilhaId[]").map(String);
+  const quantidadesRaw = formData.getAll("quantidade[]").map(String);
+
+  if (!ehValorDoEnum(TipoPraga, tipoPragaRaw)) return "Praga inválida.";
+  if (!safra || !dataStr) return "Selecione a safra e a data da leitura.";
+
+  const itens = armadilhaIds
+    .map((armadilhaId, i) => ({ armadilhaId, quantidadeRaw: quantidadesRaw[i] ?? "" }))
+    .filter((item) => item.quantidadeRaw !== "");
+
+  if (itens.length === 0) return "Preencha ao menos uma armadilha antes de salvar.";
+  if (itens.some((item) => !Number.isFinite(Number(item.quantidadeRaw)) || Number(item.quantidadeRaw) < 0)) {
+    return "As quantidades devem ser números inteiros não negativos.";
+  }
+
+  const propriedadeId = await exigirPropriedadeAtual();
+
+  const armadilhas = await db.armadilha.findMany({
+    where: { id: { in: itens.map((i) => i.armadilhaId) } },
+    select: { id: true, pontoMonitoramento: { select: { propriedadeId: true } } },
+  });
+  const idsValidos = new Set(
+    armadilhas.filter((a) => a.pontoMonitoramento.propriedadeId === propriedadeId).map((a) => a.id),
+  );
+  if (itens.some((item) => !idsValidos.has(item.armadilhaId))) {
+    return "Uma das armadilhas não pertence à propriedade atual.";
+  }
+
+  const data = new Date(dataStr);
+  await db.leituraArmadilha.createMany({
+    data: itens.map((item) => ({ armadilhaId: item.armadilhaId, data, quantidade: Number(item.quantidadeRaw) })),
+  });
+
+  revalidatePath("/monitoramento-pragas");
+  redirect(`/monitoramento-pragas?tipoPraga=${tipoPragaRaw}&safra=${encodeURIComponent(safra)}`);
+}
