@@ -379,7 +379,9 @@ describe("calcularSerieNivelControle — Grapholita/Bonagota/Cydia (soma das 2 �
     const serie = calcularSerieNivelControle("GRAPHOLITA_MOLESTA", leiturasPorData);
 
     expect(serie.map((s) => s.metrica)).toEqual([0, 0, 25.333333333333332, 31, 19.666666666666668, 42]);
-    expect(serie.map((s) => s.nivel)).toEqual(["BAIXO", "BAIXO", "CONTROLE", "CONTROLE", "CONTROLE", "CONTROLE"]);
+    // 19.666... < 20 (limiar de controle) -> ATENCAO nesse ponto da série, não CONTROLE.
+    // (Corrigido durante a Task 2: o rascunho original deste plano tinha esse valor errado.)
+    expect(serie.map((s) => s.nivel)).toEqual(["BAIXO", "BAIXO", "CONTROLE", "CONTROLE", "ATENCAO", "CONTROLE"]);
   });
 
   it("primeira leitura do ponto usa só a média atual (sem leitura anterior)", () => {
