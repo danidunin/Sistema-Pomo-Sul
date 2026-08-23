@@ -2132,10 +2132,10 @@ git commit -m "Adiciona página principal do Monitoramento de Pragas com status 
 
 - [ ] **Step 1: Add the nav item**
 
-In `src/lib/nav-items.ts`, add `Bug` to the `lucide-react` import list, and add this entry to `SECONDARY_NAV_ITEMS` (after "Contagem de Frutos", to sit near the other field-monitoring modules):
+On `main`, `src/lib/nav-items.ts` predates a `lucide-react` icon migration that exists only on other, unmerged branches — `NavItem.icon` is typed `string` here and every entry is a plain emoji rendered directly by the 3 consumers (`side-nav.tsx`, `bottom-nav.tsx`, `mais/page.tsx`). Follow the file's actual current convention: add this entry to `SECONDARY_NAV_ITEMS` (after "Contagem de Frutos", to sit near the other field-monitoring modules) using an emoji, no new import:
 
 ```ts
-  { href: "/monitoramento-pragas", label: "Monitoramento de Pragas", icon: Bug },
+  { href: "/monitoramento-pragas", label: "Monitoramento de Pragas", icon: "🐛" },
 ```
 
 - [ ] **Step 2: Add `buscarAlertasPragas` to `src/lib/dashboard.ts`**
