@@ -18,6 +18,7 @@ export const NAV_ITEMS: NavItem[] = [
 export const SECONDARY_NAV_ITEMS: NavItem[] = [
   { href: "/historico-pomar", label: "Histórico do Pomar", icon: "📜" },
   { href: "/contagem-frutos", label: "Contagem de Frutos", icon: "🍎" },
+  { href: "/monitoramento-pragas", label: "Monitoramento de Pragas", icon: "🐛" },
   { href: "/relatorios/horas-maquina", label: "Horas de Máquina", icon: "⛽" },
   { href: "/relatorios/horas-homem", label: "Hora-Homem", icon: "👷" },
   { href: "/operadores", label: "Operadores", icon: "🧑‍🌾" },

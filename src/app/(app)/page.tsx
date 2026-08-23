@@ -4,7 +4,8 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { propriedadeAtualId } from "@/lib/propriedade";
 import { definirPropriedadeAtual, esquecerPropriedadeAtual } from "@/actions/propriedade";
-import { buscarResumoPropriedade, buscarResumoBasicoPropriedades } from "@/lib/dashboard";
+import { buscarResumoPropriedade, buscarResumoBasicoPropriedades, buscarAlertasPragas } from "@/lib/dashboard";
+import { TIPO_PRAGA_LABELS } from "@/lib/pragas";
 import { buscarClima } from "@/lib/clima";
 import { CulturaDot, corBarraCultura } from "@/components/ui/cultura-tag";
 import { IconArea, IconParcelas, IconMaquina, IconFuncionario, IconSync } from "@/components/ui/icons";
@@ -88,10 +89,11 @@ async function SeletorPropriedade() {
 }
 
 async function ResumoDaPropriedade({ propriedadeId }: { propriedadeId: string }) {
-  const [propriedade, resumo, clima] = await Promise.all([
+  const [propriedade, resumo, clima, alertasPragas] = await Promise.all([
     db.propriedade.findUnique({ where: { id: propriedadeId }, select: { nome: true } }),
     buscarResumoPropriedade(propriedadeId),
     buscarClima(),
+    buscarAlertasPragas(propriedadeId),
   ]);
 
   const maiorAreaCultura = Math.max(1, ...resumo.areaPorCultura.map((c) => c.areaHa));
@@ -181,6 +183,23 @@ async function ResumoDaPropriedade({ propriedadeId }: { propriedadeId: string })
           )}
         </div>
       </div>
+
+      {alertasPragas.length > 0 && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+          <p className="mb-2 text-sm font-semibold text-red-800">
+            🐛 Pragas em nível de controle ({alertasPragas.length})
+          </p>
+          <ul className="flex flex-col gap-1.5">
+            {alertasPragas.map((a) => (
+              <li key={a.pontoId}>
+                <Link href={`/monitoramento-pragas/pontos/${a.pontoId}`} className="text-sm text-red-700 underline">
+                  {TIPO_PRAGA_LABELS[a.tipoPraga]} — {a.pontoNome} ({a.talhoesNomes.join(", ")})
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {resumo.numeroMaquinas === 0 && resumo.numeroFuncionarios === 0 && (
         <p className="text-xs text-neutral-400">
