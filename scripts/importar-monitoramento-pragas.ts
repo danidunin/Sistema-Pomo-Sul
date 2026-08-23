@@ -121,9 +121,20 @@ function texto(sheet: ExcelJS.Worksheet, linha: number, coluna: number): string 
   return String(valor).replace(/\s+/g, " ").trim();
 }
 
+/**
+ * Zera a hora em UTC. O app sempre grava datas de leitura como meia-noite UTC
+ * (`<input type="date">` → `new Date("2026-08-11")`), e todo o agrupamento por
+ * data — tanto o `agruparMediaPorData` do app quanto a deduplicação de re-execução
+ * deste script — compara `getTime()` exato. Uma data importada com qualquer
+ * componente de hora cairia num balde diferente de qualquer data lançada pelo app.
+ */
+function meiaNoiteUTC(d: Date): Date {
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+}
+
 function comoData(valor: unknown): Date | null {
-  if (valor instanceof Date) return valor;
-  if (typeof valor === "string" && /^\d{4}-\d{2}-\d{2}T/.test(valor)) return new Date(valor);
+  if (valor instanceof Date) return meiaNoiteUTC(valor);
+  if (typeof valor === "string" && /^\d{4}-\d{2}-\d{2}T/.test(valor)) return meiaNoiteUTC(new Date(valor));
   return null;
 }
 

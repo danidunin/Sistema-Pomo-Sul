@@ -24,7 +24,10 @@ export default async function MonitoramentoPragasPage({
       ...(safra ? { safra } : {}),
     },
     orderBy: [{ safra: "desc" }, { tipoPraga: "asc" }, { nome: "asc" }],
-    include: { armadilhas: { where: { ativo: true }, include: { leituras: true } } },
+    // Sem filtro de `ativo` nas armadilhas: uma leitura é um fato histórico e não
+    // deve sair do cálculo da média só porque a armadilha foi desativada depois.
+    // Desativar uma armadilha só a remove da grade de lançamento de NOVAS leituras.
+    include: { armadilhas: { include: { leituras: true } } },
   });
 
   const linhas = pontos.map((ponto) => {

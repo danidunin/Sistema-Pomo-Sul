@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { statusAtualPonto, TIPO_PRAGA_LABELS } from "@/lib/pragas";
+import { statusAtualPonto } from "@/lib/pragas";
 import type { TipoPraga } from "@/generated/prisma/enums";
 
 export type ResumoPropriedade = {
@@ -95,22 +95,39 @@ export type AlertaPraga = {
   data: Date;
 };
 
-/** Pontos de monitoramento cuja leitura mais recente atingiu o nível de controle. */
+/**
+ * Idade máxima da última leitura para o ponto ainda gerar alerta na Home. O
+ * monitoramento é ~2x por semana, então 3 semanas sem leitura significa que o
+ * monitoramento daquele ponto parou (safra encerrada, por exemplo). Sem esse
+ * corte, a última leitura de uma safra finalizada ficaria alertando em vermelho
+ * na Home para sempre, inclusive durante a safra seguinte.
+ */
+const DIAS_ALERTA_RECENTE = 21;
+
+/**
+ * Pontos de monitoramento cuja leitura mais recente atingiu o nível de controle,
+ * limitado às leituras dos últimos {@link DIAS_ALERTA_RECENTE} dias.
+ */
 export async function buscarAlertasPragas(propriedadeId: string): Promise<AlertaPraga[]> {
+  // Sem filtro de `ativo` nas armadilhas: uma leitura é um fato histórico e não
+  // deve sair do cálculo da média só porque a armadilha foi desativada depois.
+  // Desativar uma armadilha só a remove da grade de lançamento de NOVAS leituras.
   const pontos = await db.pontoMonitoramento.findMany({
     where: { propriedadeId, ativo: true },
     include: {
       armadilhas: {
-        where: { ativo: true },
         include: { leituras: true, talhao: { select: { nomeCodinome: true } } },
       },
     },
   });
 
+  const limiteRecencia = new Date(Date.now() - DIAS_ALERTA_RECENTE * 24 * 60 * 60 * 1000);
+
   const alertas: AlertaPraga[] = [];
   for (const ponto of pontos) {
     const leiturasBrutas = ponto.armadilhas.flatMap((a) => a.leituras.map((l) => ({ data: l.data, quantidade: l.quantidade })));
     const status = statusAtualPonto(ponto.tipoPraga, leiturasBrutas);
+    if (status && status.data < limiteRecencia) continue;
     if (status?.nivel === "CONTROLE") {
       alertas.push({
         pontoId: ponto.id,

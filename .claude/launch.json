@@ -12,6 +12,12 @@
       "runtimeExecutable": "/Users/daniel.dunin/.nvm/versions/node/v24.18.0/bin/node",
       "runtimeArgs": ["node_modules/next/dist/bin/next", "start"],
       "port": 3000
+    },
+    {
+      "name": "pomo-sul-monitoramento-pragas-dev",
+      "runtimeExecutable": "/Users/daniel.dunin/.nvm/versions/node/v24.18.0/bin/node",
+      "runtimeArgs": ["node_modules/next/dist/bin/next", "dev", "--webpack", "--port", "3002"],
+      "port": 3002
     }
   ]
 }

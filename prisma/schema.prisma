@@ -489,6 +489,10 @@ model LeituraArmadilha {
   quantidade  Int
   createdAt   DateTime  @default(now()) @map("created_at")
 
+  // Uma armadilha tem no máximo uma leitura por data — o lançamento em lote faz
+  // upsert nessa chave, então reabrir a grade de uma data já lançada corrige a
+  // leitura existente em vez de duplicar (duplicatas corromperiam a média do ponto).
+  @@unique([armadilhaId, data])
   @@index([armadilhaId, data])
   @@map("leituras_armadilha")
 }

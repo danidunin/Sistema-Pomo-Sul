@@ -35,7 +35,16 @@ export function avaliarNivelControle(tipoPraga: TipoPraga, metrica: number): Niv
   return "BAIXO";
 }
 
-/** Média das quantidades de todas as armadilhas ativas do ponto numa mesma data. */
+/**
+ * Média das quantidades das armadilhas do ponto numa mesma data.
+ *
+ * Divergência deliberada da planilha de origem: lá a fórmula é literalmente
+ * `/N`, com N fixo no número de armadilhas do grupo, de modo que uma armadilha
+ * deixada em branco no dia entra como zero e puxa a média para baixo. Aqui a
+ * média divide apenas pelas armadilhas efetivamente preenchidas naquela data —
+ * uma leitura pulada significa "não medido", não "capturou zero", e não deve
+ * mascarar uma infestação real. Decisão confirmada com o produtor.
+ */
 export function mediaPonto(quantidades: number[]): number {
   if (quantidades.length === 0) return 0;
   return quantidades.reduce((soma, q) => soma + q, 0) / quantidades.length;

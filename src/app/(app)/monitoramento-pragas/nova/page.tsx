@@ -10,9 +10,9 @@ import { VoltarLink } from "@/components/nav/voltar-link";
 export default async function NovaLeituraPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tipoPraga?: string; safra?: string }>;
+  searchParams: Promise<{ tipoPraga?: string; safra?: string; data?: string }>;
 }) {
-  const { tipoPraga, safra } = await searchParams;
+  const { tipoPraga, safra, data } = await searchParams;
   const propriedadeId = await exigirPropriedadeAtual();
 
   const pontosDisponiveis = await db.pontoMonitoramento.findMany({
@@ -27,6 +27,9 @@ export default async function NovaLeituraPage({
     ? pontosDisponiveis.filter((p) => p.tipoPraga === tipoPragaValido).map((p) => p.safra)
     : [];
   const safraValida = safra && safrasDaPraga.includes(safra) ? safra : undefined;
+  // A data faz parte da URL para que o servidor consiga pré-preencher a grade com
+  // as leituras já registradas nessa data (a grade renavega ao trocar a data).
+  const dataValida = data && /^\d{4}-\d{2}-\d{2}$/.test(data) ? data : new Date().toISOString().slice(0, 10);
 
   return (
     <div className="flex flex-col gap-4">
@@ -34,6 +37,7 @@ export default async function NovaLeituraPage({
       <h1 className="text-xl font-semibold text-neutral-900">Nova leitura</h1>
 
       <form className="flex flex-wrap gap-2">
+        <input type="hidden" name="data" value={dataValida} />
         <select
           name="tipoPraga"
           defaultValue={tipoPragaValido ?? ""}
@@ -68,7 +72,12 @@ export default async function NovaLeituraPage({
       </form>
 
       {tipoPragaValido && safraValida && (
-        <PontosParaLancamento propriedadeId={propriedadeId} tipoPraga={tipoPragaValido} safra={safraValida} />
+        <PontosParaLancamento
+          propriedadeId={propriedadeId}
+          tipoPraga={tipoPragaValido}
+          safra={safraValida}
+          data={dataValida}
+        />
       )}
     </div>
   );
@@ -78,10 +87,12 @@ async function PontosParaLancamento({
   propriedadeId,
   tipoPraga,
   safra,
+  data,
 }: {
   propriedadeId: string;
   tipoPraga: TipoPraga;
   safra: string;
+  data: string;
 }) {
   const pontos = await db.pontoMonitoramento.findMany({
     where: { propriedadeId, tipoPraga, safra, ativo: true },
@@ -95,11 +106,23 @@ async function PontosParaLancamento({
     },
   });
 
+  // Leituras já registradas nessa data para as armadilhas exibidas: reabrir a
+  // grade de uma data já lançada mostra o que está lá e permite corrigir, em vez
+  // de reenviar às cegas.
+  const armadilhaIds = pontos.flatMap((p) => p.armadilhas.map((a) => a.id));
+  const leiturasExistentes = await db.leituraArmadilha.findMany({
+    where: { armadilhaId: { in: armadilhaIds }, data: new Date(data) },
+    select: { armadilhaId: true, quantidade: true },
+  });
+  const valoresExistentes = Object.fromEntries(leiturasExistentes.map((l) => [l.armadilhaId, l.quantidade]));
+
   return (
     <GradeLeiturasForm
       action={criarLeiturasEmLote}
       tipoPraga={tipoPraga}
       safra={safra}
+      data={data}
+      valoresExistentes={valoresExistentes}
       pontos={pontos.map((p) => ({
         id: p.id,
         nome: p.nome,

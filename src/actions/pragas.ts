@@ -65,9 +65,16 @@ export async function atualizarPontoMonitoramento(
   const propriedadeId = await exigirPropriedadeAtual();
   if (!(await garantirPontoMonitoramentoDaPropriedade(pontoId, propriedadeId))) return "Ponto inválido.";
 
+  const tipoPraga = dados.tipoPraga as TipoPraga;
+  const colidente = await db.pontoMonitoramento.findFirst({
+    where: { propriedadeId, tipoPraga, nome: dados.nome, safra: dados.safra, NOT: { id: pontoId } },
+    select: { id: true },
+  });
+  if (colidente) return "Já existe um ponto com esse nome, praga e safra nesta propriedade.";
+
   await db.pontoMonitoramento.update({
     where: { id: pontoId },
-    data: { tipoPraga: dados.tipoPraga as TipoPraga, nome: dados.nome, safra: dados.safra },
+    data: { tipoPraga, nome: dados.nome, safra: dados.safra },
   });
 
   revalidatePath("/monitoramento-pragas/pontos");
@@ -233,7 +240,7 @@ export async function criarLeiturasEmLote(
     .filter((item) => item.quantidadeRaw !== "");
 
   if (itens.length === 0) return "Preencha ao menos uma armadilha antes de salvar.";
-  if (itens.some((item) => !Number.isFinite(Number(item.quantidadeRaw)) || Number(item.quantidadeRaw) < 0)) {
+  if (itens.some((item) => !Number.isInteger(Number(item.quantidadeRaw)) || Number(item.quantidadeRaw) < 0)) {
     return "As quantidades devem ser números inteiros não negativos.";
   }
 
@@ -251,9 +258,18 @@ export async function criarLeiturasEmLote(
   }
 
   const data = new Date(dataStr);
-  await db.leituraArmadilha.createMany({
-    data: itens.map((item) => ({ armadilhaId: item.armadilhaId, data, quantidade: Number(item.quantidadeRaw) })),
-  });
+  // Upsert (e não createMany) na chave única (armadilhaId, data): reabrir a grade
+  // de uma data já lançada corrige a leitura existente em vez de duplicá-la —
+  // duplicatas fariam a média do ponto dividir pelo número errado de armadilhas.
+  await db.$transaction(
+    itens.map((item) =>
+      db.leituraArmadilha.upsert({
+        where: { armadilhaId_data: { armadilhaId: item.armadilhaId, data } },
+        update: { quantidade: Number(item.quantidadeRaw) },
+        create: { armadilhaId: item.armadilhaId, data, quantidade: Number(item.quantidadeRaw) },
+      }),
+    ),
+  );
 
   revalidatePath("/monitoramento-pragas");
   redirect(`/monitoramento-pragas?tipoPraga=${tipoPragaRaw}&safra=${encodeURIComponent(safra)}`);
@@ -269,16 +285,31 @@ export async function atualizarLeituraArmadilha(
   const dataStr = String(formData.get("data") ?? "");
   const quantidadeRaw = formData.get("quantidade");
 
-  if (!dataStr || !quantidadeRaw || !Number.isFinite(Number(quantidadeRaw)) || Number(quantidadeRaw) < 0) {
+  if (!dataStr || !quantidadeRaw || !Number.isInteger(Number(quantidadeRaw)) || Number(quantidadeRaw) < 0) {
     return "Informe a data e uma quantidade válida (número inteiro não negativo).";
   }
 
   const propriedadeId = await exigirPropriedadeAtual();
   if (!(await garantirLeituraDaPropriedade(leituraId, propriedadeId))) return "Leitura inválida.";
 
+  const data = new Date(dataStr);
+
+  // Cada armadilha só pode ter uma leitura por data (restrição única no banco):
+  // mudar a data desta leitura para uma já registrada da mesma armadilha daria
+  // erro do Prisma — aqui vira mensagem amigável.
+  const atual = await db.leituraArmadilha.findUniqueOrThrow({
+    where: { id: leituraId },
+    select: { armadilhaId: true },
+  });
+  const colidente = await db.leituraArmadilha.findFirst({
+    where: { armadilhaId: atual.armadilhaId, data, NOT: { id: leituraId } },
+    select: { id: true },
+  });
+  if (colidente) return "Já existe uma leitura dessa armadilha nessa data.";
+
   const leitura = await db.leituraArmadilha.update({
     where: { id: leituraId },
-    data: { data: new Date(dataStr), quantidade: Number(quantidadeRaw) },
+    data: { data, quantidade: Number(quantidadeRaw) },
     select: { armadilha: { select: { pontoMonitoramentoId: true } } },
   });
 
