@@ -9,6 +9,19 @@
  * Sem `--gravar` o script NÃO escreve nada no banco: apenas lê a planilha, casa
  * cada coluna de armadilha com um talhão e imprime o relatório de conferência.
  *
+ * ATENÇÃO — LIMITE DE IDEMPOTÊNCIA DO `--gravar`:
+ * A identidade de um ponto é a unique (propriedadeId, tipoPraga, nome, safra) —
+ * ou seja, é o NOME. Reexecutar com `--gravar` só é seguro enquanto nem os nomes
+ * dos pontos já importados nem o desenho das colunas "Média" da planilha tiverem
+ * mudado. Em particular:
+ *   • se alguém renomear um ponto no app, a reexecução não acha o nome antigo e
+ *     cria um ponto DUPLICADO, reimportando todas as leituras dele;
+ *   • se o produtor renomear um grupo na planilha (linhas 6/7) ou mudar o
+ *     conjunto de armadilhas de uma coluna "Média" cujo grupo não tem nome (o
+ *     nome passa a ser derivado da primeira armadilha do grupo), o mesmo ocorre.
+ * Isto é uma migração de uma vez só, não uma sincronização contínua. Se precisar
+ * reimportar depois de renomear, apague antes os pontos importados.
+ *
  * Opções:
  *   --gravar          executa a gravação (transação por aba)
  *   --safra=2026/2027 força a safra em vez de ler da linha 1 da aba
@@ -129,6 +142,20 @@ function letrasParaColuna(letras: string): number {
   let n = 0;
   for (const letra of letras.toUpperCase()) n = n * 26 + (letra.charCodeAt(0) - 64);
   return n;
+}
+
+/**
+ * Divisor explícito de uma fórmula de média, ex. "SUM(AM8:AS8)/7" -> 7,
+ * "((J8+K8+L8+M8)/4)" -> 4. Devolve null quando não há divisão (ex. "SUM(B8)"),
+ * caso em que não dá para conferir o tamanho do grupo.
+ *
+ * É a única fonte confiável de "quantas armadilhas o produtor considera neste
+ * ponto": as colunas referenciadas podem incluir armadilhas desativadas ou
+ * colunas fora dos limites de seção, que o script descarta.
+ */
+function divisorDaFormula(formula: string): number | null {
+  const achado = /\/\s*(\d+)\s*\)*\s*$/.exec(formula.trim());
+  return achado ? Number(achado[1]) : null;
 }
 
 /** Colunas referenciadas por uma fórmula de média, ex. "SUM(AM8:AS8)/7" -> 39..45. */
@@ -408,7 +435,17 @@ async function main() {
         if (formulaDaColuna(sheet, coluna, linhas)) {
           colunasMedia.push(coluna);
         } else {
+          // Não é armadilha pelo formato "<n>-<nome>", não é Soma/Total e não tem
+          // fórmula: pode ser uma armadilha real com rótulo fora do padrão. Vira
+          // pendência explícita — nunca só um número agregado no rodapé.
           ignoradas.push({ coluna, rotulo, motivo: "coluna não reconhecida" });
+          const leituras = lerLeituras(sheet, coluna, linhasComData);
+          pendencias.push(
+            `[${nomeAba}/${texto(sheet, 6, secao.colunaInicio) || `colunas ${secao.colunaInicio}-${secao.colunaFim}`}] ` +
+              `c${coluna} "${rotulo}": rótulo fora do padrão "<n>-<nome>", sem fórmula e sem ser Soma/Total — ` +
+              `não foi classificada nem como armadilha nem como média. Tem ${leituras.length} valor(es) numérico(s); ` +
+              `conferir se é uma armadilha de verdade.`,
+          );
         }
       }
 
@@ -425,13 +462,45 @@ async function main() {
       const cobertas = new Set<number>();
       const colunasArmadilha = new Set(armadilhas.map((a) => a.coluna));
 
-      colunasMedia.forEach((colunaMedia, indice) => {
+      for (const colunaMedia of colunasMedia) {
         const formula = formulaDaColuna(sheet, colunaMedia, linhas) ?? "";
-        const membros = colunasDaFormula(formula).filter((c) => colunasArmadilha.has(c));
+        const referenciadas = colunasDaFormula(formula);
+        const membros = referenciadas.filter((c) => colunasArmadilha.has(c));
+
+        // O divisor da fórmula diz sobre quantas armadilhas o produtor calcula a
+        // média. Se sobrar diferença, alguma coluna referenciada foi descartada
+        // (desativada, fora dos limites da seção, ou não classificada) e a média
+        // do app vai divergir da planilha mesmo com todos os talhões casados.
+        const divisor = divisorDaFormula(formula);
+        if (divisor !== null && membros.length !== divisor) {
+          const descartadas = referenciadas
+            .filter((c) => !colunasArmadilha.has(c))
+            .map((c) => {
+              const rotulo = texto(sheet, 7, c);
+              let motivo: string;
+              if (c < secao.colunaInicio || c > secao.colunaFim) motivo = "fora dos limites da seção";
+              else motivo = ignoradas.find((i) => i.coluna === c)?.motivo ?? "não classificada";
+              return `c${c}${rotulo ? ` "${rotulo}"` : ""} [${motivo}]`;
+            });
+          pendenciasPontos.push(
+            `[${nomeAba}/${rotuloSecao}] média da coluna c${colunaMedia} divide por ${divisor}, mas só ${membros.length} ` +
+              `coluna(s) foram reconhecidas como armadilha` +
+              (descartadas.length > 0 ? ` — descartadas: ${descartadas.join(", ")}` : "") +
+              `. A média do ponto no app NÃO vai bater com a planilha.`,
+          );
+        }
+
         const grupoRow6 = texto(sheet, 6, colunaMedia);
         const partes = [grupoRow6 && grupoRow6 !== rotuloSecao ? grupoRow6 : "", limparRotuloGrupo(texto(sheet, 7, colunaMedia))]
           .filter(Boolean);
-        const base = partes.join(" — ") || `${rotuloSecao} Grupo ${indice + 1}`;
+        // Quando a planilha não nomeia o grupo, o nome é derivado do rótulo da
+        // primeira armadilha do grupo — e NÃO de um índice posicional, que
+        // mudaria (criando pontos duplicados numa reexecução) se o produtor
+        // inserisse ou removesse uma coluna "Média" na planilha.
+        const primeiroMembro = membros.length > 0 ? armadilhas.find((a) => a.coluna === membros[0])?.rotulo : undefined;
+        const base =
+          partes.join(" — ") ||
+          (primeiroMembro ? `${rotuloSecao} — ${primeiroMembro}` : `${rotuloSecao} (sem armadilha ativa)`);
         let nome = base;
         let sufixo = 2;
         while (nomesUsados.has(nome)) nome = `${base} (${sufixo++})`;
@@ -439,7 +508,7 @@ async function main() {
         if (partes.length === 0) nomesGerados.push(nome);
         membros.forEach((c) => cobertas.add(c));
         grupos.push({ nome, colunas: membros });
-      });
+      }
 
       if (colunasMedia.length === 0 && armadilhas.length > 0) {
         avisosGerais.push(
@@ -524,10 +593,15 @@ async function main() {
       if (MODO_VERBOSE && ignoradas.length > 0) {
         console.log(`\n  (ignoradas: ${ignoradas.map((i) => `c${i.coluna} "${i.rotulo}" [${i.motivo}]`).join(", ")})`);
       } else if (ignoradas.length > 0) {
-        const desativadas = ignoradas.filter((i) => i.motivo === "armadilha desativada");
+        // Só as ignoradas ESPERADAS entram no agregado; as "não reconhecidas"
+        // já viraram pendência individual acima.
+        const desativadas = ignoradas.filter((i) => i.motivo === "armadilha desativada").length;
+        const calculadas = ignoradas.filter((i) => i.motivo === "coluna calculada").length;
+        const naoReconhecidas = ignoradas.filter((i) => i.motivo === "coluna não reconhecida").length;
         console.log(
-          `\n  (${ignoradas.length} coluna(s) ignorada(s): ${desativadas.length} desativada(s), ` +
-            `${ignoradas.length - desativadas.length} calculada(s)/não reconhecida(s) — use --verbose para detalhar)`,
+          `\n  (${desativadas} desativada(s) e ${calculadas} calculada(s) ignoradas — use --verbose para detalhar` +
+            (naoReconhecidas > 0 ? `; ${naoReconhecidas} não reconhecida(s) listada(s) nas PENDÊNCIAS` : "") +
+            ")",
         );
       }
     }
@@ -568,6 +642,11 @@ async function main() {
     console.log(`\nPENDÊNCIAS PARA RESOLUÇÃO MANUAL (${pendencias.length}):`);
     for (const pendencia of pendencias) console.log(`  • ${pendencia}`);
   }
+  console.log(
+    `\nIDEMPOTÊNCIA: a identidade do ponto é o NOME (unique propriedade+praga+nome+safra). Reexecutar com --gravar só ` +
+      `mescla se ninguém tiver renomeado os pontos no app nem mexido nas colunas "Média" da planilha desde a última ` +
+      `execução — caso contrário são criados pontos DUPLICADOS, não mesclados. Esta é uma migração de uma vez só.`,
+  );
   if (!MODO_GRAVAR) {
     console.log("\nNenhuma escrita foi feita no banco. Rode de novo com --gravar depois de conferir o relatório acima.");
   }
