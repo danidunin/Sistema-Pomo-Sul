@@ -93,11 +93,50 @@ const SECOES_POR_ABA: Record<string, Secao[]> = {
 
 /**
  * Apelidos manuais de talhão: `"<aba>|<rótulo da linha 7>" -> nomeCodinome`.
- * Deixado vazio de propósito — os rótulos que o casamento automático não
- * resolve são listados no relatório para o dono resolver à mão, em vez de
- * serem adivinhados aqui.
+ * Preenchido a partir da conferência do dono com o dono do sistema — os
+ * talhões "Q14"/"Q15"/"Q16" da Lapinha existem no cadastro, só com nomes
+ * que não seguem o padrão "quadra N" (confirmado por Daniel em 23/08/2026):
+ *   Q14 = "Eva Boutim" (ano 2019, bate com o rótulo "Eva19")
+ *   Q15 = "Eva Clone" (ano 2019, bate com o rótulo "Eva19")
+ *   Q16 = "Eva quadra 2020" (ano 2020, bate com o rótulo "Eva20")
+ * Os traps "Gala - Q10/Q12" (candidatos "Evinha quadra 10/12") e
+ * "Fort19/Reub19-Q8/Q9" ficaram de fora de propósito: não têm nenhuma
+ * leitura no ano inteiro (confirmado no dry-run) e o dono não tem certeza
+ * se houve monitoramento ali — sem dado real em risco, não precisam de
+ * apelido.
  */
-const ALIASES_TALHAO: Record<string, string> = {};
+const ALIASES_TALHAO: Record<string, string> = {
+  // Pomo Sul — "Nectas 19" é a área de nectarina Sun Racer/Sun Ripe
+  // monitorada junto numa única armadilha; só "Sun Racer" tem talhão
+  // cadastrado hoje (confirmado por Daniel em 23/08/2026).
+  "Pomo Sul|6-Nectas 19": "Sun Racer",
+  "Pomo Sul|5-Nectas 19": "Sun Racer",
+  // Armadilhas "*07" (Sunracer 07, Sunripe 07) ficam de propósito sem
+  // apelido: pomar velho, erradicado nesta safra — Daniel pediu para
+  // desconsiderar, não importar.
+  "Lapinha|04-Eva19-Q15": "Eva Clone",
+  "Lapinha|15-Eva19-Q14": "Eva Boutim",
+  "Lapinha|16-Eva19-Q15": "Eva Clone",
+  "Lapinha|17-Eva19-Q15": "Eva Clone",
+  "Lapinha|18-Eva20-Q16": "Eva quadra 2020",
+  "Lapinha|19-Eva20-Q16": "Eva quadra 2020",
+  "Lapinha|20-Eva20-Q16": "Eva quadra 2020",
+  "Lapinha|11-Eva19-Q15": "Eva Clone",
+  "Lapinha|12-Eva19-Q15": "Eva Clone",
+  "Lapinha|13-Eva19-Q14": "Eva Boutim",
+  "Lapinha|14-Eva20-Q16": "Eva quadra 2020",
+  "Lapinha|15-Eva20-Q16": "Eva quadra 2020",
+  "Lapinha|16-Eva20-Q16": "Eva quadra 2020",
+  "Lapinha|20-Eva19-Q15": "Eva Clone",
+  "Lapinha|9-Eva19-Q15": "Eva Clone",
+  "Lapinha|10-Eva19-Q15": "Eva Clone",
+  "Lapinha|15-Eva19-Q15": "Eva Clone",
+  "Lapinha|11-Eva19-Q14": "Eva Boutim",
+  "Lapinha|12-Eva20-Q16": "Eva quadra 2020",
+  "Lapinha|13-Eva20-Q16": "Eva quadra 2020",
+  // "14-Eva20-Q16" (Bonagota c71) reaproveita a mesma chave do rótulo
+  // idêntico da seção Moscas (c50, já mapeado acima).
+};
 
 // ---------------------------------------------------------------------------
 // Leitura de células
