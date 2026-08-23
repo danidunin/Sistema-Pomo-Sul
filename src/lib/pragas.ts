@@ -106,3 +106,82 @@ export function statusAtualPonto(tipoPraga: TipoPraga, leiturasBrutas: Armadilha
   const serie = calcularSerieNivelControle(tipoPraga, porData);
   return serie.at(-1) ?? null;
 }
+
+// ---------------------------------------------------------------------------
+// Grade estilo planilha — a mesma divisão e leiaute da Excel original: uma
+// linha por data, uma coluna por armadilha agrupada sob o nome do ponto, com
+// uma coluna "Média" colorida por nível de controle ao final de cada grupo.
+// ---------------------------------------------------------------------------
+
+export type ColunaArmadilhaGrade = { id: string; rotulo: string };
+export type ColunaPontoGrade = { id: string; nome: string; armadilhas: ColunaArmadilhaGrade[] };
+export type CelulaPontoGrade = { media: number; metrica: number; nivel: NivelControle } | null;
+export type LinhaGrade = {
+  data: Date;
+  porArmadilha: Record<string, number | null>;
+  porPonto: Record<string, CelulaPontoGrade>;
+};
+export type SecaoGrade = { tipoPraga: TipoPraga; pontos: ColunaPontoGrade[]; linhas: LinhaGrade[] };
+
+/** Rótulo da coluna de métrica semanal — "Soma 2 leit." na planilha original, ou MAD para moscas-das-frutas. */
+export function rotuloMetrica(tipoPraga: TipoPraga): string {
+  return tipoPraga === "MOSCA_DAS_FRUTAS" ? "MAD" : "Soma 2 leit.";
+}
+
+type PontoParaGrade = {
+  id: string;
+  nome: string;
+  tipoPraga: TipoPraga;
+  armadilhas: { id: string; rotulo: string; leituras: ArmadilhaLeituraBruta[] }[];
+};
+
+/**
+ * Monta a grade de uma praga a partir dos pontos já carregados (com suas
+ * armadilhas e leituras) — pura, sem acesso a banco, reaproveitando o mesmo
+ * cálculo de nível de controle usado no resto do app (nenhuma lógica de média/
+ * limiar é duplicada aqui).
+ */
+export function montarSecaoGrade(pontos: PontoParaGrade[]): SecaoGrade {
+  const tipoPraga = pontos[0]?.tipoPraga ?? "GRAPHOLITA_MOLESTA";
+  const colunasPontos: ColunaPontoGrade[] = pontos.map((p) => ({
+    id: p.id,
+    nome: p.nome,
+    armadilhas: p.armadilhas.map((a) => ({ id: a.id, rotulo: a.rotulo })),
+  }));
+
+  const datas = new Set<number>();
+  for (const ponto of pontos) {
+    for (const armadilha of ponto.armadilhas) {
+      for (const leitura of armadilha.leituras) datas.add(leitura.data.getTime());
+    }
+  }
+  const timestamps = Array.from(datas).sort((a, b) => a - b);
+
+  const seriePorPonto = new Map<string, Map<number, CelulaPontoGrade>>();
+  for (const ponto of pontos) {
+    const leiturasBrutas = ponto.armadilhas.flatMap((a) => a.leituras);
+    const porData = agruparMediaPorData(leiturasBrutas);
+    const serie = calcularSerieNivelControle(ponto.tipoPraga, porData);
+    seriePorPonto.set(
+      ponto.id,
+      new Map(serie.map((s) => [s.data.getTime(), { media: s.mediaAtual, metrica: s.metrica, nivel: s.nivel }])),
+    );
+  }
+
+  const linhas: LinhaGrade[] = timestamps.map((timestamp) => {
+    const porArmadilha: Record<string, number | null> = {};
+    for (const ponto of pontos) {
+      for (const armadilha of ponto.armadilhas) {
+        const leitura = armadilha.leituras.find((l) => l.data.getTime() === timestamp);
+        porArmadilha[armadilha.id] = leitura ? leitura.quantidade : null;
+      }
+    }
+    const porPonto: Record<string, CelulaPontoGrade> = {};
+    for (const ponto of pontos) {
+      porPonto[ponto.id] = seriePorPonto.get(ponto.id)?.get(timestamp) ?? null;
+    }
+    return { data: new Date(timestamp), porArmadilha, porPonto };
+  });
+
+  return { tipoPraga, pontos: colunasPontos, linhas };
+}

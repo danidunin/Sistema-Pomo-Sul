@@ -5,6 +5,7 @@ import {
   calcularSerieNivelControle,
   statusAtualPonto,
   avaliarNivelControle,
+  montarSecaoGrade,
 } from "@/lib/pragas";
 
 describe("mediaPonto", () => {
@@ -117,5 +118,55 @@ describe("statusAtualPonto", () => {
     ]);
     expect(status?.data).toEqual(d2);
     expect(status?.nivel).toBe("CONTROLE");
+  });
+});
+
+describe("montarSecaoGrade", () => {
+  it("monta colunas por armadilha agrupadas por ponto e a união das datas em ordem", () => {
+    const d1 = new Date("2026-08-04T00:00:00.000Z");
+    const d2 = new Date("2026-08-07T00:00:00.000Z");
+    const secao = montarSecaoGrade([
+      {
+        id: "ponto-1",
+        nome: "SEDE",
+        tipoPraga: "BONAGOTA",
+        armadilhas: [
+          { id: "arm-1", rotulo: "1-Kampai 11", leituras: [{ data: d2, quantidade: 30 }] },
+          { id: "arm-2", rotulo: "2-Kampai 10", leituras: [{ data: d1, quantidade: 5 }, { data: d2, quantidade: 10 }] },
+        ],
+      },
+    ]);
+
+    expect(secao.pontos).toEqual([
+      { id: "ponto-1", nome: "SEDE", armadilhas: [{ id: "arm-1", rotulo: "1-Kampai 11" }, { id: "arm-2", rotulo: "2-Kampai 10" }] },
+    ]);
+    expect(secao.linhas.map((l) => l.data)).toEqual([d1, d2]);
+  });
+
+  it("deixa null a célula de uma armadilha sem leitura naquela data, e calcula a célula do ponto via o cálculo já testado", () => {
+    const d1 = new Date("2026-08-04T00:00:00.000Z");
+    const d2 = new Date("2026-08-07T00:00:00.000Z");
+    const secao = montarSecaoGrade([
+      {
+        id: "ponto-1",
+        nome: "SEDE",
+        tipoPraga: "BONAGOTA",
+        armadilhas: [
+          { id: "arm-1", rotulo: "1-Kampai 11", leituras: [{ data: d1, quantidade: 10 }, { data: d2, quantidade: 30 }] },
+          { id: "arm-2", rotulo: "2-Kampai 10", leituras: [{ data: d2, quantidade: 10 }] },
+        ],
+      },
+    ]);
+
+    // arm-2 não tem leitura em d1 -> célula null, sem "virar zero" na tabela.
+    expect(secao.linhas[0].porArmadilha["arm-2"]).toBeNull();
+    // Ponto: d1 média=10 (só arm-1) -> metrica=10 -> ATENCAO; d2 média=(30+10)/2=20,
+    // metrica=20+10=30 -> CONTROLE. Mesma matemática de calcularSerieNivelControle.
+    expect(secao.linhas[0].porPonto["ponto-1"]).toEqual({ media: 10, metrica: 10, nivel: "ATENCAO" });
+    expect(secao.linhas[1].porPonto["ponto-1"]).toEqual({ media: 20, metrica: 30, nivel: "CONTROLE" });
+  });
+
+  it("retorna seção vazia (sem datas) quando não há nenhum ponto", () => {
+    expect(montarSecaoGrade([])).toEqual({ tipoPraga: "GRAPHOLITA_MOLESTA", pontos: [], linhas: [] });
   });
 });
