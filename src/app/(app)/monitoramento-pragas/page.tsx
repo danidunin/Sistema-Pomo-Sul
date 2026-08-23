@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { TIPO_PRAGA_LABELS, statusAtualPonto } from "@/lib/pragas";
 import { StatusPragaBadge } from "@/components/pragas/status-praga-badge";
+import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
 import { formatarData } from "@/lib/format";
 import { TipoPraga } from "@/generated/prisma/enums";
 import { ehValorDoEnum } from "@/lib/enum";
@@ -42,6 +43,8 @@ export default async function MonitoramentoPragasPage({
           + Nova leitura
         </Link>
       </div>
+
+      <ExportarBotoes recurso="pragas" />
 
       <div className="flex gap-2">
         <Link href="/monitoramento-pragas/pontos" className="text-sm font-medium text-green-700">
