@@ -114,7 +114,15 @@ export function statusAtualPonto(tipoPraga: TipoPraga, leiturasBrutas: Armadilha
 // ---------------------------------------------------------------------------
 
 export type ColunaArmadilhaGrade = { id: string; rotulo: string };
-export type ColunaPontoGrade = { id: string; nome: string; armadilhas: ColunaArmadilhaGrade[] };
+export type ColunaPontoGrade = {
+  id: string;
+  nome: string;
+  /** Variedade do talhão das armadilhas do ponto — o cabeçalho do grupo na grade usa isto,
+   * caindo para `nome` só quando o ponto ainda não tem nenhuma armadilha com talhão. Assume
+   * um ponto por variedade (decisão do produtor): usa a variedade da primeira armadilha. */
+  variedade: string | null;
+  armadilhas: ColunaArmadilhaGrade[];
+};
 export type CelulaPontoGrade = { media: number; metrica: number; nivel: NivelControle } | null;
 export type LinhaGrade = {
   data: Date;
@@ -132,7 +140,12 @@ type PontoParaGrade = {
   id: string;
   nome: string;
   tipoPraga: TipoPraga;
-  armadilhas: { id: string; rotulo: string; leituras: ArmadilhaLeituraBruta[] }[];
+  armadilhas: {
+    id: string;
+    rotulo: string;
+    talhao: { variedade: string | null };
+    leituras: ArmadilhaLeituraBruta[];
+  }[];
 };
 
 /**
@@ -146,6 +159,7 @@ export function montarSecaoGrade(pontos: PontoParaGrade[]): SecaoGrade {
   const colunasPontos: ColunaPontoGrade[] = pontos.map((p) => ({
     id: p.id,
     nome: p.nome,
+    variedade: p.armadilhas[0]?.talhao.variedade ?? null,
     armadilhas: p.armadilhas.map((a) => ({ id: a.id, rotulo: a.rotulo })),
   }));
 

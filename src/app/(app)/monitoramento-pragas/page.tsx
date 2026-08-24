@@ -32,7 +32,7 @@ export default async function MonitoramentoPragasPage({
         include: {
           armadilhas: {
             orderBy: { rotulo: "asc" },
-            include: { leituras: { orderBy: { data: "asc" } } },
+            include: { leituras: { orderBy: { data: "asc" } }, talhao: { select: { variedade: true } } },
           },
         },
       })

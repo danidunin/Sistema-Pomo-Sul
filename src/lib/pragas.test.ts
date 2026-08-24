@@ -131,14 +131,19 @@ describe("montarSecaoGrade", () => {
         nome: "SEDE",
         tipoPraga: "BONAGOTA",
         armadilhas: [
-          { id: "arm-1", rotulo: "1-Kampai 11", leituras: [{ data: d2, quantidade: 30 }] },
-          { id: "arm-2", rotulo: "2-Kampai 10", leituras: [{ data: d1, quantidade: 5 }, { data: d2, quantidade: 10 }] },
+          { id: "arm-1", rotulo: "1-Kampai 11", talhao: { variedade: "Kampai" }, leituras: [{ data: d2, quantidade: 30 }] },
+          { id: "arm-2", rotulo: "2-Kampai 10", talhao: { variedade: "Kampai" }, leituras: [{ data: d1, quantidade: 5 }, { data: d2, quantidade: 10 }] },
         ],
       },
     ]);
 
     expect(secao.pontos).toEqual([
-      { id: "ponto-1", nome: "SEDE", armadilhas: [{ id: "arm-1", rotulo: "1-Kampai 11" }, { id: "arm-2", rotulo: "2-Kampai 10" }] },
+      {
+        id: "ponto-1",
+        nome: "SEDE",
+        variedade: "Kampai",
+        armadilhas: [{ id: "arm-1", rotulo: "1-Kampai 11" }, { id: "arm-2", rotulo: "2-Kampai 10" }],
+      },
     ]);
     expect(secao.linhas.map((l) => l.data)).toEqual([d1, d2]);
   });
@@ -152,8 +157,8 @@ describe("montarSecaoGrade", () => {
         nome: "SEDE",
         tipoPraga: "BONAGOTA",
         armadilhas: [
-          { id: "arm-1", rotulo: "1-Kampai 11", leituras: [{ data: d1, quantidade: 10 }, { data: d2, quantidade: 30 }] },
-          { id: "arm-2", rotulo: "2-Kampai 10", leituras: [{ data: d2, quantidade: 10 }] },
+          { id: "arm-1", rotulo: "1-Kampai 11", talhao: { variedade: "Kampai" }, leituras: [{ data: d1, quantidade: 10 }, { data: d2, quantidade: 30 }] },
+          { id: "arm-2", rotulo: "2-Kampai 10", talhao: { variedade: "Kampai" }, leituras: [{ data: d2, quantidade: 10 }] },
         ],
       },
     ]);
@@ -168,5 +173,10 @@ describe("montarSecaoGrade", () => {
 
   it("retorna seção vazia (sem datas) quando não há nenhum ponto", () => {
     expect(montarSecaoGrade([])).toEqual({ tipoPraga: "GRAPHOLITA_MOLESTA", pontos: [], linhas: [] });
+  });
+
+  it("variedade fica null quando o ponto ainda não tem nenhuma armadilha", () => {
+    const secao = montarSecaoGrade([{ id: "ponto-1", nome: "Novo ponto", tipoPraga: "CYDIA", armadilhas: [] }]);
+    expect(secao.pontos[0].variedade).toBeNull();
   });
 });

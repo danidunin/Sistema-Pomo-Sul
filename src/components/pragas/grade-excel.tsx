@@ -40,7 +40,7 @@ export function GradeExcelPraga({ titulo, secao }: { titulo: string; secao: Seca
                     className="border-b border-r border-neutral-200 bg-neutral-50 px-3 py-2 text-center font-medium text-neutral-700"
                   >
                     <Link href={`/monitoramento-pragas/pontos/${ponto.id}`} className="hover:underline">
-                      {ponto.nome}
+                      {ponto.variedade ?? ponto.nome}
                     </Link>
                   </th>
                 ))}
