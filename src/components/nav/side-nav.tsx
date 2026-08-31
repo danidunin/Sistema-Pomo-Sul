@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { NAV_ITEMS, SECONDARY_NAV_ITEMS, type NavItem } from "@/lib/nav-items";
 
 function NavLink({ item, active }: { item: NavItem; active: boolean }) {
+  const Icon = item.icon;
   return (
     <Link
       href={item.href}
@@ -12,7 +13,7 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
         active ? "bg-green-50 text-green-700" : "text-neutral-600 hover:bg-neutral-50"
       }`}
     >
-      <span className="text-base">{item.icon}</span>
+      <Icon className="h-5 w-5" strokeWidth={1.75} />
       {item.label}
     </Link>
   );

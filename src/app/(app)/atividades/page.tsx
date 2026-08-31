@@ -7,7 +7,7 @@ import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
 export default async function AtividadesPage() {
   const propriedadeId = await exigirPropriedadeAtual();
   const atividades = await db.atividade.findMany({
-    where: { talhao: { propriedadeId } },
+    where: { propriedadeId },
     orderBy: { data: "desc" },
     include: { tipoAtividade: true, talhao: true },
   });
@@ -40,7 +40,8 @@ export default async function AtividadesPage() {
               >
                 <div>
                   <p className="text-sm font-medium text-neutral-900">
-                    {atividade.tipoAtividade.nome} · {atividade.talhao.nomeCodinome}
+                    {atividade.tipoAtividade.nome}
+                    {atividade.talhao ? ` · ${atividade.talhao.nomeCodinome}` : ""}
                   </p>
                   <p className="text-xs text-neutral-500">{horasHomem}h homem</p>
                 </div>

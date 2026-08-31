@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { adicionarFotoVisita, excluirFotoVisita } from "@/actions/fotos";
-import { converterSeHeic } from "@/lib/converter-heic";
 import { FotoMiniatura } from "@/components/upload/foto-miniatura";
 
 type Foto = { id: string; url: string };
@@ -22,9 +21,8 @@ export function GaleriaFotosVisita({ visitaId, fotosIniciais }: { visitaId: stri
     setErro(null);
 
     try {
-      const file = await converterSeHeic(arquivoSelecionado);
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", arquivoSelecionado);
       formData.append("pasta", "visitas");
 
       const res = await fetch("/api/upload", { method: "POST", body: formData });
@@ -54,7 +52,7 @@ export function GaleriaFotosVisita({ visitaId, fotosIniciais }: { visitaId: stri
         <h2 className="text-sm font-medium text-neutral-700">Fotos</h2>
         <label className="cursor-pointer rounded-lg border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700">
           + Adicionar foto
-          <input type="file" accept="image/*" capture="environment" onChange={handleUpload} className="hidden" />
+          <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
         </label>
       </div>
 

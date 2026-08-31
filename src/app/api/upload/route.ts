@@ -3,20 +3,66 @@ import { auth } from "@/lib/auth";
 import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import sharp from "sharp";
+import { put } from "@vercel/blob";
 
 const PASTAS_PERMITIDAS = new Set(["maquinas", "operadores", "visitas", "manutencoes"]);
-// O cliente sempre tenta converter HEIC para JPEG antes de enviar (nenhum navegador
-// exibe HEIC numa <img> — ver src/lib/converter-heic.ts), e agora bloqueia o envio com
-// um erro claro se a conversão falhar, em vez de mandar o arquivo original. Por isso
-// HEIC/HEIF NÃO são aceitos aqui: se algum chegasse mesmo assim (falha de detecção no
-// cliente), ficaria salvo para sempre como uma foto que nenhum navegador exibe.
-const TIPOS_PERMITIDOS = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "application/pdf",
-]);
+// Fotos de iPhone costumam vir em HEIC. Antes, a conversão para JPEG rodava no
+// navegador (heic2any), mas essa biblioteca depende de Web Worker + Blob URL, e
+// isso esbarra numa validação de string mais rígida do WebKit — o motor usado por
+// TODO navegador no iOS, não só o Safari — e derruba o envio com
+// "SyntaxError: The string did not match the expected pattern". Como o campo
+// fotografa com iPhone, isso quebrava o upload quase sempre. A conversão agora
+// roda aqui no servidor (Node, sem DOM/Worker/Blob URL), o que elimina essa
+// classe inteira de erro.
+const TIPOS_HEIC = new Set(["image/heic", "image/heif"]);
+const TIPOS_IMAGEM = new Set(["image/jpeg", "image/png", "image/webp"]);
+const TIPOS_PERMITIDOS = new Set([...TIPOS_IMAGEM, ...TIPOS_HEIC, "application/pdf"]);
 const TAMANHO_MAXIMO = 20 * 1024 * 1024; // 20MB — fotos de celulares modernos podem passar de 8MB
+
+// iOS às vezes entrega o arquivo da câmera/galeria com file.type vazio, mesmo
+// sendo HEIC — por isso também checamos a extensão do nome do arquivo.
+function ehHeicPeloNome(nomeArquivo: string): boolean {
+  return /\.hei[cf]$/i.test(nomeArquivo);
+}
+
+// Redimensiona para no máximo 1920px no lado maior — suficiente para consulta e
+// impressão, mas bem mais leve para subir numa conexão de campo fraca.
+async function redimensionarImagem(bytes: Buffer, formatoSaida: "jpeg" | "png" | "webp"): Promise<Buffer> {
+  const imagem = sharp(bytes).rotate().resize({ width: 1920, height: 1920, fit: "inside", withoutEnlargement: true });
+  if (formatoSaida === "jpeg") return imagem.jpeg({ quality: 80 }).toBuffer();
+  if (formatoSaida === "webp") return imagem.webp({ quality: 80 }).toBuffer();
+  return imagem.png({ compressionLevel: 8 }).toBuffer();
+}
+
+const TIPOS_MIME: Record<string, string> = {
+  jpg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+  pdf: "application/pdf",
+};
+
+// Na Vercel, o servidor roda em função serverless com disco só de leitura —
+// gravar em public/uploads (writeFile) derruba com "EROFS: read-only file
+// system". Isso disparava um 500 sem corpo JSON, e o Safari/iOS mostrava
+// "The string did not match the expected pattern" ao tentar interpretar a
+// resposta como JSON — para QUALQUER foto, não só HEIC (bug diferente do da
+// conversão HEIC, embora com o mesmo sintoma). No servidor local (next start,
+// disco de verdade) writeFile sempre funcionou, por isso só apareceu na Vercel.
+async function salvarArquivo(bytes: Buffer, pasta: string, nomeArquivo: string, extensao: string): Promise<string> {
+  if (process.env.VERCEL) {
+    const blob = await put(`${pasta}/${nomeArquivo}`, bytes, {
+      access: "public",
+      contentType: TIPOS_MIME[extensao] ?? "application/octet-stream",
+    });
+    return blob.url;
+  }
+
+  const diretorio = path.join(process.cwd(), "public", "uploads", pasta);
+  await mkdir(diretorio, { recursive: true });
+  await writeFile(path.join(diretorio, nomeArquivo), bytes);
+  return `/api/uploads/${pasta}/${nomeArquivo}`;
+}
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -34,20 +80,41 @@ export async function POST(request: Request) {
   if (!PASTAS_PERMITIDAS.has(pasta)) {
     return NextResponse.json({ erro: "Pasta de destino inválida." }, { status: 400 });
   }
-  if (!TIPOS_PERMITIDOS.has(file.type)) {
+
+  const ehHeic = TIPOS_HEIC.has(file.type) || ehHeicPeloNome(file.name);
+  if (!ehHeic && !TIPOS_PERMITIDOS.has(file.type)) {
     return NextResponse.json({ erro: "Formato de imagem não suportado." }, { status: 400 });
   }
   if (file.size > TAMANHO_MAXIMO) {
     return NextResponse.json({ erro: "Arquivo maior que 20MB." }, { status: 400 });
   }
 
-  const extensao = file.type.split("/")[1] === "jpeg" ? "jpg" : file.type.split("/")[1];
+  let bytes: Buffer<ArrayBufferLike> = Buffer.from(await file.arrayBuffer());
+  let extensao: string;
+
+  if (ehHeic) {
+    try {
+      const heicConvert = (await import("heic-convert")).default;
+      const jpegBuffer = await heicConvert({ buffer: bytes, format: "JPEG", quality: 0.85 });
+      bytes = await redimensionarImagem(Buffer.from(jpegBuffer), "jpeg");
+      extensao = "jpg";
+    } catch (erro) {
+      console.error("Falha ao converter HEIC no servidor:", erro);
+      return NextResponse.json(
+        { erro: "Não foi possível converter esta foto (formato HEIC). Tente novamente ou tire a foto de novo." },
+        { status: 400 },
+      );
+    }
+  } else if (file.type === "application/pdf") {
+    extensao = "pdf";
+  } else {
+    const formatoSaida = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpeg";
+    extensao = formatoSaida === "jpeg" ? "jpg" : formatoSaida;
+    bytes = await redimensionarImagem(bytes, formatoSaida);
+  }
+
   const nomeArquivo = `${randomUUID()}.${extensao}`;
-  const diretorio = path.join(process.cwd(), "public", "uploads", pasta);
-  await mkdir(diretorio, { recursive: true });
+  const url = await salvarArquivo(bytes, pasta, nomeArquivo, extensao);
 
-  const bytes = Buffer.from(await file.arrayBuffer());
-  await writeFile(path.join(diretorio, nomeArquivo), bytes);
-
-  return NextResponse.json({ url: `/api/uploads/${pasta}/${nomeArquivo}` });
+  return NextResponse.json({ url });
 }

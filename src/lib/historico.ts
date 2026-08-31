@@ -153,7 +153,7 @@ export async function buscarHistorico(filtro?: FiltroHistorico): Promise<ItemHis
     titulo: at.tipoAtividade.nome,
     subtitulo: at.observacoes ?? undefined,
     href: `/atividades/${at.id}`,
-    talhaoNome: at.talhao.nomeCodinome,
+    talhaoNome: at.talhao?.nomeCodinome ?? "—",
   }));
 
   const itensFotos: ItemHistorico[] = fotos

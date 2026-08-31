@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { TIPO_OPERACAO_LABELS } from "@/lib/operacoes";
+import { TIPO_OPERACAO_LABELS, unidadeDosagemEfetiva } from "@/lib/operacoes";
 import { UNIDADE_DOSAGEM_LABELS } from "@/lib/concentracao";
 import { formatarData } from "@/lib/format";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
@@ -53,6 +53,10 @@ export default async function OperacaoDetalhePage({ params }: { params: Promise<
       <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
         <Linha label="Data" valor={formatarData(operacao.data)} />
         <Linha label="Talhão" valor={operacao.talhao.nomeCodinome} />
+        {/* Em adubação a área é a base do cálculo da quantidade total — mostrar ajuda a conferir. */}
+        {operacao.tipo === "ADUBACAO" && operacao.talhao.areaHa && (
+          <Linha label="Área do talhão" valor={`${operacao.talhao.areaHa.toString()} ha`} />
+        )}
         <Linha label="Responsável" valor={operacao.responsavel.nome} />
         {operacao.operador && <Linha label="Operador" valor={operacao.operador.nomeCompleto} />}
         {operacao.maquina && <Linha label="Máquina" valor={operacao.maquina.nome} />}
@@ -74,18 +78,20 @@ export default async function OperacaoDetalhePage({ params }: { params: Promise<
 
       <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
         <div className="border-b border-neutral-100 px-4 py-2 text-sm font-medium text-neutral-700">
-          Produtos utilizados
+          {operacao.tipo === "ADUBACAO" ? "Fertilizantes utilizados" : "Produtos utilizados"}
         </div>
-        {operacao.produtos.map((item) => (
+        {operacao.produtos.map((item) => {
+          const unidadeDosagem = unidadeDosagemEfetiva(operacao.tipo, item.produto.unidadeDosagem);
+          return (
           <div
             key={item.id}
             className="flex justify-between border-b border-neutral-100 px-4 py-3 last:border-b-0"
           >
             <div>
               <p className="text-sm text-neutral-900">{item.produto.nome}</p>
-              {item.concentracao && item.produto.unidadeDosagem && (
+              {item.concentracao && unidadeDosagem && (
                 <p className="text-xs text-neutral-500">
-                  {item.concentracao.toString()} {UNIDADE_DOSAGEM_LABELS[item.produto.unidadeDosagem]}
+                  {item.concentracao.toString()} {UNIDADE_DOSAGEM_LABELS[unidadeDosagem]}
                 </p>
               )}
             </div>
@@ -93,7 +99,8 @@ export default async function OperacaoDetalhePage({ params }: { params: Promise<
               {item.quantidade.toString()} {item.unidade}
             </span>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {operacao.observacoes && (

@@ -26,7 +26,11 @@ export default async function NovaOperacaoPage({
       orderBy: { nomeCompleto: "asc" },
       select: { id: true, nomeCompleto: true },
     }),
-    db.maquina.findMany({ where: { propriedadeId }, orderBy: { nome: "asc" }, select: { id: true, nome: true } }),
+    db.maquina.findMany({
+      where: { propriedadeId, ativo: true },
+      orderBy: { nome: "asc" },
+      select: { id: true, nome: true },
+    }),
   ]);
 
   if (talhoes.length === 0) {
@@ -52,7 +56,8 @@ export default async function NovaOperacaoPage({
   return (
     <div className="flex flex-col gap-4">
       <VoltarLink href="/tratamentos" label="Voltar aos tratamentos" />
-      <h1 className="text-xl font-semibold text-neutral-900">Novo tratamento fitossanitário</h1>
+      {/* Título genérico: o formulário atende fitossanitário, herbicida, adubação e outras. */}
+      <h1 className="text-xl font-semibold text-neutral-900">Novo tratamento</h1>
       <OperacaoForm
         talhoes={talhoes.map((t) => ({ id: t.id, nome: t.nomeCodinome, areaHa: t.areaHa ? Number(t.areaHa) : null }))}
         produtos={produtos}

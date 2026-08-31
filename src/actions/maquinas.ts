@@ -100,6 +100,33 @@ export async function criarMaquinaRapido(
   return { id: maquina.id, nome: maquina.nome };
 }
 
+export async function excluirMaquina(maquinaId: string) {
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirMaquinaDaPropriedade(maquinaId, propriedadeId))) return;
+
+  // Manutenções, revisões e operações são histórico real que aconteceu com essa
+  // máquina — apagar quebraria esses registros. Fotos são só ilustração da
+  // própria máquina, então podem ser removidas junto sem perder nada.
+  const [totalManutencoes, totalRevisoes, totalOperacoes] = await Promise.all([
+    db.manutencao.count({ where: { maquinaId } }),
+    db.revisao.count({ where: { maquinaId } }),
+    db.operacaoAgricola.count({ where: { maquinaId } }),
+  ]);
+
+  if (totalManutencoes === 0 && totalRevisoes === 0 && totalOperacoes === 0) {
+    await db.$transaction([
+      db.foto.deleteMany({ where: { maquinaId } }),
+      db.maquina.delete({ where: { id: maquinaId } }),
+    ]);
+    revalidatePath("/maquinas");
+    redirect("/maquinas?resultado=excluida");
+  } else {
+    await db.maquina.update({ where: { id: maquinaId }, data: { ativo: false } });
+    revalidatePath("/maquinas");
+    redirect("/maquinas?resultado=inativada");
+  }
+}
+
 function parseManutencaoForm(formData: FormData) {
   const valorRaw = formData.get("valor");
   return {

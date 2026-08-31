@@ -44,7 +44,9 @@ export async function buscarHorasMaquina(propriedadeId: string, filtros: Filtros
     db.atividade.findMany({
       where: {
         horasMaquina: { gt: 0 },
-        talhao,
+        propriedadeId,
+        ...(filtros.talhaoId ? { talhaoId: filtros.talhaoId } : {}),
+        ...(filtros.cultura ? { talhao: { especie: filtros.cultura } } : {}),
         ...(data ? { data } : {}),
         ...(filtros.tipoAtividadeId ? { tipoAtividadeId: filtros.tipoAtividadeId } : {}),
       },
@@ -69,7 +71,7 @@ export async function buscarHorasMaquina(propriedadeId: string, filtros: Filtros
       data: a.data,
       origem: "Atividade" as const,
       descricao: a.tipoAtividade.nome,
-      talhao: a.talhao.nomeCodinome,
+      talhao: a.talhao?.nomeCodinome ?? "—",
       horas: Number(a.horasMaquina),
     })),
     ...operacoes.map((o) => ({
@@ -105,7 +107,9 @@ export async function buscarHorasHomem(propriedadeId: string, filtros: FiltrosRe
   const [atividades, operacoes] = await Promise.all([
     db.atividade.findMany({
       where: {
-        talhao,
+        propriedadeId,
+        ...(filtros.talhaoId ? { talhaoId: filtros.talhaoId } : {}),
+        ...(filtros.cultura ? { talhao: { especie: filtros.cultura } } : {}),
         ...(data ? { data } : {}),
         ...(filtros.tipoAtividadeId ? { tipoAtividadeId: filtros.tipoAtividadeId } : {}),
       },
@@ -130,7 +134,7 @@ export async function buscarHorasHomem(propriedadeId: string, filtros: FiltrosRe
       data: a.data,
       origem: "Atividade" as const,
       descricao: a.tipoAtividade.nome,
-      talhao: a.talhao.nomeCodinome,
+      talhao: a.talhao?.nomeCodinome ?? "—",
       numeroPessoas: a.numeroPessoas,
       horasPorPessoa: Number(a.horasPorPessoa),
       horas: a.numeroPessoas * Number(a.horasPorPessoa),

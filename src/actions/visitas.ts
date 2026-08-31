@@ -3,7 +3,7 @@
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { exigirPropriedadeAtual } from "@/lib/propriedade";
+import { exigirPropriedadeAtual, garantirVisitaDaPropriedade } from "@/lib/propriedade";
 
 function lerFormularioVisita(formData: FormData) {
   const percentualRaw = String(formData.get("percentualEnfolhamento") ?? "");
@@ -103,4 +103,17 @@ export async function atualizarVisitaCampo(
   revalidatePath(`/historico-pomar/${visitaId}`);
   revalidatePath(`/talhoes/${dados.talhaoId}`);
   redirect(`/historico-pomar/${visitaId}`);
+}
+
+export async function excluirVisitaCampo(visitaId: string) {
+  const propriedadeId = await exigirPropriedadeAtual();
+  if (!(await garantirVisitaDaPropriedade(visitaId, propriedadeId))) return;
+
+  // Nada mais referencia uma visita — apagar não quebra nenhum outro registro.
+  // As fotos da visita são apagadas em cascata (onDelete: Cascade no schema).
+  const visita = await db.visitaCampo.delete({ where: { id: visitaId } });
+
+  revalidatePath("/historico-pomar");
+  revalidatePath(`/talhoes/${visita.talhaoId}`);
+  redirect(`/historico-pomar?talhaoId=${visita.talhaoId}`);
 }

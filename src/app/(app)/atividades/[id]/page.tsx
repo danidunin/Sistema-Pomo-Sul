@@ -19,7 +19,7 @@ export default async function AtividadeDetalhePage({ params }: { params: Promise
     },
   });
 
-  if (!atividade || atividade.talhao.propriedadeId !== propriedadeId) notFound();
+  if (!atividade || atividade.propriedadeId !== propriedadeId) notFound();
 
   const horasHomem = atividade.numeroPessoas * Number(atividade.horasPorPessoa);
 
@@ -30,9 +30,11 @@ export default async function AtividadeDetalhePage({ params }: { params: Promise
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-neutral-900">{atividade.tipoAtividade.nome}</h1>
         <div className="flex items-center gap-3">
-          <Link href={`/talhoes/${atividade.talhaoId}`} className="text-sm font-medium text-green-700">
-            Ver talhão
-          </Link>
+          {atividade.talhaoId && (
+            <Link href={`/talhoes/${atividade.talhaoId}`} className="text-sm font-medium text-green-700">
+              Ver talhão
+            </Link>
+          )}
           <Link
             href={`/atividades/${atividade.id}/editar`}
             className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
@@ -45,7 +47,7 @@ export default async function AtividadeDetalhePage({ params }: { params: Promise
 
       <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
         <Linha label="Data" valor={formatarData(atividade.data)} />
-        <Linha label="Talhão" valor={atividade.talhao.nomeCodinome} />
+        <Linha label="Talhão" valor={atividade.talhao?.nomeCodinome ?? "— (atividade geral)"} />
         <Linha
           label="Pessoas"
           valor={`${atividade.numeroPessoas} · ${atividade.horasPorPessoa.toString()}h por pessoa`}

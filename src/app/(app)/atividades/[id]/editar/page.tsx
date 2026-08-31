@@ -9,11 +9,8 @@ export default async function EditarAtividadePage({ params }: { params: Promise<
   const { id } = await params;
   const propriedadeId = await exigirPropriedadeAtual();
 
-  const atividade = await db.atividade.findUnique({
-    where: { id },
-    include: { talhao: true },
-  });
-  if (!atividade || atividade.talhao.propriedadeId !== propriedadeId) notFound();
+  const atividade = await db.atividade.findUnique({ where: { id } });
+  if (!atividade || atividade.propriedadeId !== propriedadeId) notFound();
 
   const [tiposAtividade, talhoes] = await Promise.all([
     db.tipoAtividade.findMany({ where: { ativo: true }, orderBy: { nome: "asc" } }),
@@ -35,7 +32,7 @@ export default async function EditarAtividadePage({ params }: { params: Promise<
         talhoes={talhoes.map((t) => ({ id: t.id, nome: t.nomeCodinome }))}
         defaultValues={{
           tipoAtividadeId: atividade.tipoAtividadeId,
-          talhaoId: atividade.talhaoId,
+          talhaoId: atividade.talhaoId ?? "",
           data: atividade.data.toISOString().slice(0, 10),
           numeroPessoas: String(atividade.numeroPessoas),
           horasPorPessoa: atividade.horasPorPessoa.toString(),
