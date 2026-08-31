@@ -15,7 +15,13 @@ export function GradeExcelPraga({ titulo, secao }: { titulo: string; secao: Seca
   const labelMetrica = rotuloMetrica(secao.tipoPraga);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+    // min-w-0: este card é filho direto de um container flex (flex flex-col
+    // na página) — sem min-w-0 um item flex nunca encolhe abaixo da largura
+    // do seu conteúdo, então a tabela larga empurraria a PÁGINA INTEIRA (não
+    // só este card) além da viewport no mobile, quebrando o rodapé fixo em
+    // outras telas do app. Com min-w-0, é o overflow-x-auto logo abaixo que
+    // rola, e a página nunca ultrapassa a largura da tela.
+    <div className="w-full min-w-0 overflow-hidden rounded-xl border border-neutral-200 bg-white">
       <div className="border-b border-neutral-100 px-4 py-3">
         <p className="text-sm font-semibold text-neutral-900">{titulo}</p>
       </div>

@@ -39,7 +39,11 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="flex-1 px-4 pb-24 pt-4 md:px-6 md:pb-6">{children}</main>
+        {/* overflow-x-hidden: rede de segurança — qualquer tela com conteúdo largo (ex:
+            uma tabela) que esqueça de conter o próprio overflow nunca mais empurra a
+            PÁGINA inteira além da viewport no mobile, o que quebra o rodapé fixo (BottomNav)
+            em todas as telas do app, não só na que causou o problema. */}
+        <main className="min-w-0 flex-1 overflow-x-hidden px-4 pb-24 pt-4 md:px-6 md:pb-6">{children}</main>
       </div>
 
       <BottomNav />
