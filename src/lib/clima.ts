@@ -4,12 +4,20 @@ import { CloudLightning, CloudRain, CloudFog, CloudSun, Cloud, Sun } from "lucid
 // Código do município (IBGE) da propriedade (Lapa, PR) — usado na API pública do INMET.
 const CODIGO_IBGE = "4113205";
 
+// Campos opcionais de propósito: a API do INMET já mandou dias/períodos reais
+// faltando qualquer um destes campos (não é um erro de parsing nosso, é a
+// fonte externa sendo inconsistente) — cada consumidor abaixo trata a
+// ausência explicitamente em vez de assumir que sempre vêm preenchidos.
 type PeriodoBrutoInmet = {
-  resumo: string;
-  temp_max: number;
-  temp_min: number;
-  dia_semana: string;
+  resumo?: string;
+  temp_max?: number;
+  temp_min?: number;
+  dia_semana?: string;
 };
+
+function numeroValido(v: unknown): v is number {
+  return typeof v === "number" && Number.isFinite(v);
+}
 
 type NomePeriodo = "Manhã" | "Tarde" | "Noite";
 
@@ -67,15 +75,20 @@ export async function buscarClima(): Promise<Clima | null> {
     const [dataHoje, dataAmanha, ...datasRestantes] = datas;
     if (!dataHoje || !dataAmanha) return null;
 
-    const paraDiaDetalhado = (data: string): DiaDetalhado => {
-      const bruto = bloco[data] as Record<"manha" | "tarde" | "noite", PeriodoBrutoInmet>;
+    // Retorna null quando o dia não tem dado confiável o bastante pra exibir (em vez de
+    // devolver um objeto com campo faltando que quebraria a UI mais adiante) — cada
+    // chamador decide o que fazer com um dia inválido (descartar, ou tratar Clima
+    // inteiro como indisponível).
+    const paraDiaDetalhado = (data: string): DiaDetalhado | null => {
+      const bruto = bloco[data] as Record<"manha" | "tarde" | "noite", PeriodoBrutoInmet | undefined>;
       const periodos = (["manha", "tarde", "noite"] as const)
         .filter((chave) => bruto[chave])
         .map((chave) => ({
           nome: NOME_PERIODO[chave],
-          resumo: bruto[chave].resumo,
+          resumo: bruto[chave]?.resumo ?? "",
         }));
       const referencia = bruto.tarde ?? bruto.manha ?? bruto.noite;
+      if (!referencia || !numeroValido(referencia.temp_min) || !numeroValido(referencia.temp_max)) return null;
       return {
         data,
         temperaturaMinima: referencia.temp_min,
@@ -84,21 +97,32 @@ export async function buscarClima(): Promise<Clima | null> {
       };
     };
 
-    const paraDiaResumo = (data: string): DiaResumo => {
-      const p = bloco[data] as unknown as PeriodoBrutoInmet;
+    const paraDiaResumo = (data: string): DiaResumo | null => {
+      const p = bloco[data] as unknown as PeriodoBrutoInmet | undefined;
+      if (!p || typeof p.dia_semana !== "string" || !numeroValido(p.temp_min) || !numeroValido(p.temp_max)) {
+        return null;
+      }
       return {
         data,
         diaSemana: p.dia_semana,
-        resumo: p.resumo,
+        resumo: p.resumo ?? "",
         temperaturaMinima: p.temp_min,
         temperaturaMaxima: p.temp_max,
       };
     };
 
+    const hoje = paraDiaDetalhado(dataHoje);
+    const amanha = paraDiaDetalhado(dataAmanha);
+    // Hoje/amanhã são obrigatórios no tipo Clima — se algum vier incompleto, é
+    // mais seguro mostrar "clima indisponível" (ver PainelClimaVazio) do que
+    // inventar um valor. Dias mais distantes (proximosDias) só perdem aquele
+    // card específico, sem invalidar a previsão inteira.
+    if (!hoje || !amanha) return null;
+
     return {
-      hoje: paraDiaDetalhado(dataHoje),
-      amanha: paraDiaDetalhado(dataAmanha),
-      proximosDias: datasRestantes.map(paraDiaResumo),
+      hoje,
+      amanha,
+      proximosDias: datasRestantes.map(paraDiaResumo).filter((dia): dia is DiaResumo => dia !== null),
     };
   } catch {
     return null;
