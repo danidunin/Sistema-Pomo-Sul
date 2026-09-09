@@ -110,8 +110,11 @@ export async function buscarClima(): Promise<Clima | null> {
  * ícone de condição. A ordem importa: condições mais específicas/severas são checadas antes
  * das genéricas (ex: "trovoada" antes de "chuva", "chuva" antes de "nuvens").
  */
-export function iconePorResumo(resumo: string): LucideIcon {
-  const texto = resumo.toLowerCase();
+export function iconePorResumo(resumo: string | null | undefined): LucideIcon {
+  // resumo vem de uma API externa (INMET) sem garantia de formato — dias/períodos
+  // sem esse campo preenchido já derrubaram a Home inteira em produção
+  // ("Cannot read properties of undefined (reading 'toLowerCase')").
+  const texto = (resumo ?? "").toLowerCase();
 
   if (texto.includes("trovoada") || texto.includes("tempestade")) return CloudLightning;
   if (texto.includes("chuv")) return CloudRain;
