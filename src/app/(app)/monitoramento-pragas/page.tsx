@@ -89,6 +89,10 @@ export default async function MonitoramentoPragasPage({
         <Link href="/monitoramento-pragas/armadilhas" className="text-sm font-medium text-green-700">
           Armadilhas
         </Link>
+        <span className="text-neutral-300">·</span>
+        <Link href="/monitoramento-pragas/planilha" className="text-sm font-medium text-green-700">
+          Planilha
+        </Link>
       </div>
 
       {pontos.length === 0 ? (
