@@ -1,5 +1,12 @@
 import type ExcelJS from "exceljs";
-import { resolverCorCelula, corIndexadaParaHex, type RegraFormatacao } from "@/lib/planilha-pragas";
+import {
+  resolverCorCelula,
+  corIndexadaParaHex,
+  desembrulharValorNumerico,
+  ordenarRegrasPorPrioridade,
+  textoDeCelula,
+  type RegraFormatacao,
+} from "@/lib/planilha-pragas";
 
 export type CelulaTabela = { valor: number | string | Date | null; corHex: string | null };
 export type GrupoColuna = { rotulo: string; colSpan: number };
@@ -33,10 +40,11 @@ function extrairRegras(planilha: ExcelJS.Worksheet): RegraFormatacao[] {
         operador: regra.operator as RegraFormatacao["operador"],
         valores: (regra.formulae as string[]).map(Number),
         corHex,
+        prioridade: typeof regra.priority === "number" ? regra.priority : undefined,
       });
     }
   }
-  return regras;
+  return ordenarRegrasPorPrioridade(regras);
 }
 
 /** Agrupa uma linha de cabeçalho (com possíveis merges) em colunas de colSpan — usado tanto
@@ -62,16 +70,41 @@ function agruparLinhaHeader(
       if (masterProxima.address !== enderecoGrupo) break;
       fimGrupo++;
     }
-    grupos.push({ rotulo: String(master.value ?? ""), colSpan: fimGrupo - coluna + 1 });
+    grupos.push({ rotulo: textoDeCelula(master.value), colSpan: fimGrupo - coluna + 1 });
     coluna = fimGrupo + 1;
   }
   return grupos;
 }
 
+/**
+ * Índice da última coluna com conteúdo — o limite direito da tabela.
+ *
+ * NÃO use `planilha.actualColumnCount` aqui: apesar do nome, ele é a CONTAGEM de colunas
+ * distintas que têm valor (ver o getter em node_modules/exceljs/lib/doc/worksheet.js), não o
+ * índice da última. Basta uma coluna sem valor no meio da planilha pra contagem ficar menor
+ * que o índice real e as colunas da direita sumirem da tela.
+ *
+ * `planilha.columnCount` é o índice certo por natureza (maior célula alocada, inclusive as que
+ * só têm estilo), mas na planilha real ele estoura pra muito além do conteúdo — a aba
+ * "Lapinha" tem columnCount 101 com conteúdo só até a 79, o que renderizaria 22 colunas
+ * vazias. Então varremos as células de verdade (`eachRow`/`eachCell` pulam célula nula) e
+ * pegamos o maior índice, ignorando o cabeçalho fixo acima da linha de grupo.
+ */
+function ultimaColunaComConteudo(planilha: ExcelJS.Worksheet): number {
+  let ultima = 0;
+  planilha.eachRow((linha, numeroLinha) => {
+    if (numeroLinha < LINHA_GRUPO) return;
+    linha.eachCell((_celula, numeroColuna) => {
+      if (numeroColuna > ultima) ultima = numeroColuna;
+    });
+  });
+  return ultima;
+}
+
 /** Uma aba conta como conteúdo real se tiver pelo menos a linha de primeira leitura e mais
  * de uma coluna — descarta abas vazias tipo "Plan3". */
-function temConteudo(planilha: ExcelJS.Worksheet): boolean {
-  return planilha.rowCount >= LINHA_PRIMEIRA_LEITURA && planilha.actualColumnCount > 1;
+function temConteudo(planilha: ExcelJS.Worksheet, ultimaColuna: number): boolean {
+  return planilha.rowCount >= LINHA_PRIMEIRA_LEITURA && ultimaColuna > 1;
 }
 
 /** A primeira data da coluna A é um valor literal, mas as linhas seguintes usam fórmula
@@ -90,14 +123,14 @@ export function parsearWorkbook(workbook: ExcelJS.Workbook): AbaTabela[] {
   const abas: AbaTabela[] = [];
 
   for (const planilha of workbook.worksheets) {
-    if (!temConteudo(planilha)) continue;
+    const ultimaColuna = ultimaColunaComConteudo(planilha);
+    if (!temConteudo(planilha, ultimaColuna)) continue;
 
     const regras = extrairRegras(planilha);
-    const ultimaColuna = planilha.actualColumnCount;
 
     const cabecalhoColuna: string[] = [];
     for (let coluna = 2; coluna <= ultimaColuna; coluna++) {
-      cabecalhoColuna.push(String(planilha.getCell(LINHA_ROTULO, coluna).value ?? ""));
+      cabecalhoColuna.push(textoDeCelula(planilha.getCell(LINHA_ROTULO, coluna).value));
     }
 
     const cabecalhoGrupo = agruparLinhaHeader(planilha, LINHA_GRUPO, 2, ultimaColuna);
@@ -110,7 +143,7 @@ export function parsearWorkbook(workbook: ExcelJS.Workbook): AbaTabela[] {
       const celulas: CelulaTabela[] = [{ valor: dataLeitura, corHex: null }];
       for (let coluna = 2; coluna <= ultimaColuna; coluna++) {
         const bruto = planilha.getCell(linha, coluna).value;
-        const valor = typeof bruto === "number" ? bruto : null;
+        const valor = desembrulharValorNumerico(bruto);
         celulas.push({
           valor,
           corHex: valor !== null ? resolverCorCelula(regras, linha, coluna, valor) : null,

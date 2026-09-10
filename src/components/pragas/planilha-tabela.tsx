@@ -1,4 +1,5 @@
 import { formatarData } from "@/lib/format";
+import { corDeDestaque } from "@/lib/planilha-pragas";
 import type { AbaTabela } from "@/lib/planilha-pragas-parser";
 
 export function PlanilhaTabela({ aba }: { aba: AbaTabela }) {
@@ -45,17 +46,23 @@ export function PlanilhaTabela({ aba }: { aba: AbaTabela }) {
                 <td className="sticky left-0 z-10 whitespace-nowrap border-r border-neutral-200 bg-white px-3 py-1.5 text-neutral-700">
                   {linha.celulas[0].valor instanceof Date ? formatarData(linha.celulas[0].valor) : ""}
                 </td>
-                {linha.celulas.slice(1).map((celula, j) => (
-                  <td
-                    key={j}
-                    className="px-2 py-1.5 text-center"
-                    style={celula.corHex ? { color: celula.corHex, fontWeight: 600 } : undefined}
-                  >
-                    {celula.valor instanceof Date
-                      ? formatarData(celula.valor)
-                      : (celula.valor ?? <span className="text-neutral-300">—</span>)}
-                  </td>
-                ))}
+                {linha.celulas.slice(1).map((celula, j) => {
+                  // Só destaca (cor + negrito) o que a planilha realmente quis destacar: a
+                  // regra de nível baixo resolve pra preto, que é "texto normal" — negritar
+                  // essas células deixaria a tabela inteira seminegrito.
+                  const destaque = corDeDestaque(celula.corHex);
+                  return (
+                    <td
+                      key={j}
+                      className="px-2 py-1.5 text-center"
+                      style={destaque ? { color: destaque, fontWeight: 600 } : undefined}
+                    >
+                      {celula.valor instanceof Date
+                        ? formatarData(celula.valor)
+                        : (celula.valor ?? <span className="text-neutral-300">—</span>)}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>

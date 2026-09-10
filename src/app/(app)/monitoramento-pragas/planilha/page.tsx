@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { db } from "@/lib/db";
 import { formatarData } from "@/lib/format";
-import { parsearWorkbook } from "@/lib/planilha-pragas-parser";
+import { parsearWorkbook, type AbaTabela } from "@/lib/planilha-pragas-parser";
 import { PlanilhaUploadForm } from "@/components/pragas/planilha-upload-form";
 import { PlanilhaTabela } from "@/components/pragas/planilha-tabela";
 import { VoltarLink } from "@/components/nav/voltar-link";
@@ -52,8 +52,15 @@ export default async function PlanilhaPragasPage({
  */
 async function carregarArquivoPlanilha(url: string): Promise<ArrayBuffer | null> {
   if (url.startsWith("/api/uploads/")) {
-    const segmentos = url.slice("/api/uploads/".length);
-    const caminho = path.join(process.cwd(), "public", "uploads", ...segmentos.split("/"));
+    const segmentos = url.slice("/api/uploads/".length).split("/");
+    // Mesma checagem de path traversal da rota que serve esses arquivos
+    // (`src/app/api/uploads/[...path]/route.ts`): hoje o único escritor desta coluna é a rota
+    // de upload, que gera o nome do arquivo no servidor, mas a validação anda junto do
+    // `path.join` pra não depender disso continuar verdade.
+    if (segmentos.some((s) => s.includes("..") || s.includes("/") || s.includes("\\"))) {
+      return null;
+    }
+    const caminho = path.join(process.cwd(), "public", "uploads", ...segmentos);
     try {
       const bytes = await readFile(caminho);
       return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
@@ -72,9 +79,22 @@ async function PlanilhaConteudo({ url, abaSelecionada }: { url: string; abaSelec
     return <p className="text-sm text-red-600">Não foi possível carregar a planilha enviada. Tente enviar de novo.</p>;
   }
 
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(buffer);
-  const abas = parsearWorkbook(workbook);
+  // `xlsx.load` estoura em arquivo corrompido, `.xls` renomeado pra `.xlsx` ou planilha com
+  // senha — e a validação do upload só olha a extensão do nome. Sem esse try/catch a exceção
+  // derruba a rota inteira, junto com o formulário de upload que é a ÚNICA forma de trocar o
+  // arquivo ruim: a página ficaria quebrada pra sempre.
+  let abas: AbaTabela[];
+  try {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(buffer);
+    abas = parsearWorkbook(workbook);
+  } catch {
+    return (
+      <p className="text-sm text-red-600">
+        Não foi possível ler o arquivo enviado. Verifique se é um .xlsx válido e envie novamente.
+      </p>
+    );
+  }
 
   if (abas.length === 0) {
     return <p className="text-sm text-neutral-500">A planilha enviada não tem nenhuma aba com dado reconhecível.</p>;

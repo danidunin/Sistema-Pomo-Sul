@@ -1,3 +1,7 @@
+// `import type` é apagado na compilação — este módulo continua puro (sem exceljs em runtime),
+// então segue importável tanto pelo parser server-only quanto por componente de client.
+import type ExcelJS from "exceljs";
+
 // Paleta indexada padrão do Excel (ECMA-376/OOXML, tabela legada de 64 cores) —
 // usada quando uma regra de formatação condicional referencia a cor por índice
 // em vez de RGB direto. Fonte: tabela COLOR_INDEX do openpyxl (biblioteca de
@@ -22,6 +26,56 @@ export function corIndexadaParaHex(indexado: number | undefined): string | null 
   return PALETA_INDEXADA[indexado] ?? null;
 }
 
+/**
+ * Extrai o número de uma célula. O ExcelJS entrega célula de fórmula como
+ * `{ formula, result }` (ou `{ sharedFormula, result }` quando a fórmula é compartilhada
+ * entre células) em vez do número já calculado — e as colunas "Média" / "Soma 2 leit." da
+ * planilha real, justamente as que a formatação condicional colore, são TODAS fórmula.
+ * Devolve o número nos dois casos e `null` pra qualquer outra coisa: texto, booleano, data,
+ * erro (`#DIV/0!`), rich text, hyperlink, célula vazia, ou fórmula sem resultado em cache
+ * (que é como o Excel grava uma fórmula cuja célula-fonte está em branco).
+ */
+export function desembrulharValorNumerico(bruto: ExcelJS.CellValue): number | null {
+  if (typeof bruto === "number") return Number.isFinite(bruto) ? bruto : null;
+  if (bruto !== null && typeof bruto === "object" && "result" in bruto) {
+    const resultado = bruto.result;
+    return typeof resultado === "number" && Number.isFinite(resultado) ? resultado : null;
+  }
+  return null;
+}
+
+/**
+ * Texto de exibição de uma célula de cabeçalho/rótulo. `String(celula.value ?? "")` direto
+ * imprime "[object Object]" quando a célula tem rich text (trechos com formatação diferente
+ * dentro da mesma célula — comum em cabeçalho feito à mão) ou é um hyperlink. Fórmula cai no
+ * resultado em cache; qualquer coisa sem texto razoável (data, erro, vazio) vira "".
+ */
+export function textoDeCelula(bruto: ExcelJS.CellValue): string {
+  if (bruto === null || bruto === undefined) return "";
+  if (typeof bruto === "string") return bruto;
+  if (typeof bruto === "number" || typeof bruto === "boolean") return String(bruto);
+  if (bruto instanceof Date) return "";
+  if ("richText" in bruto) return bruto.richText.map((trecho) => trecho.text).join("");
+  if ("hyperlink" in bruto) return bruto.text ?? "";
+  if ("result" in bruto) {
+    const resultado = bruto.result;
+    if (typeof resultado === "string") return resultado;
+    if (typeof resultado === "number" || typeof resultado === "boolean") return String(resultado);
+  }
+  return "";
+}
+
+/**
+ * Cor que de fato destaca a célula. As regras da planilha usam preto (`#000000`) como
+ * "sem destaque, texto normal" — colorir/negritar essas células deixa a tabela inteira
+ * seminegrito e enterra o destaque que a formatação condicional existe pra mostrar.
+ * Retorna `null` tanto pra "nenhuma regra bateu" quanto pra "bateu a regra preta".
+ */
+export function corDeDestaque(corHex: string | null): string | null {
+  if (!corHex) return null;
+  return corHex.toUpperCase() === "#000000" ? null : corHex;
+}
+
 export type OperadorRegra = "greaterThan" | "greaterThanOrEqual" | "lessThan" | "lessThanOrEqual" | "between";
 
 export type RegraFormatacao = {
@@ -32,7 +86,30 @@ export type RegraFormatacao = {
   /** 1 valor para greaterThan/greaterThanOrEqual/lessThan/lessThanOrEqual, 2 para between. */
   valores: number[];
   corHex: string | null;
+  /** Campo `priority` do OOXML: MENOR número = MAIOR precedência. Opcional porque uma regra
+   * sem priority declarado ainda deve ser usada — só vai pro fim da fila. */
+  prioridade?: number;
 };
+
+/**
+ * Ordena as regras na precedência real do Excel. O ExcelJS devolve as regras na ordem dos
+ * blocos `<conditionalFormatting>` do arquivo, que NÃO é a ordem de precedência quando uma
+ * célula é coberta por blocos diferentes — quem manda é o `priority` de cada regra (menor =
+ * ganha). A aba "Lapinha" da planilha real tem exatamente esse caso: o intervalo AD8:AG8 está
+ * em dois blocos, e o bloco de menor priority aparece DEPOIS no documento.
+ * Não muta a lista original; `Array.prototype.sort` é estável, então regras de mesma
+ * prioridade (ou ambas sem prioridade) mantêm a ordem do documento.
+ */
+export function ordenarRegrasPorPrioridade(regras: RegraFormatacao[]): RegraFormatacao[] {
+  return [...regras].sort((a, b) => {
+    // Comparação por branch em vez de subtração: `Infinity - Infinity` é NaN, que corromperia
+    // o sort quando duas regras vêm sem prioridade.
+    const pa = a.prioridade ?? Number.POSITIVE_INFINITY;
+    const pb = b.prioridade ?? Number.POSITIVE_INFINITY;
+    if (pa === pb) return 0;
+    return pa < pb ? -1 : 1;
+  });
+}
 
 /** Converte uma referência de coluna estilo Excel ("B", "AH") pro número da coluna (A=1). */
 export function colunaParaNumero(letras: string): number {
@@ -80,9 +157,9 @@ function regraSeAplica(regra: RegraFormatacao, valor: number): boolean {
 }
 
 /**
- * Resolve a cor de uma célula: a primeira regra (na ordem em que aparecem — o Excel já as
- * guarda em ordem de prioridade) cujo intervalo contém a célula E cuja condição bate com o
- * valor. Retorna null se nenhuma regra se aplica (célula sem cor especial).
+ * Resolve a cor de uma célula: a primeira regra da lista cujo intervalo contém a célula E cuja
+ * condição bate com o valor. Retorna null se nenhuma regra se aplica (célula sem cor especial).
+ * Espera a lista já ordenada por precedência — ver `ordenarRegrasPorPrioridade`.
  */
 export function resolverCorCelula(
   regras: RegraFormatacao[],
