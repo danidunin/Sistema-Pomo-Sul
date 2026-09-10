@@ -45,6 +45,7 @@ model Usuario {
   createdAt DateTime @default(now()) @map("created_at")
 
   operacoesResponsavel OperacaoAgricola[] @relation("OperacaoResponsavel")
+  planilhasEnviadas    PlanilhaMonitoramento[]
 
   @@map("usuarios")
 }
@@ -562,4 +563,24 @@ model ChuvaRegistro {
 enum RelacaoTratamentoDia {
   ANTES
   DEPOIS
+}
+
+// ---------------------------------------------------------------------------
+// Planilha de Monitoramento de Pragas — consulta visual read-only do .xlsx
+// que a propriedade já usa. Registro único (id fixo "atual"), sempre
+// substituído no próximo upload — sem histórico de versões, e sem nenhum
+// vínculo com PontoMonitoramento/Armadilha/LeituraArmadilha.
+// ---------------------------------------------------------------------------
+
+model PlanilhaMonitoramento {
+  id           String   @id @default("atual")
+  url          String
+  nomeArquivo  String   @map("nome_arquivo")
+  tamanhoBytes Int      @map("tamanho_bytes")
+  enviadoPor   Usuario? @relation(fields: [enviadoPorId], references: [id])
+  enviadoPorId String?  @map("enviado_por_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("planilha_monitoramento")
 }
