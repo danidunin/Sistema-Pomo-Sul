@@ -6,7 +6,6 @@ import { formatarData } from "@/lib/format";
 import { parsearWorkbook, type AbaTabela } from "@/lib/planilha-pragas-parser";
 import { PlanilhaUploadForm } from "@/components/pragas/planilha-upload-form";
 import { PlanilhaTabela } from "@/components/pragas/planilha-tabela";
-import { VoltarLink } from "@/components/nav/voltar-link";
 
 export default async function PlanilhaPragasPage({
   searchParams,
@@ -18,8 +17,6 @@ export default async function PlanilhaPragasPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <VoltarLink href="/monitoramento-pragas" label="Voltar" />
-
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-xl font-semibold text-neutral-900">Planilha</h1>
