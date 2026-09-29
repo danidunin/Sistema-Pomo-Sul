@@ -88,6 +88,7 @@ export function ProdutoForm({
           type="number"
           inputMode="numeric"
           min="1"
+          max="1000"
           step="1"
           defaultValue={defaultValues?.limiteAplicacoesCiclo}
           className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"

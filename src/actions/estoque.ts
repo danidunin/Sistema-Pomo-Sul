@@ -33,9 +33,11 @@ export async function criarProduto(
   }
   if (
     dados.limiteAplicacoesCiclo !== null &&
-    (!Number.isInteger(dados.limiteAplicacoesCiclo) || dados.limiteAplicacoesCiclo <= 0)
+    (!Number.isInteger(dados.limiteAplicacoesCiclo) ||
+      dados.limiteAplicacoesCiclo <= 0 ||
+      dados.limiteAplicacoesCiclo > 1000)
   ) {
-    return "Máximo de aplicações por ciclo deve ser um número inteiro maior que zero.";
+    return "Máximo de aplicações por ciclo deve ser um número inteiro entre 1 e 1000.";
   }
 
   const propriedadeId = await exigirPropriedadeAtual();
@@ -60,9 +62,11 @@ export async function atualizarProduto(
   }
   if (
     dados.limiteAplicacoesCiclo !== null &&
-    (!Number.isInteger(dados.limiteAplicacoesCiclo) || dados.limiteAplicacoesCiclo <= 0)
+    (!Number.isInteger(dados.limiteAplicacoesCiclo) ||
+      dados.limiteAplicacoesCiclo <= 0 ||
+      dados.limiteAplicacoesCiclo > 1000)
   ) {
-    return "Máximo de aplicações por ciclo deve ser um número inteiro maior que zero.";
+    return "Máximo de aplicações por ciclo deve ser um número inteiro entre 1 e 1000.";
   }
 
   const propriedadeId = await exigirPropriedadeAtual();
