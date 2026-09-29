@@ -9,10 +9,12 @@ import { ehValorDoEnum } from "@/lib/enum";
 
 function parseProdutoForm(formData: FormData) {
   const unidadeDosagemRaw = String(formData.get("unidadeDosagem") ?? "");
+  const limiteRaw = String(formData.get("limiteAplicacoesCiclo") ?? "").trim();
   return {
     nome: String(formData.get("nome") ?? "").trim(),
     unidade: String(formData.get("unidade") ?? "").trim(),
     unidadeDosagem: (unidadeDosagemRaw || null) as UnidadeDosagem | null,
+    limiteAplicacoesCiclo: limiteRaw ? Number(limiteRaw) : null,
     observacoes: String(formData.get("observacoes") ?? "").trim() || null,
   };
 }
@@ -28,6 +30,12 @@ export async function criarProduto(
   }
   if (dados.unidadeDosagem && !ehValorDoEnum(UnidadeDosagem, dados.unidadeDosagem)) {
     return "Unidade de dosagem inválida.";
+  }
+  if (
+    dados.limiteAplicacoesCiclo !== null &&
+    (!Number.isInteger(dados.limiteAplicacoesCiclo) || dados.limiteAplicacoesCiclo <= 0)
+  ) {
+    return "Máximo de aplicações por ciclo deve ser um número inteiro maior que zero.";
   }
 
   const propriedadeId = await exigirPropriedadeAtual();
@@ -49,6 +57,12 @@ export async function atualizarProduto(
   }
   if (dados.unidadeDosagem && !ehValorDoEnum(UnidadeDosagem, dados.unidadeDosagem)) {
     return "Unidade de dosagem inválida.";
+  }
+  if (
+    dados.limiteAplicacoesCiclo !== null &&
+    (!Number.isInteger(dados.limiteAplicacoesCiclo) || dados.limiteAplicacoesCiclo <= 0)
+  ) {
+    return "Máximo de aplicações por ciclo deve ser um número inteiro maior que zero.";
   }
 
   const propriedadeId = await exigirPropriedadeAtual();

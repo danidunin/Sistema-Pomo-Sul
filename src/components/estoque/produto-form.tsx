@@ -7,6 +7,7 @@ type ProdutoFormValues = {
   nome: string;
   unidade: string;
   unidadeDosagem: string;
+  limiteAplicacoesCiclo: string;
   observacoes: string;
 };
 
@@ -74,6 +75,26 @@ export function ProdutoForm({
         </select>
         <p className="mt-1 text-xs text-neutral-500">
           Necessária para calcular a quantidade automaticamente em Tratamentos Fitossanitários.
+        </p>
+      </div>
+
+      <div>
+        <label htmlFor="limiteAplicacoesCiclo" className="mb-1 block text-sm font-medium text-neutral-700">
+          Máximo de aplicações por ciclo
+        </label>
+        <input
+          id="limiteAplicacoesCiclo"
+          name="limiteAplicacoesCiclo"
+          type="number"
+          inputMode="numeric"
+          min="1"
+          step="1"
+          defaultValue={defaultValues?.limiteAplicacoesCiclo}
+          className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
+        />
+        <p className="mt-1 text-xs text-neutral-500">
+          Se preenchido, este produto aparece no Resumo do ciclo em Tratamentos, comparando o
+          número de aplicações em cada quadra com este limite.
         </p>
       </div>
 

@@ -41,6 +41,7 @@ export default async function EditarProdutoPage({ params }: { params: Promise<{ 
           nome: produto.nome,
           unidade: produto.unidade,
           unidadeDosagem: produto.unidadeDosagem ?? "",
+          limiteAplicacoesCiclo: produto.limiteAplicacoesCiclo?.toString() ?? "",
           observacoes: produto.observacoes ?? "",
         }}
       />
