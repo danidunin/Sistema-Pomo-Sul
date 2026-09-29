@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { OperacaoForm } from "@/components/operacoes/operacao-form";
 import { VoltarLink } from "@/components/nav/voltar-link";
+import { buscarContagensChaveParaFormulario } from "@/lib/limite-aplicacoes";
 
 export default async function EditarOperacaoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -15,7 +16,7 @@ export default async function EditarOperacaoPage({ params }: { params: Promise<{
 
   if (!operacao || operacao.talhao.propriedadeId !== propriedadeId) notFound();
 
-  const [talhoes, produtos, operadores, maquinas] = await Promise.all([
+  const [talhoes, produtos, operadores, maquinas, contagensChave] = await Promise.all([
     db.talhao.findMany({
       where: { propriedadeId },
       orderBy: { nomeCodinome: "asc" },
@@ -37,6 +38,7 @@ export default async function EditarOperacaoPage({ params }: { params: Promise<{
       select: { id: true, nomeCompleto: true },
     }),
     db.maquina.findMany({ where: { propriedadeId }, orderBy: { nome: "asc" }, select: { id: true, nome: true } }),
+    buscarContagensChaveParaFormulario(propriedadeId, operacao.id),
   ]);
 
   return (
@@ -50,6 +52,7 @@ export default async function EditarOperacaoPage({ params }: { params: Promise<{
         produtos={produtos}
         operadores={operadores.map((o) => ({ id: o.id, nome: o.nomeCompleto }))}
         maquinas={maquinas}
+        contagensChave={contagensChave}
         valoresIniciais={{
           tipo: operacao.tipo,
           data: operacao.data.toISOString().slice(0, 10),

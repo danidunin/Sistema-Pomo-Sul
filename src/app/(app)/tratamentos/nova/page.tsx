@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { OperacaoForm } from "@/components/operacoes/operacao-form";
 import { VoltarLink } from "@/components/nav/voltar-link";
+import { buscarContagensChaveParaFormulario } from "@/lib/limite-aplicacoes";
 
 export default async function NovaOperacaoPage({
   searchParams,
@@ -10,7 +11,7 @@ export default async function NovaOperacaoPage({
 }) {
   const { talhaoId } = await searchParams;
   const propriedadeId = await exigirPropriedadeAtual();
-  const [talhoes, produtos, operadores, maquinas] = await Promise.all([
+  const [talhoes, produtos, operadores, maquinas, contagensChave] = await Promise.all([
     db.talhao.findMany({
       where: { propriedadeId },
       orderBy: { nomeCodinome: "asc" },
@@ -31,6 +32,7 @@ export default async function NovaOperacaoPage({
       orderBy: { nome: "asc" },
       select: { id: true, nome: true },
     }),
+    buscarContagensChaveParaFormulario(propriedadeId),
   ]);
 
   if (talhoes.length === 0) {
@@ -63,6 +65,7 @@ export default async function NovaOperacaoPage({
         produtos={produtos}
         operadores={operadores.map((o) => ({ id: o.id, nome: o.nomeCompleto }))}
         maquinas={maquinas}
+        contagensChave={contagensChave}
         talhaoIdInicial={talhoes.some((t) => t.id === talhaoId) ? talhaoId : undefined}
       />
     </div>

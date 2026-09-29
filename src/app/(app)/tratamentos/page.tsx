@@ -52,14 +52,22 @@ export default async function OperacoesPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-semibold text-neutral-900">Tratamentos Fitossanitários</h1>
-        <Link
-          href={`/tratamentos/nova${talhaoSelecionado ? `?talhaoId=${talhaoSelecionado}` : ""}`}
-          className="rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white active:bg-green-800"
-        >
-          + Novo tratamento
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/tratamentos/resumo"
+            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+          >
+            Resumo do ciclo
+          </Link>
+          <Link
+            href={`/tratamentos/nova${talhaoSelecionado ? `?talhaoId=${talhaoSelecionado}` : ""}`}
+            className="rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white active:bg-green-800"
+          >
+            + Novo tratamento
+          </Link>
+        </div>
       </div>
 
       <ExportarBotoes recurso="tratamentos" />

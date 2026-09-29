@@ -182,6 +182,7 @@ model Produto {
   quantidadeDisponivel Decimal         @default(0) @map("quantidade_disponivel") @db.Decimal(12, 3)
   ativo                Boolean         @default(true)
   observacoes          String?
+  limiteAplicacoesCiclo Int?           @map("limite_aplicacoes_ciclo")
   createdAt            DateTime        @default(now()) @map("created_at")
 
   itensOperacao  OperacaoProduto[]
