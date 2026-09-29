@@ -9,6 +9,8 @@ import { tipoUsaCalda, unidadeDosagemEfetiva } from "@/lib/operacoes";
 import type { TipoOperacao, UnidadeDosagem } from "@/generated/prisma/enums";
 import { AdicionarRapido } from "@/components/operacoes/adicionar-rapido";
 import { useFormularioAcao } from "@/hooks/use-formulario-acao";
+import { cicloDaData } from "@/lib/ciclo";
+import type { ContagemChave } from "@/lib/limite-aplicacoes";
 
 type Opcao = { id: string; nome: string };
 type TalhaoOpcao = { id: string; nome: string; areaHa: number | null };
@@ -45,6 +47,7 @@ export function OperacaoForm({
   produtos,
   operadores,
   maquinas,
+  contagensChave,
   talhaoIdInicial,
   modo = "criar",
   operacaoId,
@@ -54,6 +57,7 @@ export function OperacaoForm({
   produtos: ProdutoOpcao[];
   operadores: Opcao[];
   maquinas: Opcao[];
+  contagensChave: ContagemChave[];
   talhaoIdInicial?: string;
   modo?: "criar" | "editar";
   operacaoId?: string;
@@ -63,6 +67,7 @@ export function OperacaoForm({
   const { formAction, isPending, erro, rotulo } = useFormularioAcao(action);
   const [tipo, setTipo] = useState<TipoOperacao>(valoresIniciais?.tipo ?? "FITOSSANITARIO");
   const [talhaoId, setTalhaoId] = useState(valoresIniciais?.talhaoId ?? talhaoIdInicial ?? "");
+  const [data, setData] = useState(valoresIniciais?.data ?? new Date().toISOString().slice(0, 10));
   const [volumeCalda, setVolumeCalda] = useState(valoresIniciais?.volumeCalda ?? "");
   const [operadoresLista, setOperadoresLista] = useState(operadores);
   const [operadorId, setOperadorId] = useState(valoresIniciais?.operadorId ?? "");
@@ -112,7 +117,8 @@ export function OperacaoForm({
             name="data"
             type="date"
             required
-            defaultValue={valoresIniciais?.data ?? new Date().toISOString().slice(0, 10)}
+            value={data}
+            onChange={(e) => setData(e.target.value)}
             className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           />
         </div>
@@ -185,6 +191,9 @@ export function OperacaoForm({
               produtos={produtos}
               volumeCalda={usaCalda && volumeCalda ? Number(volumeCalda) : null}
               areaHa={areaHa}
+              talhaoId={talhaoId}
+              data={data}
+              contagensChave={contagensChave}
               valorInicial={linha.valorInicial}
               onRemover={
                 linhas.length > 1
@@ -344,6 +353,9 @@ function LinhaProduto({
   produtos,
   volumeCalda,
   areaHa,
+  talhaoId,
+  data,
+  contagensChave,
   onRemover,
   valorInicial,
 }: {
@@ -351,6 +363,9 @@ function LinhaProduto({
   produtos: ProdutoOpcao[];
   volumeCalda: number | null;
   areaHa: number | null;
+  talhaoId: string;
+  data: string;
+  contagensChave: ContagemChave[];
   onRemover?: () => void;
   valorInicial?: ProdutoLancado;
 }) {
@@ -375,6 +390,11 @@ function LinhaProduto({
     produto && unidadeDosagem && quantidadeCalculada !== null
       ? converterParaUnidadeEstoque(quantidadeCalculada, unidadeCanonica(unidadeDosagem), produto.unidade)
       : null;
+
+  const contagemChave = contagensChave.find((c) => c.produtoId === produtoId);
+  const cicloLabel = cicloDaData(new Date(data)).label;
+  const contagemAtual = contagemChave ? contagemChave.porTalhaoECiclo[talhaoId]?.[cicloLabel] ?? 0 : 0;
+  const excedeuLimite = contagemChave !== undefined && talhaoId !== "" && contagemAtual >= contagemChave.limite;
 
   return (
     <div className="rounded-lg border border-neutral-200 p-3">
@@ -435,6 +455,13 @@ function LinhaProduto({
           </button>
         )}
       </div>
+
+      {excedeuLimite && contagemChave && (
+        <p className="mt-1 text-xs font-medium text-amber-600">
+          ⚠️ Este produto já tem {contagemAtual} de {contagemChave.limite} aplicações nesta
+          quadra neste ciclo.
+        </p>
+      )}
 
       {ehAdubacao && produto && (
         <p className="mt-1 text-xs text-neutral-500">
