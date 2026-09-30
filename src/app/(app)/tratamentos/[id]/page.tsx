@@ -20,6 +20,7 @@ export default async function OperacaoDetalhePage({ params }: { params: Promise<
       operador: true,
       maquina: true,
       produtos: { include: { produto: true } },
+      mesmaAplicacaoDe: { select: { id: true, data: true } },
     },
   });
 
@@ -75,6 +76,16 @@ export default async function OperacaoDetalhePage({ params }: { params: Promise<
         )}
         {operacao.horasMaquina && <Linha label="Horas de máquina" valor={`${operacao.horasMaquina.toString()}h`} />}
       </div>
+
+      {operacao.mesmaAplicacaoDe && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Continuação da aplicação de{" "}
+          <Link href={`/tratamentos/${operacao.mesmaAplicacaoDe.id}`} className="font-medium underline">
+            {formatarData(operacao.mesmaAplicacaoDe.data)}
+          </Link>
+          — no resumo do ciclo, os produtos em comum entre as duas contam como 1 aplicação só.
+        </div>
+      )}
 
       <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
         <div className="border-b border-neutral-100 px-4 py-2 text-sm font-medium text-neutral-700">

@@ -24,20 +24,44 @@ export type ContagemChave = {
 };
 
 /**
+ * Segue o vínculo "mesma aplicação de" até a operação raiz da cadeia (a aplicação
+ * original, sem continuação). Operações sem vínculo (a maioria) são sua própria raiz.
+ * A proteção contra ciclo é só defensiva — o formulário já impede criar um.
+ */
+export function resolverRaizAplicacao(
+  operacaoId: string,
+  paisPorOperacao: Map<string, string | null>,
+): string {
+  const visitados = new Set<string>();
+  let atual = operacaoId;
+  while (!visitados.has(atual)) {
+    visitados.add(atual);
+    const pai = paisPorOperacao.get(atual);
+    if (!pai) return atual;
+    atual = pai;
+  }
+  return atual;
+}
+
+/**
  * Agrupa aplicações de produtos-chave por talhão e ciclo, contando operações distintas —
- * nunca soma de quantidade/volume. Deduplica por operação+produto, para o caso (raro) de
- * duas linhas do mesmo produto na mesma operação não contarem em dobro. Puro — sem acesso a
- * banco — para poder ser verificado isoladamente.
+ * nunca soma de quantidade/volume. Deduplica por operação-raiz+produto: quando uma operação
+ * está marcada como "mesma aplicação de" outra (ex: aplicação interrompida e concluída no
+ * dia seguinte, ou dividida por causa de um produto diferente numa parte da quadra), as duas
+ * contam como 1 aplicação só. Puro — sem acesso a banco — para poder ser verificado
+ * isoladamente; `paisPorOperacao` já vem resolvido de fora.
  */
 export function agruparContagensPorTalhaoECiclo(
   linhas: LinhaAplicacao[],
   produtosChave: { id: string; limite: number }[],
+  paisPorOperacao: Map<string, string | null> = new Map(),
 ): ContagemChave[] {
   const vistos = new Set<string>();
   const porProduto = new Map<string, Map<string, Map<string, number>>>();
 
   for (const linha of linhas) {
-    const chaveUnica = `${linha.operacaoId}::${linha.produtoId}`;
+    const raizId = resolverRaizAplicacao(linha.operacaoId, paisPorOperacao);
+    const chaveUnica = `${raizId}::${linha.produtoId}`;
     if (vistos.has(chaveUnica)) continue;
     vistos.add(chaveUnica);
 
@@ -100,6 +124,15 @@ export async function buscarContagensChaveParaFormulario(
     },
   });
 
+  // Vínculos "mesma aplicação de" de toda a propriedade — leve (só 2 colunas) e
+  // buscado à parte porque um elo intermediário da cadeia pode não usar o
+  // produto-chave em questão e por isso não apareceria em `linhas`.
+  const operacoes = await db.operacaoAgricola.findMany({
+    where: { talhao: { propriedadeId } },
+    select: { id: true, mesmaAplicacaoDeId: true },
+  });
+  const paisPorOperacao = new Map(operacoes.map((o) => [o.id, o.mesmaAplicacaoDeId]));
+
   return agruparContagensPorTalhaoECiclo(
     linhas.map((linha) => ({
       operacaoId: linha.operacaoId,
@@ -108,5 +141,6 @@ export async function buscarContagensChaveParaFormulario(
       data: linha.operacao.data,
     })),
     produtosChave.map((p) => ({ id: p.id, limite: p.limiteAplicacoesCiclo! })),
+    paisPorOperacao,
   );
 }

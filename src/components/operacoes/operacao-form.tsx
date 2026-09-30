@@ -16,6 +16,7 @@ type Opcao = { id: string; nome: string };
 type TalhaoOpcao = { id: string; nome: string; areaHa: number | null };
 type ProdutoOpcao = { id: string; nome: string; unidade: string; unidadeDosagem: UnidadeDosagem | null };
 type ProdutoLancado = { produtoId: string; concentracao: string };
+export type CandidatoMesmaAplicacao = { id: string; talhaoId: string; data: string; resumo: string };
 
 export type ValoresIniciaisOperacao = {
   tipo: TipoOperacao;
@@ -28,6 +29,7 @@ export type ValoresIniciaisOperacao = {
   horasPorPessoa: string;
   horasMaquina: string;
   observacoes: string;
+  mesmaAplicacaoDeId: string;
   produtos: ProdutoLancado[];
 };
 
@@ -42,12 +44,33 @@ let proximaChave = 0;
 
 type LinhaState = { chave: number; valorInicial?: ProdutoLancado };
 
+/** Candidatos exibidos no vínculo "mesma aplicação": mesma quadra, até 5 dias de distância da data escolhida, sem contar a própria operação. */
+function candidatosProximos(
+  candidatos: CandidatoMesmaAplicacao[],
+  talhaoId: string,
+  data: string,
+  operacaoId: string | undefined,
+): CandidatoMesmaAplicacao[] {
+  if (!talhaoId || !data) return [];
+  const dataMs = new Date(data).getTime();
+  const cincoDiasMs = 5 * 24 * 60 * 60 * 1000;
+  return candidatos
+    .filter(
+      (c) =>
+        c.talhaoId === talhaoId &&
+        c.id !== operacaoId &&
+        Math.abs(new Date(c.data).getTime() - dataMs) <= cincoDiasMs,
+    )
+    .sort((a, b) => b.data.localeCompare(a.data));
+}
+
 export function OperacaoForm({
   talhoes,
   produtos,
   operadores,
   maquinas,
   contagensChave,
+  candidatosMesmaAplicacao = [],
   talhaoIdInicial,
   modo = "criar",
   operacaoId,
@@ -58,6 +81,7 @@ export function OperacaoForm({
   operadores: Opcao[];
   maquinas: Opcao[];
   contagensChave: ContagemChave[];
+  candidatosMesmaAplicacao?: CandidatoMesmaAplicacao[];
   talhaoIdInicial?: string;
   modo?: "criar" | "editar";
   operacaoId?: string;
@@ -68,6 +92,7 @@ export function OperacaoForm({
   const [tipo, setTipo] = useState<TipoOperacao>(valoresIniciais?.tipo ?? "FITOSSANITARIO");
   const [talhaoId, setTalhaoId] = useState(valoresIniciais?.talhaoId ?? talhaoIdInicial ?? "");
   const [data, setData] = useState(valoresIniciais?.data ?? new Date().toISOString().slice(0, 10));
+  const [mesmaAplicacaoDeId, setMesmaAplicacaoDeId] = useState(valoresIniciais?.mesmaAplicacaoDeId ?? "");
   const [volumeCalda, setVolumeCalda] = useState(valoresIniciais?.volumeCalda ?? "");
   const [operadoresLista, setOperadoresLista] = useState(operadores);
   const [operadorId, setOperadorId] = useState(valoresIniciais?.operadorId ?? "");
@@ -85,6 +110,13 @@ export function OperacaoForm({
   const usaCalda = tipoUsaCalda(tipo);
   const horasHomem =
     numeroPessoas && horasPorPessoa ? Number(numeroPessoas) * Number(horasPorPessoa) : null;
+  const candidatosProximosLista = candidatosProximos(candidatosMesmaAplicacao, talhaoId, data, operacaoId);
+  // Se o talhão ou a data mudarem e a aplicação vinculada sair da lista de candidatos
+  // próximos, o vínculo é descartado na exibição/envio — não faz sentido continuar
+  // apontando para uma operação de outra quadra ou distante no tempo.
+  const mesmaAplicacaoValida = candidatosProximosLista.some((c) => c.id === mesmaAplicacaoDeId)
+    ? mesmaAplicacaoDeId
+    : "";
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -146,6 +178,34 @@ export function OperacaoForm({
           ))}
         </select>
       </div>
+
+      {candidatosProximosLista.length > 0 && (
+        <div>
+          <label htmlFor="mesmaAplicacaoDeId" className="mb-1 block text-sm font-medium text-neutral-700">
+            É continuação de outra aplicação?
+          </label>
+          <select
+            id="mesmaAplicacaoDeId"
+            name="mesmaAplicacaoDeId"
+            value={mesmaAplicacaoValida}
+            onChange={(e) => setMesmaAplicacaoDeId(e.target.value)}
+            className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
+          >
+            <option value="">Não — é uma aplicação nova</option>
+            {candidatosProximosLista.map((c) => (
+              <option key={c.id} value={c.id}>
+                {new Date(c.data).toLocaleDateString("pt-BR", { timeZone: "UTC" })} — {c.resumo}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-neutral-500">
+            Marque se esta operação é a continuação de uma aplicação já lançada nesta quadra
+            (ex: terminou no dia seguinte, ou dividiu por causa de um produto diferente numa
+            parte da quadra). Evita contar o mesmo produto duas vezes no limite do ciclo — não
+            muda estoque nem quantidade.
+          </p>
+        </div>
+      )}
 
       {/* Adubação é dosada só por área (kg/ha) — não usa calda. */}
       {usaCalda && (

@@ -23,6 +23,7 @@ type DadosFormularioOperacao = {
   horasPorPessoa: number | null;
   horasMaquina: number | null;
   observacoes: string | null;
+  mesmaAplicacaoDeId: string | null;
   itensBrutos: { produtoId: string; concentracao: number }[];
 };
 
@@ -43,10 +44,46 @@ function lerFormularioOperacao(formData: FormData): DadosFormularioOperacao {
     horasPorPessoa: formData.get("horasPorPessoa") ? Number(formData.get("horasPorPessoa")) : null,
     horasMaquina: formData.get("horasMaquina") ? Number(formData.get("horasMaquina")) : null,
     observacoes: String(formData.get("observacoes") ?? "").trim() || null,
+    mesmaAplicacaoDeId: String(formData.get("mesmaAplicacaoDeId") ?? "") || null,
     itensBrutos: produtoIds
       .map((produtoId, i) => ({ produtoId, concentracao: concentracoes[i] }))
       .filter((item) => item.produtoId && item.concentracao > 0),
   };
+}
+
+/**
+ * Valida o vínculo "mesma aplicação de": precisa existir, ser da mesma quadra, não apontar
+ * para si mesma (relevante só na edição) e não fechar um ciclo na cadeia de continuações.
+ */
+async function validarMesmaAplicacaoDe(
+  mesmaAplicacaoDeId: string,
+  talhaoId: string,
+  operacaoIdAtual: string | undefined,
+): Promise<string | null> {
+  if (mesmaAplicacaoDeId === operacaoIdAtual) {
+    return "Uma operação não pode ser continuação dela mesma.";
+  }
+
+  const cadeia = await db.operacaoAgricola.findMany({
+    select: { id: true, talhaoId: true, mesmaAplicacaoDeId: true },
+  });
+  const alvo = cadeia.find((o) => o.id === mesmaAplicacaoDeId);
+  if (!alvo) return "Aplicação selecionada para vincular não foi encontrada.";
+  if (alvo.talhaoId !== talhaoId) return "Só é possível vincular a uma aplicação da mesma quadra.";
+
+  if (operacaoIdAtual) {
+    const porId = new Map(cadeia.map((o) => [o.id, o.mesmaAplicacaoDeId]));
+    const visitados = new Set<string>();
+    let atual: string | null = mesmaAplicacaoDeId;
+    while (atual) {
+      if (atual === operacaoIdAtual) return "Esse vínculo criaria um ciclo entre as operações.";
+      if (visitados.has(atual)) break;
+      visitados.add(atual);
+      atual = porId.get(atual) ?? null;
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -148,6 +185,12 @@ export async function criarOperacao(
   }
 
   const propriedadeId = await exigirPropriedadeAtual();
+
+  if (dados.mesmaAplicacaoDeId) {
+    const erroVinculo = await validarMesmaAplicacaoDe(dados.mesmaAplicacaoDeId, dados.talhaoId, undefined);
+    if (erroVinculo) return erroVinculo;
+  }
+
   const resultado = await calcularItensOperacao(dados, propriedadeId);
   if ("erro" in resultado) return resultado.erro;
 
@@ -165,6 +208,7 @@ export async function criarOperacao(
         horasPorPessoa: dados.horasPorPessoa,
         horasMaquina: dados.horasMaquina,
         observacoes: dados.observacoes,
+        mesmaAplicacaoDeId: dados.mesmaAplicacaoDeId,
       },
     });
 
@@ -241,6 +285,11 @@ export async function atualizarOperacao(
     return "Tratamento inválido para a propriedade atual.";
   }
 
+  if (dados.mesmaAplicacaoDeId) {
+    const erroVinculo = await validarMesmaAplicacaoDe(dados.mesmaAplicacaoDeId, dados.talhaoId, operacaoId);
+    if (erroVinculo) return erroVinculo;
+  }
+
   const resultado = await calcularItensOperacao(dados, propriedadeId);
   if ("erro" in resultado) return resultado.erro;
 
@@ -269,6 +318,7 @@ export async function atualizarOperacao(
         horasPorPessoa: dados.horasPorPessoa,
         horasMaquina: dados.horasMaquina,
         observacoes: dados.observacoes,
+        mesmaAplicacaoDeId: dados.mesmaAplicacaoDeId,
       },
     });
 

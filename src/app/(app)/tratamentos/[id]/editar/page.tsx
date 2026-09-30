@@ -4,6 +4,7 @@ import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { OperacaoForm } from "@/components/operacoes/operacao-form";
 import { VoltarLink } from "@/components/nav/voltar-link";
 import { buscarContagensChaveParaFormulario } from "@/lib/limite-aplicacoes";
+import { buscarCandidatosMesmaAplicacao } from "@/lib/candidatos-mesma-aplicacao";
 
 export default async function EditarOperacaoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,7 +17,7 @@ export default async function EditarOperacaoPage({ params }: { params: Promise<{
 
   if (!operacao || operacao.talhao.propriedadeId !== propriedadeId) notFound();
 
-  const [talhoes, produtos, operadores, maquinas, contagensChave] = await Promise.all([
+  const [talhoes, produtos, operadores, maquinas, contagensChave, candidatosMesmaAplicacao] = await Promise.all([
     db.talhao.findMany({
       where: { propriedadeId },
       orderBy: { nomeCodinome: "asc" },
@@ -39,6 +40,7 @@ export default async function EditarOperacaoPage({ params }: { params: Promise<{
     }),
     db.maquina.findMany({ where: { propriedadeId }, orderBy: { nome: "asc" }, select: { id: true, nome: true } }),
     buscarContagensChaveParaFormulario(propriedadeId, operacao.id),
+    buscarCandidatosMesmaAplicacao(propriedadeId),
   ]);
 
   return (
@@ -53,6 +55,7 @@ export default async function EditarOperacaoPage({ params }: { params: Promise<{
         operadores={operadores.map((o) => ({ id: o.id, nome: o.nomeCompleto }))}
         maquinas={maquinas}
         contagensChave={contagensChave}
+        candidatosMesmaAplicacao={candidatosMesmaAplicacao}
         valoresIniciais={{
           tipo: operacao.tipo,
           data: operacao.data.toISOString().slice(0, 10),
@@ -64,6 +67,7 @@ export default async function EditarOperacaoPage({ params }: { params: Promise<{
           horasPorPessoa: operacao.horasPorPessoa?.toString() ?? "",
           horasMaquina: operacao.horasMaquina?.toString() ?? "",
           observacoes: operacao.observacoes ?? "",
+          mesmaAplicacaoDeId: operacao.mesmaAplicacaoDeId ?? "",
           produtos: operacao.produtos.map((p) => ({
             produtoId: p.produtoId,
             concentracao: p.concentracao?.toString() ?? "",

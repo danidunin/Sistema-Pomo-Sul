@@ -251,10 +251,20 @@ model OperacaoAgricola {
   fotoUrl        String?      @map("foto_url")
   createdAt      DateTime     @default(now()) @map("created_at")
 
+  // Aponta para uma operação anterior quando esta é, na prática, a continuação
+  // da mesma aplicação (ex: terminou no dia seguinte, ou dividiu por causa de
+  // um produto diferente numa parte da quadra) — usado só para não contar o
+  // mesmo produto-chave duas vezes no resumo do ciclo. Não afeta estoque nem
+  // quantidade, que continuam por operação.
+  mesmaAplicacaoDe   OperacaoAgricola?  @relation("MesmaAplicacao", fields: [mesmaAplicacaoDeId], references: [id], onDelete: SetNull)
+  mesmaAplicacaoDeId String?            @map("mesma_aplicacao_de_id")
+  continuacoes       OperacaoAgricola[] @relation("MesmaAplicacao")
+
   produtos      OperacaoProduto[]
   movimentacoes EstoqueMovimentacao[]
 
   @@index([talhaoId, data])
+  @@index([mesmaAplicacaoDeId])
   @@map("operacoes_agricolas")
 }
 
