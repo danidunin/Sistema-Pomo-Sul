@@ -132,3 +132,11 @@ export function agruparContagensPorQuadra(contagens: ContagemParaAgrupar[]): Gru
     };
   });
 }
+
+export function ordenarGruposPorNomeQuadra(grupos: GrupoQuadraSafra[]): GrupoQuadraSafra[] {
+  return [...grupos].sort((a, b) => a.talhaoNome.localeCompare(b.talhaoNome, "pt-BR"));
+}
+
+export function ordenarSafrasDesc(safras: string[]): string[] {
+  return Array.from(new Set(safras)).sort((a, b) => b.localeCompare(a));
+}

@@ -105,3 +105,38 @@ describe("agruparContagensPorQuadra", () => {
     expect(agruparContagensPorQuadra([])).toEqual([]);
   });
 });
+
+import { ordenarGruposPorNomeQuadra, ordenarSafrasDesc } from "@/lib/contagem-frutos";
+
+describe("ordenarGruposPorNomeQuadra", () => {
+  it("ordena alfabeticamente pelo nome da quadra, acentos incluídos", () => {
+    const grupos = [
+      contagem({ talhaoNome: "Éter" }),
+      contagem({ talhaoNome: "Abacate" }),
+    ].map((c) => agruparContagensPorQuadra([c])[0]);
+
+    const ordenado = ordenarGruposPorNomeQuadra(grupos);
+    expect(ordenado.map((g) => g.talhaoNome)).toEqual(["Abacate", "Éter"]);
+  });
+
+  it("não modifica o array original", () => {
+    const grupos = agruparContagensPorQuadra([contagem({ talhaoNome: "B" }), contagem({ talhaoId: "t2", talhaoNome: "A" })]);
+    const original = [...grupos];
+    ordenarGruposPorNomeQuadra(grupos);
+    expect(grupos).toEqual(original);
+  });
+});
+
+describe("ordenarSafrasDesc", () => {
+  it("ordena da safra mais recente para a mais antiga, sem duplicar", () => {
+    expect(ordenarSafrasDesc(["2024/2025", "2026/2027", "2024/2025", "2025/2026"])).toEqual([
+      "2026/2027",
+      "2025/2026",
+      "2024/2025",
+    ]);
+  });
+
+  it("lista vazia retorna lista vazia", () => {
+    expect(ordenarSafrasDesc([])).toEqual([]);
+  });
+});
