@@ -1,3 +1,15 @@
+export type ParPeso = { valor: number; peso: number };
+
+/**
+ * Média ponderada pelo peso de cada par — usada para agregar métricas de várias
+ * contagens (ex: plantas amostradas) sem dar o mesmo peso a amostras pequenas e grandes.
+ */
+export function mediaPonderada(pares: ParPeso[]): number {
+  const pesoTotal = pares.reduce((soma, p) => soma + p.peso, 0);
+  if (pesoTotal === 0) return 0;
+  return pares.reduce((soma, p) => soma + p.valor * p.peso, 0) / pesoTotal;
+}
+
 export type EntradaEstimativa = {
   metaFrutosPorPlanta: number;
   numeroPlantasAmostradas: number;
