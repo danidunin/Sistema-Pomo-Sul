@@ -37,11 +37,14 @@ agrupar).
 Para cada grupo (quadra+safra), o card mostra:
 
 1. Nome da quadra (`talhao.nomeCodinome`) + badge da safra
-2. **kg/ha estimado** — média ponderada pelas plantas amostradas em cada contagem. A fórmula
-   de hoje (`mediaFrutosPorPlanta_i * peso_i` somado e dividido pelo peso total, onde
-   `peso_i = numeroPlantasAmostradas_i`) simplifica algebricamente para
-   `soma(frutosContados) / soma(numeroPlantasAmostradas)` do grupo — não precisa reimplementar
-   a média ponderada genérica, só somar os dois totais e dividir.
+2. **kg/ha estimado** — exatamente a mesma fórmula da "Média consolidada" que já existe na
+   tela atual (`page.tsx:63-73`), só que calculada por grupo em vez de sobre a lista toda: a
+   função `mediaPonderada` (hoje definida dentro do componente de página) pondera, pelo peso
+   `numeroPlantasAmostradas` de cada contagem, três valores separadamente —
+   `mediaFrutosPorPlanta`, `plantasPorHectare` e `pesoMedioFrutoG` — e o resultado é
+   `mediaFrutosPorPlantaGrupo * plantasPorHectareMediaGrupo * pesoMedioFrutoGMediaGrupo / 1000`.
+   `mediaPonderada` é movida de `page.tsx` para `src/lib/contagem-frutos.ts` para ser
+   reaproveitada pela nova função de agrupamento.
 3. Barra de progresso: média de frutos/planta do grupo vs. `metaFrutosPorPlanta` (da
    `MetaSafra` do grupo — todas as contagens do grupo compartilham a mesma `MetaSafra`, já
    que é única por talhão+safra).
