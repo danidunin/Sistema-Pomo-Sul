@@ -17,8 +17,11 @@ export default async function ContagemFrutosPage({
   const { safra } = await searchParams;
   const propriedadeId = await exigirPropriedadeAtual();
 
+  // Só considera safras que ainda têm alguma contagem registrada — uma MetaSafra
+  // pode ficar órfã (última contagem excluída, ou editada para outra safra) e
+  // continuar no banco, o que faria a tela cair numa safra sem nenhum dado.
   const metasSafra = await db.metaSafra.findMany({
-    where: { talhao: { propriedadeId } },
+    where: { talhao: { propriedadeId }, contagens: { some: {} } },
     select: { safra: true },
     distinct: ["safra"],
   });

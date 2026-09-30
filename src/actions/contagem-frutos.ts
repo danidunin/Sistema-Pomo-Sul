@@ -3,7 +3,7 @@
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { exigirPropriedadeAtual, garantirContagemFrutosDaPropriedade } from "@/lib/propriedade";
+import { exigirPropriedadeAtual } from "@/lib/propriedade";
 
 function lerFormularioContagem(formData: FormData) {
   return {
@@ -135,9 +135,17 @@ export async function atualizarContagemFrutos(
 
 export async function excluirContagemFrutos(contagemId: string) {
   const propriedadeId = await exigirPropriedadeAtual();
-  if (!(await garantirContagemFrutosDaPropriedade(contagemId, propriedadeId))) return;
+
+  // Já busca talhaoId e a safra da meta aqui (em vez de só confirmar a posse via
+  // garantirContagemFrutosDaPropriedade) para poder voltar à tela da quadra+safra
+  // de origem depois de excluir, sem precisar de uma segunda consulta.
+  const contagem = await db.contagemFrutos.findUnique({
+    where: { id: contagemId },
+    select: { propriedadeId: true, talhaoId: true, metaSafra: { select: { safra: true } } },
+  });
+  if (!contagem || contagem.propriedadeId !== propriedadeId) return;
 
   await db.contagemFrutos.delete({ where: { id: contagemId } });
   revalidatePath("/contagem-frutos");
-  redirect("/contagem-frutos");
+  redirect(`/contagem-frutos/quadra/${contagem.talhaoId}?safra=${encodeURIComponent(contagem.metaSafra.safra)}`);
 }
