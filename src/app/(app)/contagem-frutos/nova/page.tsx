@@ -7,9 +7,9 @@ import { VoltarLink } from "@/components/nav/voltar-link";
 export default async function NovaContagemPage({
   searchParams,
 }: {
-  searchParams: Promise<{ talhaoId?: string }>;
+  searchParams: Promise<{ talhaoId?: string; safra?: string }>;
 }) {
-  const { talhaoId } = await searchParams;
+  const { talhaoId, safra } = await searchParams;
   const propriedadeId = await exigirPropriedadeAtual();
   const [talhoes, metasSafra] = await Promise.all([
     db.talhao.findMany({
@@ -52,7 +52,7 @@ export default async function NovaContagemPage({
           safra: m.safra,
           metaFrutosPorPlanta: Number(m.metaFrutosPorPlanta),
         }))}
-        defaultValues={talhaoId ? { talhaoId } : undefined}
+        defaultValues={talhaoId || safra ? { talhaoId, safra } : undefined}
         submitLabel="Registrar contagem"
       />
     </div>
