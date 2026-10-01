@@ -113,7 +113,11 @@ export default async function OperacoesPage({
       )}
 
       {operacoes.length === 0 ? (
-        <p className="text-sm text-neutral-500">Nenhum tratamento registrado ainda.</p>
+        <p className="text-sm text-neutral-500">
+          {tipoSelecionado
+            ? "Nenhuma operação deste tipo nesta quadra."
+            : "Nenhum tratamento registrado ainda."}
+        </p>
       ) : (
         <div className="flex flex-col gap-6">
           {Array.from(grupos.entries()).map(([data, itensDoDia]) => (

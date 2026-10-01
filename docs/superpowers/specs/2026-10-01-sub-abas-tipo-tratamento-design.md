@@ -23,10 +23,10 @@ Dentro de uma quadra selecionada, permitir filtrar a lista por tipo de operaçã
 
 ### Navegação
 - Segue o mesmo padrão das abas de quadra: link com query string, sem estado client-side. A URL fica `?talhaoId=X&tipo=HERBICIDA` (tipo omitido = "Todos" dentro da quadra).
-- `tipo` é validado contra o enum `TipoOperacao` do Prisma; valor inválido ou tipo sem nenhum registro na quadra (exceto "Todos") cai de volta para "Todos", mesma lógica de validação já usada para `talhaoId`.
+- `tipo` é validado contra o enum `TipoOperacao` do Prisma. As três abas fixas ("Adubação", "Tratamentos", "Herbicida") são sempre selecionáveis, mesmo sem nenhum registro desse tipo na quadra — nesse caso a lista mostra o estado vazio. Só "Outra" (a única aba condicional) cai de volta para "Todos" quando a quadra não tem nenhum registro `OUTRA`; um valor de `tipo` genuinamente inválido (fora do enum) também cai para "Todos", mesma lógica de validação já usada para `talhaoId`.
 
 ### Filtragem e layout da lista
-- Com um `tipo` ativo, a query de `operacoes` passa a filtrar também por `tipo`, além de `talhaoId`.
+- Com um `tipo` ativo, a filtragem acontece em memória sobre a lista já buscada para a quadra (`operacoesBase`), não como condição adicional na query ao banco — a lista completa continua sendo necessária para decidir se a aba "Outra" aparece e para o cálculo de chuva acumulada (ver abaixo).
 - O agrupamento por data e a tabela de produtos dentro de cada card continuam exatamente como hoje — só a lista de entrada é menor.
 - A numeração "Aplicação #N" dentro de cada dia passa a contar apenas as operações visíveis no filtro atual (ou seja, reinicia por tipo quando um filtro de tipo está ativo). Isso é consequência direta de filtrar antes de agrupar, sem lógica nova.
 - O cálculo de chuva acumulada (`calcularAcumuladoPorTratamento`) continua sendo feito sobre todas as operações `FITOSSANITARIO` da quadra, independente do filtro de tipo ativo — é uma métrica de histórico, não da lista filtrada.
@@ -40,6 +40,6 @@ Dentro de uma quadra selecionada, permitir filtrar a lista por tipo de operaçã
 
 1. Selecionar uma quadra com operações de mais de um tipo → sub-abas aparecem, "Todos" mostra tudo.
 2. Clicar em "Herbicida" → lista mostra só operações desse tipo, nessa quadra.
-3. Trocar de quadra mantendo o filtro de tipo na URL manualmente → se a nova quadra não tiver esse tipo, cai para "Todos" dessa quadra (mesmo comportamento de fallback do `talhaoId`).
+3. Trocar de quadra mantendo o filtro de tipo na URL manualmente → se for uma das três abas fixas, permanece selecionada e mostra o estado vazio quando a nova quadra não tem registros desse tipo; se for "Outra" e a nova quadra não tiver nenhum registro `OUTRA` (ou o `tipo` for inválido), cai para "Todos" dessa quadra (mesmo comportamento de fallback do `talhaoId`).
 4. Quadra sem nenhuma operação "Outra" → aba "Outra" não aparece.
 5. Aba "Todos" (sem quadra) → tela idêntica à atual, sem sub-abas.

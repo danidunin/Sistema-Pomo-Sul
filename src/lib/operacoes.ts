@@ -47,7 +47,7 @@ const TIPOS_ABA_FIXOS: TipoOperacao[] = ["ADUBACAO", "FITOSSANITARIO", "HERBICID
  * evita poluir a tela com uma aba vazia na maioria dos casos.
  */
 export function tiposParaAbas(tiposComDados: TipoOperacao[]): TipoOperacao[] {
-  return tiposComDados.includes("OUTRA") ? [...TIPOS_ABA_FIXOS, "OUTRA"] : TIPOS_ABA_FIXOS;
+  return tiposComDados.includes("OUTRA") ? [...TIPOS_ABA_FIXOS, "OUTRA"] : [...TIPOS_ABA_FIXOS];
 }
 
 /**
