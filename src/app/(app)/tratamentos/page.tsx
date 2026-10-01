@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { TIPO_OPERACAO_LABELS, unidadeDosagemEfetiva } from "@/lib/operacoes";
+import { TIPO_OPERACAO_LABELS, TIPO_OPERACAO_LABELS_ABA, unidadeDosagemEfetiva, tiposParaAbas, validarTipoSelecionado } from "@/lib/operacoes";
 import { UNIDADE_DOSAGEM_LABELS } from "@/lib/concentracao";
 import { formatarData } from "@/lib/format";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
@@ -10,9 +10,9 @@ import { buscarChuvaRegistros, calcularAcumuladoPorTratamento } from "@/lib/chuv
 export default async function OperacoesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ talhaoId?: string }>;
+  searchParams: Promise<{ talhaoId?: string; tipo?: string }>;
 }) {
-  const { talhaoId } = await searchParams;
+  const { talhaoId, tipo } = await searchParams;
   const propriedadeId = await exigirPropriedadeAtual();
 
   const talhoes = await db.talhao.findMany({
@@ -23,7 +23,7 @@ export default async function OperacoesPage({
 
   const talhaoSelecionado = talhaoId && talhoes.some((t) => t.id === talhaoId) ? talhaoId : null;
 
-  const operacoes = await db.operacaoAgricola.findMany({
+  const operacoesBase = await db.operacaoAgricola.findMany({
     where: talhaoSelecionado ? { talhaoId: talhaoSelecionado } : { talhao: { propriedadeId } },
     orderBy: [{ data: "desc" }, { createdAt: "asc" }],
     include: {
@@ -32,8 +32,18 @@ export default async function OperacoesPage({
     },
   });
 
+  const tiposComDados = talhaoSelecionado
+    ? Array.from(new Set(operacoesBase.map((o) => o.tipo)))
+    : [];
+  const tiposAbas = talhaoSelecionado ? tiposParaAbas(tiposComDados) : [];
+  const tipoSelecionado = talhaoSelecionado ? validarTipoSelecionado(tipo, tiposAbas) : null;
+
+  const operacoes = tipoSelecionado
+    ? operacoesBase.filter((o) => o.tipo === tipoSelecionado)
+    : operacoesBase;
+
   const chuvas = await buscarChuvaRegistros(propriedadeId);
-  const fitossanitarios = operacoes
+  const fitossanitarios = operacoesBase
     .filter((o) => o.tipo === "FITOSSANITARIO")
     .map((o) => ({ id: o.id, talhaoId: o.talhaoId, data: o.data, createdAt: o.createdAt }));
   const acumulados = calcularAcumuladoPorTratamento(
@@ -73,9 +83,9 @@ export default async function OperacoesPage({
       <ExportarBotoes recurso="tratamentos" />
 
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
-        <AbaTalhao href="/tratamentos" ativo={!talhaoSelecionado} label="Todos" />
+        <Aba href="/tratamentos" ativo={!talhaoSelecionado} label="Todos" />
         {talhoes.map((t) => (
-          <AbaTalhao
+          <Aba
             key={t.id}
             href={`/tratamentos?talhaoId=${t.id}`}
             ativo={talhaoSelecionado === t.id}
@@ -84,8 +94,30 @@ export default async function OperacoesPage({
         ))}
       </div>
 
+      {talhaoSelecionado && (
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+          <Aba
+            href={`/tratamentos?talhaoId=${talhaoSelecionado}`}
+            ativo={!tipoSelecionado}
+            label="Todos"
+          />
+          {tiposAbas.map((t) => (
+            <Aba
+              key={t}
+              href={`/tratamentos?talhaoId=${talhaoSelecionado}&tipo=${t}`}
+              ativo={tipoSelecionado === t}
+              label={TIPO_OPERACAO_LABELS_ABA[t]}
+            />
+          ))}
+        </div>
+      )}
+
       {operacoes.length === 0 ? (
-        <p className="text-sm text-neutral-500">Nenhum tratamento registrado ainda.</p>
+        <p className="text-sm text-neutral-500">
+          {tipoSelecionado
+            ? "Nenhuma operação deste tipo nesta quadra."
+            : "Nenhum tratamento registrado ainda."}
+        </p>
       ) : (
         <div className="flex flex-col gap-6">
           {Array.from(grupos.entries()).map(([data, itensDoDia]) => (
@@ -163,7 +195,7 @@ export default async function OperacoesPage({
   );
 }
 
-function AbaTalhao({ href, ativo, label }: { href: string; ativo: boolean; label: string }) {
+function Aba({ href, ativo, label }: { href: string; ativo: boolean; label: string }) {
   return (
     <Link
       href={href}
