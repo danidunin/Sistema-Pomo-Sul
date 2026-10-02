@@ -4,6 +4,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default async function EstoquePage({
   searchParams,
@@ -67,12 +68,9 @@ export default async function EstoquePage({
           <option value="ativos">Ativos</option>
           <option value="inativos">Inativos</option>
         </select>
-        <button
-          type="submit"
-          className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
-        >
+        <Button type="submit" variant="secondary">
           Filtrar
-        </button>
+        </Button>
       </form>
 
       {produtos.length === 0 ? (

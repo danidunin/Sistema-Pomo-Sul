@@ -4,6 +4,7 @@ import { buscarVisitas } from "@/lib/historico";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { Timeline } from "@/components/historico/timeline";
 import { PeriodoPicker } from "@/components/historico/periodo-picker";
+import { Button } from "@/components/ui/button";
 
 const POR_PAGINA = 20;
 
@@ -77,12 +78,9 @@ export default async function HistoricoPomarPage({
           ))}
         </select>
         <PeriodoPicker valorInicial={mesAno} />
-        <button
-          type="submit"
-          className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
-        >
+        <Button type="submit" variant="secondary">
           Filtrar
-        </button>
+        </Button>
       </form>
 
       <Timeline itens={visitas} mostrarTalhao={!talhaoId} />

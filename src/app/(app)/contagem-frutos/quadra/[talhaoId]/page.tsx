@@ -12,6 +12,7 @@ import { formatarData } from "@/lib/format";
 import { PeriodoPicker } from "@/components/historico/periodo-picker";
 import { VoltarLink } from "@/components/nav/voltar-link";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 const formatoKg = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
 const formatoNumero = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
@@ -72,12 +73,9 @@ export default async function QuadraContagemFrutosPage({
         <form className="flex flex-1 gap-2">
           <input type="hidden" name="safra" value={safra} />
           <PeriodoPicker valorInicial={mesAno} />
-          <button
-            type="submit"
-            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
-          >
+          <Button type="submit" variant="secondary">
             Filtrar
-          </button>
+          </Button>
         </form>
         <Link
           href={`/contagem-frutos/nova?talhaoId=${talhaoId}&safra=${encodeURIComponent(safra)}`}

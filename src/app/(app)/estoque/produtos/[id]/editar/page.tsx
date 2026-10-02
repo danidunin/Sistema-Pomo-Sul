@@ -5,6 +5,7 @@ import { ProdutoForm } from "@/components/estoque/produto-form";
 import { ExcluirProdutoForm } from "@/components/estoque/excluir-produto-form";
 import { atualizarProduto, alternarAtivoProduto } from "@/actions/estoque";
 import { VoltarLink } from "@/components/nav/voltar-link";
+import { Button } from "@/components/ui/button";
 
 export default async function EditarProdutoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -23,12 +24,9 @@ export default async function EditarProdutoPage({ params }: { params: Promise<{ 
         </h1>
         <div className="flex gap-2">
           <form action={alternarAtivoProduto.bind(null, produto.id, !produto.ativo)}>
-            <button
-              type="submit"
-              className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
-            >
+            <Button type="submit" variant="secondary">
               {produto.ativo ? "Marcar como inativo" : "Reativar"}
-            </button>
+            </Button>
           </form>
           <ExcluirProdutoForm produtoId={produto.id} />
         </div>

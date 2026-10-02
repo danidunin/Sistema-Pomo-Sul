@@ -9,6 +9,7 @@ import {
 } from "@/lib/contagem-frutos";
 import { QuadraResumoConteudo } from "@/components/contagem-frutos/quadra-resumo";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default async function ContagemFrutosPage({
   searchParams,
@@ -79,12 +80,9 @@ export default async function ContagemFrutosPage({
               </option>
             ))}
           </select>
-          <button
-            type="submit"
-            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
-          >
+          <Button type="submit" variant="secondary">
             Filtrar
-          </button>
+          </Button>
         </form>
       )}
 
