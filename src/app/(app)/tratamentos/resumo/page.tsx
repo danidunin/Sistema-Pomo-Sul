@@ -9,6 +9,7 @@ import {
   statusCelula,
   type StatusCelula,
 } from "@/lib/limite-aplicacoes";
+import { Card } from "@/components/ui/card";
 
 const CORES_STATUS: Record<StatusCelula, string> = {
   SEM_APLICACAO: "bg-neutral-100 text-neutral-500",
@@ -76,7 +77,7 @@ export default async function ResumoCicloPage({
       ) : talhoes.length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhuma quadra cadastrada ainda.</p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
+        <Card padding="none" className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-neutral-100 text-left text-xs text-neutral-500">
@@ -111,7 +112,7 @@ export default async function ResumoCicloPage({
               ))}
             </tbody>
           </table>
-        </div>
+        </Card>
       )}
     </div>
   );

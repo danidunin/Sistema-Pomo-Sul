@@ -7,6 +7,7 @@ import { formatarData } from "@/lib/format";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { ExcluirTratamentoForm } from "@/components/operacoes/excluir-tratamento-form";
 import { VoltarLink } from "@/components/nav/voltar-link";
+import { Card } from "@/components/ui/card";
 
 export default async function OperacaoDetalhePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -51,7 +52,7 @@ export default async function OperacaoDetalhePage({ params }: { params: Promise<
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+      <Card padding="none" className="overflow-hidden">
         <Linha label="Data" valor={formatarData(operacao.data)} />
         <Linha label="Talhão" valor={operacao.talhao.nomeCodinome} />
         {/* Em adubação a área é a base do cálculo da quantidade total — mostrar ajuda a conferir. */}
@@ -75,7 +76,7 @@ export default async function OperacaoDetalhePage({ params }: { params: Promise<
           />
         )}
         {operacao.horasMaquina && <Linha label="Horas de máquina" valor={`${operacao.horasMaquina.toString()}h`} />}
-      </div>
+      </Card>
 
       {operacao.mesmaAplicacaoDe && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -87,7 +88,7 @@ export default async function OperacaoDetalhePage({ params }: { params: Promise<
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+      <Card padding="none" className="overflow-hidden">
         <div className="border-b border-neutral-100 px-4 py-2 text-sm font-medium text-neutral-700">
           {operacao.tipo === "ADUBACAO" ? "Fertilizantes utilizados" : "Produtos utilizados"}
         </div>
@@ -112,13 +113,13 @@ export default async function OperacaoDetalhePage({ params }: { params: Promise<
           </div>
           );
         })}
-      </div>
+      </Card>
 
       {operacao.observacoes && (
-        <div className="rounded-xl border border-neutral-200 bg-white p-4">
+        <Card>
           <p className="mb-1 text-sm font-medium text-neutral-700">Observações</p>
           <p className="text-sm text-neutral-600">{operacao.observacoes}</p>
-        </div>
+        </Card>
       )}
     </div>
   );

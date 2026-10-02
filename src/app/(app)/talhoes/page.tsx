@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
 import { CulturaTag } from "@/components/ui/cultura-tag";
+import { Card } from "@/components/ui/card";
 
 export default async function TalhoesPage() {
   const propriedadeId = await exigirPropriedadeAtual();
@@ -25,7 +26,7 @@ export default async function TalhoesPage() {
       {talhoes.length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhum talhão cadastrado ainda.</p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        <Card padding="none" className="overflow-hidden">
           {talhoes.map((talhao) => (
             <Link
               key={talhao.id}
@@ -47,7 +48,7 @@ export default async function TalhoesPage() {
               )}
             </Link>
           ))}
-        </div>
+        </Card>
       )}
     </div>
   );

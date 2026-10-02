@@ -4,6 +4,7 @@ import { formatarData } from "@/lib/format";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { TIPO_OPERACAO_LABELS } from "@/lib/operacoes";
 import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
+import { Card } from "@/components/ui/card";
 import type { TipoOperacao } from "@/generated/prisma/enums";
 
 type Filtros = {
@@ -132,15 +133,15 @@ export default async function RelatorioHorasHomemPage({ searchParams }: { search
         </div>
       </form>
 
-      <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-4">
+      <Card className="flex items-center justify-between">
         <div>
           <p className="text-xs text-neutral-500">Total de horas-homem</p>
           <p className="text-2xl font-semibold text-neutral-900">{total.toLocaleString("pt-BR")}h</p>
         </div>
         <ExportarBotoes recurso="horas-homem" filtros={queryString} />
-      </div>
+      </Card>
 
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+      <Card padding="none" className="overflow-hidden">
         {linhas.length === 0 && <p className="p-4 text-sm text-neutral-500">Nenhum registro encontrado.</p>}
         {linhas.map((l) => (
           <div
@@ -159,7 +160,7 @@ export default async function RelatorioHorasHomemPage({ searchParams }: { search
             <span className="text-sm font-medium text-neutral-900">{l.horas.toLocaleString("pt-BR")}h</span>
           </div>
         ))}
-      </div>
+      </Card>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { buscarHorasHomemTalhao } from "@/lib/atividades";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { Timeline } from "@/components/historico/timeline";
 import { VoltarLink } from "@/components/nav/voltar-link";
+import { Card } from "@/components/ui/card";
 
 const CAMPOS: { label: string; key: keyof NonNullable<Awaited<ReturnType<typeof buscarTalhao>>> }[] = [
   { label: "Área", key: "areaHa" },
@@ -45,7 +46,7 @@ export default async function TalhaoDetalhePage({ params }: { params: Promise<{ 
         </Link>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+      <Card padding="none" className="overflow-hidden">
         {CAMPOS.map(({ label, key }) => {
           const valor = talhao[key];
           if (valor === null || valor === undefined || valor === "") return null;
@@ -64,13 +65,13 @@ export default async function TalhaoDetalhePage({ params }: { params: Promise<{ 
             <span className="text-sm font-medium text-neutral-900">{horasHomem}h</span>
           </div>
         )}
-      </div>
+      </Card>
 
       {talhao.observacoes && (
-        <div className="rounded-xl border border-neutral-200 bg-white p-4">
+        <Card>
           <p className="mb-1 text-sm font-medium text-neutral-700">Observações</p>
           <p className="text-sm text-neutral-600">{talhao.observacoes}</p>
-        </div>
+        </Card>
       )}
 
       <div>

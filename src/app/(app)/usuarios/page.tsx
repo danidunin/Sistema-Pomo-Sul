@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NovoUsuarioForm } from "@/components/usuarios/novo-usuario-form";
+import { Card } from "@/components/ui/card";
 
 export default async function UsuariosPage() {
   const usuarios = await db.usuario.findMany({
@@ -18,7 +19,7 @@ export default async function UsuariosPage() {
 
       <NovoUsuarioForm />
 
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+      <Card padding="none" className="overflow-hidden">
         {usuarios.map((usuario) => (
           <div
             key={usuario.id}
@@ -30,7 +31,7 @@ export default async function UsuariosPage() {
             </div>
           </div>
         ))}
-      </div>
+      </Card>
     </div>
   );
 }

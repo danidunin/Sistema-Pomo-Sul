@@ -6,6 +6,7 @@ import { formatarData } from "@/lib/format";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
 import { buscarChuvaRegistros, calcularAcumuladoPorTratamento } from "@/lib/chuva";
+import { Card } from "@/components/ui/card";
 
 export default async function OperacoesPage({
   searchParams,
@@ -135,7 +136,7 @@ export default async function OperacoesPage({
                         🌧 {acumulado.toLocaleString("pt-BR")}mm acumulados desde a aplicação
                       </p>
                     )}
-                    <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
+                    <Card padding="none" className="overflow-x-auto">
                       <Link
                         href={`/tratamentos/${operacao.id}`}
                         className="flex items-center justify-between border-b border-neutral-100 bg-neutral-50 px-4 py-2 hover:bg-neutral-100"
@@ -183,7 +184,7 @@ export default async function OperacoesPage({
                           })}
                         </tbody>
                       </table>
-                    </div>
+                    </Card>
                   </div>
                 );
               })}
