@@ -5,7 +5,6 @@ import { TIPO_PRAGA_LABELS, montarSecaoGrade } from "@/lib/pragas";
 import { GradeExcelPraga } from "@/components/pragas/grade-excel";
 import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
 import { TipoPraga } from "@/generated/prisma/enums";
-import { Button } from "@/components/ui/button";
 
 export default async function MonitoramentoPragasPage({
   searchParams,
@@ -78,9 +77,12 @@ export default async function MonitoramentoPragasPage({
                 </option>
               ))}
             </select>
-            <Button type="submit" variant="secondary" className="px-3 py-2 text-sm">
+            <button
+              type="submit"
+              className="rounded-lg border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700"
+            >
               Ver
-            </Button>
+            </button>
           </form>
         )}
         <Link href="/monitoramento-pragas/pontos" className="text-sm font-medium text-green-700">
