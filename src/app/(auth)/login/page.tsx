@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { login } from "@/actions/auth";
 import { useFormularioAcao } from "@/hooks/use-formulario-acao";
+import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
   const { formAction, isPending, erro, rotulo } = useFormularioAcao(login);
@@ -70,13 +71,9 @@ export default function LoginPage() {
 
             {erro}
 
-            <button
-              type="submit"
-              disabled={isPending}
-              className="mt-2 w-full rounded-lg bg-green-700 py-3 text-base font-medium text-white active:bg-green-800 disabled:opacity-60"
-            >
+            <Button type="submit" disabled={isPending} size="lg" className="mt-2">
               {rotulo("Entrar", "Entrando...")}
-            </button>
+            </Button>
           </form>
         </div>
       </div>

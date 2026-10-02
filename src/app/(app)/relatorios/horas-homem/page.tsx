@@ -5,6 +5,7 @@ import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { TIPO_OPERACAO_LABELS } from "@/lib/operacoes";
 import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import type { TipoOperacao } from "@/generated/prisma/enums";
 
 type Filtros = {
@@ -124,12 +125,9 @@ export default async function RelatorioHorasHomemPage({ searchParams }: { search
           </select>
         </div>
         <div className="col-span-2 sm:col-span-3">
-          <button
-            type="submit"
-            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
-          >
+          <Button type="submit" variant="secondary">
             Filtrar
-          </button>
+          </Button>
         </div>
       </form>
 
