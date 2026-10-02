@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SideNav } from "@/components/nav/side-nav";
 import { BottomNav } from "@/components/nav/bottom-nav";
 import { logout } from "@/actions/auth";
+import { badgeClassName } from "@/components/ui/badge";
 
 export function AppShell({
   children,
@@ -21,10 +22,7 @@ export function AppShell({
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-neutral-500 md:hidden">POMO SUL</span>
             {propriedadeNome && (
-              <Link
-                href="/"
-                className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700"
-              >
+              <Link href="/" className={badgeClassName("green")}>
                 {propriedadeNome}
               </Link>
             )}

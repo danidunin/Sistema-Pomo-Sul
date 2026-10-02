@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { NAV_ITEMS, SECONDARY_NAV_ITEMS, type NavItem } from "@/lib/nav-items";
 
@@ -26,7 +27,15 @@ export function SideNav() {
 
   return (
     <nav className="hidden w-56 shrink-0 flex-col border-r border-neutral-200 bg-white p-4 md:flex">
-      <div className="mb-6 px-2 text-lg font-semibold text-neutral-900">POMO SUL</div>
+      <div className="mb-6 px-2">
+        <Image
+          src="/images/logo-pomosul-transparente.png"
+          alt="Pomo Sul"
+          width={1000}
+          height={692}
+          className="h-8 w-auto"
+        />
+      </div>
       <div className="flex flex-col gap-1">
         {NAV_ITEMS.map((item) => (
           <NavLink key={item.href} item={item} active={isActive(item)} />
