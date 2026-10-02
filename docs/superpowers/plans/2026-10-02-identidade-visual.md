@@ -102,8 +102,10 @@ Start the dev server (`pomo-sul-dev` in `.claude/launch.json`), open `/login` an
 
 - [ ] **Step 6: Commit**
 
+Stage only the three files this task touches — never `git add -A`/`git add .` in this repo, the working tree has unrelated pre-existing untracked files that must stay untracked.
+
 ```bash
-git add -A
+git add "public/images/hero-fazenda.jpg" "src/app/(app)/page.tsx" "src/app/(auth)/login/page.tsx"
 git commit -m "feat: troca a foto de destaque do login e do dashboard"
 ```
 
@@ -1196,9 +1198,9 @@ Start `pomo-sul-dev`, and at both 375px and 1440px widths:
 
 - [ ] **Step 6: Commit (only if Step 5 surfaced fixes)**
 
-If the visual pass found nothing to fix, skip this step — there's nothing to commit. Otherwise:
+If the visual pass found nothing to fix, skip this step — there's nothing to commit. Otherwise, stage only the specific files you fixed (never `git add -A`/`git add .` — this repo's working tree has unrelated pre-existing untracked files that must stay untracked):
 
 ```bash
-git add -A
+git add <only the files you fixed>
 git commit -m "fix: ajustes finais da verificacao visual da identidade visual"
 ```
