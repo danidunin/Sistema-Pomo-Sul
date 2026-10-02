@@ -17,20 +17,22 @@ Fora de escopo: paleta de cores, tipografia, layout/fluxo de qualquer tela, nova
 
 ## 1. Foto de destaque
 
-**Origem:** `~/Downloads/IMG_5473.HEIC` (foto fornecida pelo usuário — maçãs na árvore, close-up, com poste/arame de espaldeira, fileira do pomar ao fundo).
+**Origem:** `~/Downloads/IMG_5473.HEIC` (foto fornecida pelo usuário — maçãs na árvore, close-up, com poste/arame de espaldeira e o carreador do pomar se afunilando ao fundo, dando perspectiva).
 
-**Processamento:**
-- Converter HEIC → JPEG.
-- Redimensionar/otimizar para peso similar ao arquivo atual (~870KB; a foto original tem 3024×4032 e >2MB).
-- Salvar como `public/images/hero-pomar.jpg`, substituindo as referências a `hero-fazenda.jpg` em:
+**Já decidido e produzido nesta sessão de brainstorming** (via uma ferramenta de enquadramento interativa que o usuário mesmo ajustou):
+- Convertida de HEIC para JPEG, já recortada no enquadramento aprovado pelo usuário (zoom ~130% centrado em ~43%/43% da foto original) e salva em `public/images/hero-pomar.jpg` (923×1231, ~330KB — peso similar ao arquivo atual de 870KB, mais a foto já vem pré-recortada no enquadramento certo).
+- O arquivo final já está no lugar — a implementação só precisa trocar as referências, não reprocessar a foto.
+
+**Implementação:**
+- Trocar `src="/images/hero-fazenda.jpg"` por `src="/images/hero-pomar.jpg"` em:
   - `src/app/(auth)/login/page.tsx`
   - `src/app/(app)/page.tsx`
 - Remover `public/images/hero-fazenda.jpg` (não fica mais referenciado).
+- Como o enquadramento já foi recortado no arquivo, usar `object-position: 50% 50%` (centralizado) nos dois lugares, no lugar do `[object-position:50%_75%]` atual.
 
-**Ajustes de enquadramento/contraste:**
-- A foto é vertical e mais escura/detalhada que a aérea atual — recalibrar `object-position` em cada uso (login: painel lateral; dashboard: faixa horizontal) para manter o aglomerado de maçãs centralizado e legível.
-- Reavaliar a opacidade/força do gradiente escuro sobreposto (`from-green-900/80 ...` no login, `from-black/45` / `from-black/75` no dashboard) para o texto branco continuar com bom contraste em cima da nova composição.
-- Critério de aceite: testar em mobile (375px) e desktop (1440px) nas duas telas — texto legível, maçãs visíveis, sem corte estranho (ex.: poste cortando no meio do texto).
+**Ajustes de contraste:**
+- Reavaliar a opacidade do gradiente escuro sobreposto (`from-green-900/80 ...` no login, `from-black/45` / `from-black/75` no dashboard) para o texto branco continuar com bom contraste em cima da nova foto (mais escura/detalhada que a aérea atual) — ajustar só se necessário, a estrutura do gradiente já existente tende a bastar.
+- Critério de aceite: conferir em mobile (375px) e desktop (1440px) nas duas telas — texto legível, maçãs visíveis, sem corte estranho (ex.: poste cortando no meio do texto).
 
 ## 2. Componentes visuais padronizados
 
