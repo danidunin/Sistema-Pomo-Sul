@@ -78,7 +78,7 @@ export default async function MonitoramentoPragasPage({
                 </option>
               ))}
             </select>
-            <Button type="submit" variant="secondary" size="sm" className="text-sm">
+            <Button type="submit" variant="secondary" className="px-3 py-2 text-sm">
               Ver
             </Button>
           </form>
