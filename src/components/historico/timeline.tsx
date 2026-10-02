@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatarData } from "@/lib/format";
 import { iconeItemHistorico, type ItemHistorico } from "@/lib/historico";
 import { FotoMiniatura } from "@/components/upload/foto-miniatura";
+import { Card } from "@/components/ui/card";
 
 export function Timeline({ itens, mostrarTalhao = false }: { itens: ItemHistorico[]; mostrarTalhao?: boolean }) {
   if (itens.length === 0) {
@@ -9,7 +10,7 @@ export function Timeline({ itens, mostrarTalhao = false }: { itens: ItemHistoric
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+    <Card padding="none" className="overflow-hidden">
       {itens.map((item) => {
         const conteudo = (
           <div className="flex items-start gap-3 px-4 py-3">
@@ -48,6 +49,6 @@ export function Timeline({ itens, mostrarTalhao = false }: { itens: ItemHistoric
           </div>
         );
       })}
-    </div>
+    </Card>
   );
 }

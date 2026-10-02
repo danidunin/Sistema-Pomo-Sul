@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { formatarData } from "@/lib/format";
 import { CORES_NIVEL, rotuloMetrica, type SecaoGrade } from "@/lib/pragas";
+import { Card } from "@/components/ui/card";
 
 /**
  * Grade estilo planilha: uma linha por data, uma coluna por armadilha
@@ -21,7 +22,7 @@ export function GradeExcelPraga({ titulo, secao }: { titulo: string; secao: Seca
     // só este card) além da viewport no mobile, quebrando o rodapé fixo em
     // outras telas do app. Com min-w-0, é o overflow-x-auto logo abaixo que
     // rola, e a página nunca ultrapassa a largura da tela.
-    <div className="w-full min-w-0 overflow-hidden rounded-xl border border-neutral-200 bg-white">
+    <Card padding="none" className="w-full min-w-0 overflow-hidden">
       <div className="border-b border-neutral-100 px-4 py-3">
         <p className="text-sm font-semibold text-neutral-900">{titulo}</p>
       </div>
@@ -106,6 +107,6 @@ export function GradeExcelPraga({ titulo, secao }: { titulo: string; secao: Seca
           </table>
         </div>
       )}
-    </div>
+    </Card>
   );
 }

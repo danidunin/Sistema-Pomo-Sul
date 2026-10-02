@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useFormularioAcao } from "@/hooks/use-formulario-acao";
+import { Card } from "@/components/ui/card";
 
 type ArmadilhaGrade = { id: string; rotulo: string; talhaoNome: string };
 type PontoGrade = { id: string; nome: string; armadilhas: ArmadilhaGrade[] };
@@ -57,7 +58,7 @@ export function GradeLeiturasForm({
       </div>
 
       {pontos.map((ponto) => (
-        <div key={ponto.id} className="rounded-xl border border-neutral-200 bg-white p-4">
+        <Card key={ponto.id}>
           <p className="mb-3 text-sm font-semibold text-neutral-900">{ponto.nome}</p>
           {ponto.armadilhas.length === 0 ? (
             <p className="text-sm text-neutral-500">Nenhuma armadilha ativa neste ponto.</p>
@@ -86,7 +87,7 @@ export function GradeLeiturasForm({
               ))}
             </div>
           )}
-        </div>
+        </Card>
       ))}
 
       {erro}

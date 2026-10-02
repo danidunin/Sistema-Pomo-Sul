@@ -1,6 +1,7 @@
 import { formatarData } from "@/lib/format";
 import { corDeDestaque } from "@/lib/planilha-pragas";
 import type { AbaTabela } from "@/lib/planilha-pragas-parser";
+import { Card } from "@/components/ui/card";
 
 export function PlanilhaTabela({ aba }: { aba: AbaTabela }) {
   return (
@@ -8,7 +9,7 @@ export function PlanilhaTabela({ aba }: { aba: AbaTabela }) {
     // a tabela larga empurra a PÁGINA INTEIRA além da viewport no mobile, quebrando o rodapé
     // fixo em outras telas do app (bug real já visto e corrigido na grade de Monitoramento
     // de Pragas — ver grade-excel.tsx).
-    <div className="w-full min-w-0 overflow-hidden rounded-xl border border-neutral-200 bg-white">
+    <Card padding="none" className="w-full min-w-0 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
           <thead>
@@ -68,6 +69,6 @@ export function PlanilhaTabela({ aba }: { aba: AbaTabela }) {
           </tbody>
         </table>
       </div>
-    </div>
+    </Card>
   );
 }

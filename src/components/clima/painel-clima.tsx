@@ -1,5 +1,6 @@
 import type { Clima, DiaDetalhado } from "@/lib/clima";
 import { iconePorResumo } from "@/lib/clima";
+import { Card } from "@/components/ui/card";
 
 /**
  * Painel de campo: previsão de temperatura oficial do INMET (Manhã/Tarde/Noite
@@ -89,9 +90,9 @@ function BlocoDia({ titulo, data, dia }: { titulo: string; data: string; dia: Di
 
 function PainelClimaVazio() {
   return (
-    <div className="col-span-2 flex flex-col gap-1 rounded-xl border border-neutral-200 bg-white p-4 md:col-span-4">
+    <Card className="col-span-2 flex flex-col gap-1 md:col-span-4">
       <span className="text-sm font-medium text-neutral-700">Previsão de temperatura</span>
       <span className="text-sm text-neutral-500">Clima indisponível no momento.</span>
-    </div>
+    </Card>
   );
 }

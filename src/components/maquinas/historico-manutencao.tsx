@@ -3,6 +3,7 @@ import { formatarData } from "@/lib/format";
 import { TIPO_CONSERTO_LABELS } from "@/lib/tipo-conserto";
 import { ExcluirManutencaoForm } from "@/components/maquinas/excluir-manutencao-form";
 import type { TipoConserto } from "@/generated/prisma/enums";
+import { Card } from "@/components/ui/card";
 
 type Manutencao = {
   id: string;
@@ -24,7 +25,7 @@ export function HistoricoManutencao({ maquinaId, manutencoes }: { maquinaId: str
   return (
     <div className="flex flex-col gap-3">
       {manutencoes.map((m) => (
-        <div key={m.id} className="rounded-xl border border-neutral-200 bg-white p-4">
+        <Card key={m.id}>
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-medium text-neutral-900">{m.servicoRealizado}</p>
             <span className="shrink-0 text-xs text-neutral-500">{formatarData(m.data)}</span>
@@ -80,7 +81,7 @@ export function HistoricoManutencao({ maquinaId, manutencoes }: { maquinaId: str
             </Link>
             <ExcluirManutencaoForm maquinaId={maquinaId} manutencaoId={m.id} />
           </div>
-        </div>
+        </Card>
       ))}
     </div>
   );

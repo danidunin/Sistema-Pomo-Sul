@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { formatarData } from "@/lib/format";
 import { ExcluirRevisaoForm } from "@/components/maquinas/excluir-revisao-form";
+import { Card } from "@/components/ui/card";
 
 type Revisao = {
   id: string;
@@ -18,7 +19,7 @@ export function HistoricoRevisoes({ maquinaId, revisoes }: { maquinaId: string; 
   return (
     <div className="flex flex-col gap-3">
       {revisoes.map((r) => (
-        <div key={r.id} className="rounded-xl border border-neutral-200 bg-white p-4">
+        <Card key={r.id}>
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-medium text-neutral-900">{r.servicoRealizado}</p>
             <span className="shrink-0 text-xs text-neutral-500">{formatarData(r.data)}</span>
@@ -37,7 +38,7 @@ export function HistoricoRevisoes({ maquinaId, revisoes }: { maquinaId: string; 
             </Link>
             <ExcluirRevisaoForm maquinaId={maquinaId} revisaoId={r.id} />
           </div>
-        </div>
+        </Card>
       ))}
     </div>
   );
