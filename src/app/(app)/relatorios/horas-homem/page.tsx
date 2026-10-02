@@ -45,7 +45,8 @@ export default async function RelatorioHorasHomemPage({ searchParams }: { search
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-semibold text-neutral-900">Relatório de Hora-Homem</h1>
 
-      <form className="grid grid-cols-2 gap-2 rounded-xl border border-neutral-200 bg-white p-4 sm:grid-cols-3">
+      {/* <form> nativo (filtro GET) — Card só renderiza <div>. */}
+      <form className="grid grid-cols-2 gap-2 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm sm:grid-cols-3">
         <div>
           <label className="mb-1 block text-xs font-medium text-neutral-500">Data início</label>
           <input

@@ -15,8 +15,9 @@ export function NovoUsuarioForm() {
     }
   }, [isPending, errorMessage]);
 
+  // <form> nativo (server action) — Card só renderiza <div>.
   return (
-    <form ref={formRef} action={formAction} className="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-4">
+    <form ref={formRef} action={formAction} className="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
       <h2 className="text-sm font-medium text-neutral-700">Novo usuário</h2>
 
       <div>

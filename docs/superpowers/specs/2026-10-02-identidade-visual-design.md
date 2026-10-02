@@ -73,4 +73,9 @@ O cabeçalho mobile (`app-shell.tsx`, span "POMO SUL" que só aparece em telas p
 - Não há lógica nova — os componentes `Card`/`Button`/`Badge` são apresentacionais, sem necessidade de testes unitários novos.
 - `npm run lint` e `npm run build` devem passar sem erros após a migração.
 - `npm run test` (vitest) não deve ser afetado — nenhuma função em `src/lib` muda.
+
+## Nota de implementação (as built)
+
+- `Badge` virou `badgeClassName(color)` — uma função que retorna a string de classes, não um componente React. O único uso real (`app-shell.tsx`) estiliza um `next/link` `<Link>`, não uma `<div>`/`<span>`, então um componente wrapper exigiria um prop `as` polimórfico para um único call site — não vale a pena.
+- `Card` ganhou um quarto valor de `padding`: `"lg"` (`p-6`), além de `none`/`sm`/`md` já previstos, para cobrir um caso de uso real encontrado durante a migração.
 - Verificação visual manual via browser preview: tela de login, dashboard, e pelo menos duas telas de lista/formulário que usam Card/Button (ex.: talhões, operações) — em mobile e desktop — para confirmar que a migração não quebrou nenhum layout.

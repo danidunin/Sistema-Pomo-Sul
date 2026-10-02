@@ -501,6 +501,7 @@ function LinhaProduto({
             className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
           />
         </div>
+        {/* text-neutral-500 e px-3/py-3 não existem como preset do Button — mantido como button simples. */}
         {onRemover && (
           <button
             type="button"

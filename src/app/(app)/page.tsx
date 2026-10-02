@@ -71,9 +71,10 @@ async function SeletorPropriedade() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {propriedades.map((p) => (
             <form key={p.id} action={definirPropriedadeAtual.bind(null, p.id)}>
+              {/* Botão real de submit, não um Card — mantém o padding p-5 original. */}
               <button
                 type="submit"
-                className="flex w-full flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-5 text-left active:bg-neutral-50"
+                className="flex w-full flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-5 text-left shadow-sm active:bg-neutral-50"
               >
                 <span className="text-lg font-semibold text-neutral-900">{p.nome}</span>
                 <span className="text-sm text-neutral-500">

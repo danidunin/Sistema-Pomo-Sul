@@ -77,6 +77,7 @@ export default async function MonitoramentoPragasPage({
                 </option>
               ))}
             </select>
+            {/* px-3/text-sm não existe como preset do Button sem conflito de classe — mantido como button simples. */}
             <button
               type="submit"
               className="rounded-lg border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700"
