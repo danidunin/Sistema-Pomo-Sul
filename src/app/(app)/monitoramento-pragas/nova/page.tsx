@@ -6,6 +6,7 @@ import { ehValorDoEnum } from "@/lib/enum";
 import { criarLeiturasEmLote } from "@/actions/pragas";
 import { GradeLeiturasForm } from "@/components/pragas/grade-leituras-form";
 import { VoltarLink } from "@/components/nav/voltar-link";
+import { Button } from "@/components/ui/button";
 
 export default async function NovaLeituraPage({
   searchParams,
@@ -66,9 +67,9 @@ export default async function NovaLeituraPage({
             </option>
           ))}
         </select>
-        <button type="submit" className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700">
+        <Button type="submit" variant="secondary">
           Continuar
-        </button>
+        </Button>
       </form>
 
       {tipoPragaValido && safraValida && (
