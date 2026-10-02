@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { criarMovimentacaoDiesel } from "@/actions/diesel";
 import { useFormularioAcao } from "@/hooks/use-formulario-acao";
+import { Button } from "@/components/ui/button";
 
 type Tanque = { id: string; nome: string; estoqueAtualLitros: number };
 
@@ -119,13 +120,9 @@ export function MovimentacaoDieselForm({
 
       {erro}
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="rounded-lg bg-green-700 py-3 text-base font-medium text-white active:bg-green-800 disabled:opacity-60"
-      >
+      <Button type="submit" disabled={isPending} size="lg">
         {rotulo(tipo === "ENTRADA" ? "Registrar entrada" : "Registrar saída")}
-      </button>
+      </Button>
     </form>
   );
 }

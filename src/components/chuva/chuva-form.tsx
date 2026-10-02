@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useFormularioAcao } from "@/hooks/use-formulario-acao";
+import { Button } from "@/components/ui/button";
 
 type ChuvaFormValues = {
   data: string;
@@ -118,13 +119,9 @@ export function ChuvaForm({
 
       {erro}
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="rounded-lg bg-green-700 py-3 text-base font-medium text-white active:bg-green-800 disabled:opacity-60"
-      >
+      <Button type="submit" disabled={isPending} size="lg">
         {rotulo(submitLabel)}
-      </button>
+      </Button>
     </form>
   );
 }
