@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatarData } from "@/lib/format";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { buscarChuvaRegistros, resumirChuvaPorMes } from "@/lib/chuva";
+import { Card } from "@/components/ui/card";
 
 export default async function ChuvaPage() {
   const propriedadeId = await exigirPropriedadeAtual();
@@ -23,7 +24,7 @@ export default async function ChuvaPage() {
       </div>
 
       {resumoMensal.length > 0 && (
-        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        <Card padding="none" className="overflow-hidden">
           {resumoMensal.map((mes) => (
             <div
               key={mes.mes}
@@ -36,13 +37,13 @@ export default async function ChuvaPage() {
               </span>
             </div>
           ))}
-        </div>
+        </Card>
       )}
 
       {leituras.length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhuma leitura registrada ainda.</p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        <Card padding="none" className="overflow-hidden">
           {leituras.map((leitura) => (
             <Link
               key={leitura.id}
@@ -57,7 +58,7 @@ export default async function ChuvaPage() {
               </div>
             </Link>
           ))}
-        </div>
+        </Card>
       )}
     </div>
   );

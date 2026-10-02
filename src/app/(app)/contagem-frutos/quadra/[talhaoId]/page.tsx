@@ -11,6 +11,7 @@ import { QuadraResumoConteudo } from "@/components/contagem-frutos/quadra-resumo
 import { formatarData } from "@/lib/format";
 import { PeriodoPicker } from "@/components/historico/periodo-picker";
 import { VoltarLink } from "@/components/nav/voltar-link";
+import { Card } from "@/components/ui/card";
 
 const formatoKg = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
 const formatoNumero = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
@@ -63,9 +64,9 @@ export default async function QuadraContagemFrutosPage({
     <div className="flex flex-col gap-4">
       <VoltarLink href={`/contagem-frutos?safra=${encodeURIComponent(safra)}`} label="Voltar" />
 
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+      <Card padding="none" className="overflow-hidden">
         <QuadraResumoConteudo grupo={grupo} />
-      </div>
+      </Card>
 
       <div className="flex items-center justify-between gap-2">
         <form className="flex flex-1 gap-2">
@@ -89,7 +90,7 @@ export default async function QuadraContagemFrutosPage({
       {contagensFiltradas.length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhuma contagem neste período.</p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        <Card padding="none" className="overflow-hidden">
           {contagensFiltradas.map((c) => {
             const estimativa = calcularEstimativaSafra({
               metaFrutosPorPlanta: Number(c.metaSafra.metaFrutosPorPlanta),
@@ -118,7 +119,7 @@ export default async function QuadraContagemFrutosPage({
               </Link>
             );
           })}
-        </div>
+        </Card>
       )}
     </div>
   );

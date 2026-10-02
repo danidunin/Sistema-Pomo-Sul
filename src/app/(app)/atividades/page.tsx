@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { formatarData } from "@/lib/format";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
+import { Card } from "@/components/ui/card";
 
 export default async function AtividadesPage() {
   const propriedadeId = await exigirPropriedadeAtual();
@@ -29,7 +30,7 @@ export default async function AtividadesPage() {
       {atividades.length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhuma atividade registrada ainda.</p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        <Card padding="none" className="overflow-hidden">
           {atividades.map((atividade) => {
             const horasHomem = atividade.numeroPessoas * Number(atividade.horasPorPessoa);
             return (
@@ -49,7 +50,7 @@ export default async function AtividadesPage() {
               </Link>
             );
           })}
-        </div>
+        </Card>
       )}
     </div>
   );

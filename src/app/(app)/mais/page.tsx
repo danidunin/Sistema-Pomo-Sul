@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { SECONDARY_NAV_ITEMS } from "@/lib/nav-items";
+import { Card } from "@/components/ui/card";
 
 export default function MaisPage() {
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-semibold text-neutral-900">Mais</h1>
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+      <Card padding="none" className="overflow-hidden">
         {SECONDARY_NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           return (
@@ -19,7 +20,7 @@ export default function MaisPage() {
             </Link>
           );
         })}
-      </div>
+      </Card>
     </div>
   );
 }

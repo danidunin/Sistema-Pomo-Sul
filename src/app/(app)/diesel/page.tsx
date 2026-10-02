@@ -3,6 +3,7 @@ import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { buscarResumoDiesel } from "@/lib/diesel";
 import { MedidorTanque } from "@/components/diesel/medidor-tanque";
 import { formatarData } from "@/lib/format";
+import { Card } from "@/components/ui/card";
 
 export default async function DieselPage() {
   const propriedadeId = await exigirPropriedadeAtual();
@@ -66,10 +67,10 @@ export default async function DieselPage() {
         />
       </div>
 
-      <div className="flex flex-col items-center gap-3 rounded-xl border border-neutral-200 bg-white p-6">
+      <Card padding="lg" className="flex flex-col items-center gap-3">
         <p className="text-sm font-medium text-neutral-700">Nível do tanque — {tanque.nome}</p>
         <MedidorTanque percentual={percentualOcupado} alerta={alerta} />
-      </div>
+      </Card>
 
       <Link href="/diesel/historico" className="text-sm font-medium text-green-700">
         Ver histórico completo →
@@ -80,10 +81,10 @@ export default async function DieselPage() {
 
 function Cartao({ label, valor, detalhe }: { label: string; valor: string; detalhe?: string }) {
   return (
-    <div className="flex flex-col gap-1 rounded-xl border border-neutral-200 bg-white p-4">
+    <Card className="flex flex-col gap-1">
       <span className="text-lg font-semibold text-neutral-900">{valor}</span>
       <span className="text-xs text-neutral-500">{label}</span>
       {detalhe && <span className="text-xs text-neutral-400">{detalhe}</span>}
-    </div>
+    </Card>
   );
 }

@@ -8,6 +8,7 @@ import {
   type ContagemParaAgrupar,
 } from "@/lib/contagem-frutos";
 import { QuadraResumoConteudo } from "@/components/contagem-frutos/quadra-resumo";
+import { Card } from "@/components/ui/card";
 
 export default async function ContagemFrutosPage({
   searchParams,
@@ -90,7 +91,7 @@ export default async function ContagemFrutosPage({
       {grupos.length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhuma contagem registrada ainda.</p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        <Card padding="none" className="overflow-hidden">
           {grupos.map((grupo) => (
             <Link
               key={`${grupo.talhaoId}::${grupo.safra}`}
@@ -100,7 +101,7 @@ export default async function ContagemFrutosPage({
               <QuadraResumoConteudo grupo={grupo} />
             </Link>
           ))}
-        </div>
+        </Card>
       )}
     </div>
   );

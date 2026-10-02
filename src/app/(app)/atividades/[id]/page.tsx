@@ -6,6 +6,7 @@ import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { excluirAtividade } from "@/actions/atividades";
 import { VoltarLink } from "@/components/nav/voltar-link";
 import { ConfirmarExclusao } from "@/components/ui/confirmar-exclusao";
+import { Card } from "@/components/ui/card";
 
 export default async function AtividadeDetalhePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -45,7 +46,7 @@ export default async function AtividadeDetalhePage({ params }: { params: Promise
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+      <Card padding="none" className="overflow-hidden">
         <Linha label="Data" valor={formatarData(atividade.data)} />
         <Linha label="Talhão" valor={atividade.talhao?.nomeCodinome ?? "— (atividade geral)"} />
         <Linha
@@ -56,13 +57,13 @@ export default async function AtividadeDetalhePage({ params }: { params: Promise
         {atividade.horasMaquina !== null && (
           <Linha label="Horas de máquina" valor={`${atividade.horasMaquina.toString()}h`} />
         )}
-      </div>
+      </Card>
 
       {atividade.observacoes && (
-        <div className="rounded-xl border border-neutral-200 bg-white p-4">
+        <Card>
           <p className="mb-1 text-sm font-medium text-neutral-700">Observações</p>
           <p className="text-sm text-neutral-600">{atividade.observacoes}</p>
-        </div>
+        </Card>
       )}
     </div>
   );
