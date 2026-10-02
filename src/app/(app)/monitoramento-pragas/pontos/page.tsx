@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { TIPO_PRAGA_LABELS } from "@/lib/pragas";
 import { VoltarLink } from "@/components/nav/voltar-link";
+import { Card } from "@/components/ui/card";
 
 export default async function PontosMonitoramentoPage({
   searchParams,
@@ -42,7 +43,7 @@ export default async function PontosMonitoramentoPage({
       {pontos.length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhum ponto de monitoramento cadastrado ainda.</p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        <Card padding="none" className="overflow-hidden">
           {pontos.map((p) => (
             <Link
               key={p.id}
@@ -60,7 +61,7 @@ export default async function PontosMonitoramentoPage({
               </div>
             </Link>
           ))}
-        </div>
+        </Card>
       )}
     </div>
   );

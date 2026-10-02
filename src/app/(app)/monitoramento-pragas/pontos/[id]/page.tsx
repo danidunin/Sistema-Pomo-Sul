@@ -5,6 +5,7 @@ import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { TIPO_PRAGA_LABELS, agruparMediaPorData, calcularSerieNivelControle, CORES_NIVEL } from "@/lib/pragas";
 import { formatarData } from "@/lib/format";
 import { VoltarLink } from "@/components/nav/voltar-link";
+import { Card } from "@/components/ui/card";
 
 export default async function DetalhePontoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -37,7 +38,7 @@ export default async function DetalhePontoPage({ params }: { params: Promise<{ i
         </p>
       </div>
 
-      <div className="rounded-xl border border-neutral-200 bg-white p-4">
+      <Card>
         <div className="mb-3 flex items-center justify-between">
           <p className="text-sm font-medium text-neutral-700">Armadilhas</p>
           <Link href={`/monitoramento-pragas/armadilhas/novo?pontoId=${ponto.id}`} className="text-sm font-medium text-green-700">
@@ -61,7 +62,7 @@ export default async function DetalhePontoPage({ params }: { params: Promise<{ i
             ))}
           </ul>
         )}
-      </div>
+      </Card>
 
       <PontoHistorico ponto={ponto} />
     </div>
@@ -98,7 +99,7 @@ function PontoHistorico({
   }
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4">
+    <Card>
       <p className="mb-3 text-sm font-medium text-neutral-700">Histórico de leituras</p>
       {serie.length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhuma leitura registrada ainda.</p>
@@ -130,6 +131,6 @@ function PontoHistorico({
           ))}
         </ul>
       )}
-    </div>
+    </Card>
   );
 }

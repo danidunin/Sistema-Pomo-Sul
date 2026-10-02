@@ -2,6 +2,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
+import { Card } from "@/components/ui/card";
 
 export default async function MaquinasPage({
   searchParams,
@@ -43,7 +44,7 @@ export default async function MaquinasPage({
       {maquinas.length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhuma máquina cadastrada ainda.</p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        <Card padding="none" className="overflow-hidden">
           {maquinas.map((maquina) => (
             <Link
               key={maquina.id}
@@ -73,7 +74,7 @@ export default async function MaquinasPage({
               )}
             </Link>
           ))}
-        </div>
+        </Card>
       )}
     </div>
   );

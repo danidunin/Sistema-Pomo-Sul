@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { VoltarLink } from "@/components/nav/voltar-link";
+import { Card } from "@/components/ui/card";
 import { ExcluirOperadorForm } from "./excluir-operador-form";
 
 export default async function OperadorDetalhePage({ params }: { params: Promise<{ id: string }> }) {
@@ -40,19 +41,19 @@ export default async function OperadorDetalhePage({ params }: { params: Promise<
         />
       )}
 
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+      <Card padding="none" className="overflow-hidden">
         {operador.apelido && <Linha label="Apelido" valor={operador.apelido} />}
         {operador.cpf && <Linha label="CPF" valor={operador.cpf} />}
         {operador.telefone && <Linha label="Telefone" valor={operador.telefone} />}
         {operador.funcao && <Linha label="Função" valor={operador.funcao} />}
         {operador.equipe && <Linha label="Equipe" valor={operador.equipe} />}
-      </div>
+      </Card>
 
       {operador.observacoes && (
-        <div className="rounded-xl border border-neutral-200 bg-white p-4">
+        <Card>
           <p className="mb-1 text-sm font-medium text-neutral-700">Observações</p>
           <p className="text-sm text-neutral-600">{operador.observacoes}</p>
-        </div>
+        </Card>
       )}
     </div>
   );

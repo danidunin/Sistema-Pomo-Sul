@@ -9,6 +9,7 @@ import { AbasMaquina } from "@/components/maquinas/abas-maquina";
 import { ExcluirMaquinaForm } from "@/components/maquinas/excluir-maquina-form";
 import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
 import { VoltarLink } from "@/components/nav/voltar-link";
+import { Card } from "@/components/ui/card";
 
 export default async function MaquinaDetalhePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -46,18 +47,18 @@ export default async function MaquinaDetalhePage({ params }: { params: Promise<{
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+      <Card padding="none" className="overflow-hidden">
         {maquina.marca && <Linha label="Marca" valor={maquina.marca} />}
         {maquina.modelo && <Linha label="Modelo" valor={maquina.modelo} />}
         {maquina.ano && <Linha label="Ano" valor={String(maquina.ano)} />}
         {maquina.horimetroAtual && <Linha label="Horímetro atual" valor={`${maquina.horimetroAtual.toString()}h`} />}
-      </div>
+      </Card>
 
       {maquina.observacoes && (
-        <div className="rounded-xl border border-neutral-200 bg-white p-4">
+        <Card>
           <p className="mb-1 text-sm font-medium text-neutral-700">Observações</p>
           <p className="text-sm text-neutral-600">{maquina.observacoes}</p>
-        </div>
+        </Card>
       )}
 
       <AbasMaquina maquinaId={maquina.id} atual="manutencoes" />

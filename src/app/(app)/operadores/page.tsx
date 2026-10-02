@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import type { Prisma } from "@/generated/prisma/client";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
+import { Card } from "@/components/ui/card";
 
 export default async function OperadoresPage({
   searchParams,
@@ -78,7 +79,7 @@ export default async function OperadoresPage({
       {operadores.length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhum operador encontrado.</p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        <Card padding="none" className="overflow-hidden">
           {operadores.map((operador) => (
             <Link
               key={operador.id}
@@ -101,7 +102,7 @@ export default async function OperadoresPage({
               )}
             </Link>
           ))}
-        </div>
+        </Card>
       )}
     </div>
   );

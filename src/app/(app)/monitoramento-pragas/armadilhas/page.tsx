@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { TIPO_PRAGA_LABELS } from "@/lib/pragas";
 import { VoltarLink } from "@/components/nav/voltar-link";
+import { Card } from "@/components/ui/card";
 
 export default async function ArmadilhasPage() {
   const propriedadeId = await exigirPropriedadeAtual();
@@ -30,7 +31,7 @@ export default async function ArmadilhasPage() {
       {armadilhas.length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhuma armadilha cadastrada ainda.</p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        <Card padding="none" className="overflow-hidden">
           {armadilhas.map((a) => (
             <Link
               key={a.id}
@@ -48,7 +49,7 @@ export default async function ArmadilhasPage() {
               </div>
             </Link>
           ))}
-        </div>
+        </Card>
       )}
     </div>
   );

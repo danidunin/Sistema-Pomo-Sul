@@ -10,6 +10,7 @@ import { buscarClima } from "@/lib/clima";
 import { CulturaDot, corBarraCultura } from "@/components/ui/cultura-tag";
 import { IconArea, IconParcelas, IconMaquina, IconFuncionario, IconSync } from "@/components/ui/icons";
 import { PainelClima } from "@/components/clima/painel-clima";
+import { Card } from "@/components/ui/card";
 
 export default async function HomePage() {
   const [session, propriedadeId] = await Promise.all([auth(), propriedadeAtualId()]);
@@ -151,7 +152,7 @@ async function ResumoDaPropriedade({ propriedadeId }: { propriedadeId: string })
           }
         />
 
-        <div className="col-span-2 rounded-xl border border-neutral-200 bg-white p-4 md:col-span-4">
+        <Card className="col-span-2 md:col-span-4">
           <div className="mb-3 text-sm font-medium text-neutral-700">Área por cultura</div>
           {resumo.areaPorCultura.length === 0 ? (
             <p className="text-sm text-neutral-500">
@@ -181,7 +182,7 @@ async function ResumoDaPropriedade({ propriedadeId }: { propriedadeId: string })
               ))}
             </div>
           )}
-        </div>
+        </Card>
       </div>
 
       {alertasPragas.length > 0 && (
@@ -223,14 +224,15 @@ function Cartao({
   spanDuasColunas?: boolean;
 }) {
   return (
-    <div
-      className={`flex flex-col gap-1 rounded-xl border border-neutral-200 bg-white p-4 ${
+    <Card
+      padding="none"
+      className={`flex flex-col gap-1 p-4 ${
         spanDuasColunas ? "col-span-2" : ""
       }`}
     >
       {icone}
       <span className="text-lg font-semibold text-neutral-900">{valor}</span>
       <span className="text-xs text-neutral-500">{label}</span>
-    </div>
+    </Card>
   );
 }
