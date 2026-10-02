@@ -19,11 +19,11 @@ export default async function HomePage() {
     <div className="-mx-4 -mt-4 flex flex-col gap-5 md:-mx-6">
       <section className="relative h-72 overflow-hidden md:h-96">
         <Image
-          src="/images/hero-fazenda.jpg"
-          alt="Vista aérea da propriedade Pomo Sul"
+          src="/images/hero-pomar.jpg"
+          alt="Macieiras carregadas de frutos no pomar Pomo Sul"
           fill
           priority
-          className="object-cover [object-position:50%_75%]"
+          className="object-cover [object-position:50%_50%]"
         />
         <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/45 to-transparent md:h-40" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/75 to-transparent md:h-56" />

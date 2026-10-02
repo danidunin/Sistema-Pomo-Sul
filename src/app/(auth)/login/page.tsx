@@ -11,11 +11,11 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col md:flex-row">
       <div className="relative h-64 shrink-0 overflow-hidden md:h-auto md:w-1/2 lg:w-3/5">
         <Image
-          src="/images/hero-fazenda.jpg"
-          alt="Vista aérea da propriedade Pomo Sul"
+          src="/images/hero-pomar.jpg"
+          alt="Macieiras carregadas de frutos no pomar Pomo Sul"
           fill
           priority
-          className="object-cover [object-position:50%_75%]"
+          className="object-cover [object-position:50%_50%]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-green-900/80 via-green-900/20 to-green-900/50" />
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-8 text-center md:items-start md:text-left">
