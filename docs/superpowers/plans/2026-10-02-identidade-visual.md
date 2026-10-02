@@ -1162,7 +1162,7 @@ echo "--- button patterns on <button> elements ---"
 grep -rl "rounded-lg bg-green-700\|rounded-lg border border-neutral-300" src
 ```
 
-Expected for the card check: only `src/app/(app)/page.tsx` (the Case-A property-selector button, Task 6). Expected for the button check: only files where every remaining match is on a `<Link>`/`<a>` or the red buttons in `confirmar-exclusao.tsx`.
+Expected for the card check: `src/components/ui/card.tsx` (the component's own class definition — not a usage site), `src/app/(app)/page.tsx` (the Case-A property-selector `<button>`, Task 6), and `src/app/(app)/relatorios/horas-homem/page.tsx` + `src/app/(app)/relatorios/horas-maquina/page.tsx` (each has one `<form>` filter element matching the pattern — `Card` can't render a `<form>`, left untouched per Task 7/8). Expected for the button check: only files where every remaining match is on a `<Link>`/`<a>` or the red buttons in `confirmar-exclusao.tsx`.
 
 - [ ] **Step 2: Full build**
 
