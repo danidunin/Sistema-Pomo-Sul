@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useFormularioAcao } from "@/hooks/use-formulario-acao";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 type ArmadilhaGrade = { id: string; rotulo: string; talhaoNome: string };
 type PontoGrade = { id: string; nome: string; armadilhas: ArmadilhaGrade[] };
@@ -92,13 +93,9 @@ export function GradeLeiturasForm({
 
       {erro}
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="rounded-lg bg-green-700 py-3 text-base font-medium text-white active:bg-green-800 disabled:opacity-60"
-      >
+      <Button type="submit" disabled={isPending} size="lg">
         {rotulo("Salvar leituras")}
-      </button>
+      </Button>
     </form>
   );
 }

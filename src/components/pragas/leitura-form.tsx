@@ -1,6 +1,7 @@
 "use client";
 
 import { useFormularioAcao } from "@/hooks/use-formulario-acao";
+import { Button } from "@/components/ui/button";
 
 type LeituraAction = (prevState: string | undefined, formData: FormData) => Promise<string | undefined>;
 
@@ -52,13 +53,9 @@ export function LeituraForm({
 
       {erro}
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="rounded-lg bg-green-700 py-3 text-base font-medium text-white active:bg-green-800 disabled:opacity-60"
-      >
+      <Button type="submit" disabled={isPending} size="lg">
         {rotulo("Salvar alterações")}
-      </button>
+      </Button>
     </form>
   );
 }

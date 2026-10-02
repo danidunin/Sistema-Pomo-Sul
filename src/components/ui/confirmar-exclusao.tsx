@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 type ConfirmarExclusaoProps = {
   pergunta?: string;
@@ -49,13 +50,9 @@ export function ConfirmarExclusao({ action, onConfirm, pergunta = "Confirma excl
           Sim, excluir
         </button>
       )}
-      <button
-        type="button"
-        onClick={() => setConfirmando(false)}
-        className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
-      >
+      <Button type="button" variant="secondary" onClick={() => setConfirmando(false)}>
         Cancelar
-      </button>
+      </Button>
     </div>
   );
 }

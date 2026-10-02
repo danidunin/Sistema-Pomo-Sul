@@ -3,6 +3,7 @@
 import { useRef, useEffect } from "react";
 import { criarUsuario } from "@/actions/usuarios";
 import { useFormularioAcao } from "@/hooks/use-formulario-acao";
+import { Button } from "@/components/ui/button";
 
 export function NovoUsuarioForm() {
   const { formAction, errorMessage, isPending, erro, rotulo } = useFormularioAcao(criarUsuario);
@@ -59,13 +60,9 @@ export function NovoUsuarioForm() {
 
       {erro}
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="rounded-lg bg-green-700 py-3 text-base font-medium text-white active:bg-green-800 disabled:opacity-60"
-      >
+      <Button type="submit" disabled={isPending} size="lg">
         {rotulo("Adicionar usuário")}
-      </button>
+      </Button>
     </form>
   );
 }
