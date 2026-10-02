@@ -3,6 +3,7 @@
 import { TIPO_CONSERTO_LABELS } from "@/lib/tipo-conserto";
 import { MultiArquivoInput } from "@/components/upload/multi-arquivo-input";
 import { useFormularioAcao } from "@/hooks/use-formulario-acao";
+import { Button } from "@/components/ui/button";
 
 const TIPOS_CONSERTO = Object.entries(TIPO_CONSERTO_LABELS) as [keyof typeof TIPO_CONSERTO_LABELS, string][];
 
@@ -135,13 +136,9 @@ export function ManutencaoForm({
 
       {erro}
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="rounded-lg bg-green-700 py-3 text-base font-medium text-white active:bg-green-800 disabled:opacity-60"
-      >
+      <Button type="submit" disabled={isPending} size="lg">
         {rotulo(submitLabel)}
-      </button>
+      </Button>
     </form>
   );
 }

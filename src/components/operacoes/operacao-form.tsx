@@ -9,6 +9,7 @@ import { tipoUsaCalda, unidadeDosagemEfetiva } from "@/lib/operacoes";
 import type { TipoOperacao, UnidadeDosagem } from "@/generated/prisma/enums";
 import { AdicionarRapido } from "@/components/operacoes/adicionar-rapido";
 import { useFormularioAcao } from "@/hooks/use-formulario-acao";
+import { Button } from "@/components/ui/button";
 import { cicloDaData } from "@/lib/ciclo";
 import type { ContagemChave } from "@/lib/limite-aplicacoes";
 
@@ -397,13 +398,9 @@ export function OperacaoForm({
 
       {erro}
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="rounded-lg bg-green-700 py-3 text-base font-medium text-white active:bg-green-800 disabled:opacity-60"
-      >
+      <Button type="submit" disabled={isPending} size="lg">
         {rotulo(modo === "editar" ? "Salvar alterações" : "Registrar operação")}
-      </button>
+      </Button>
     </form>
   );
 }

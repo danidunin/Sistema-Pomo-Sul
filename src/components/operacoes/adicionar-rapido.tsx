@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Button } from "@/components/ui/button";
 
 type ItemCriado = { id: string; nome: string };
 
@@ -56,14 +57,9 @@ export function AdicionarRapido({
           placeholder={`Nome do ${label.toLowerCase()}`}
           className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
         />
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={handleAdicionar}
-          className="rounded-lg bg-green-700 px-3 py-2 text-xs font-medium text-white disabled:opacity-60"
-        >
+        <Button type="button" size="sm" disabled={isPending} onClick={handleAdicionar}>
           {isPending ? "Salvando..." : "Adicionar"}
-        </button>
+        </Button>
         <button
           type="button"
           onClick={() => setAberto(false)}

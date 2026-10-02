@@ -3,6 +3,7 @@
 import { criarVisitaCampo, atualizarVisitaCampo } from "@/actions/visitas";
 import { useFormularioAcao } from "@/hooks/use-formulario-acao";
 import { MultiFotoInput } from "@/components/upload/multi-foto-input";
+import { Button } from "@/components/ui/button";
 
 const OPCOES_ENFOLHAMENTO = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
 
@@ -121,13 +122,9 @@ export function VisitaForm({
 
       {erro}
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="rounded-lg bg-green-700 py-3 text-base font-medium text-white active:bg-green-800 disabled:opacity-60"
-      >
+      <Button type="submit" disabled={isPending} size="lg">
         {rotulo(modo === "editar" ? "Salvar alterações" : "Registrar visita")}
-      </button>
+      </Button>
     </form>
   );
 }
