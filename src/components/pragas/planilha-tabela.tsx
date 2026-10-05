@@ -60,7 +60,9 @@ export function PlanilhaTabela({ aba }: { aba: AbaTabela }) {
                     >
                       {celula.valor instanceof Date
                         ? formatarData(celula.valor)
-                        : (celula.valor ?? <span className="text-neutral-300">—</span>)}
+                        : typeof celula.valor === "number"
+                          ? Math.round(celula.valor)
+                          : (celula.valor ?? <span className="text-neutral-300">—</span>)}
                     </td>
                   );
                 })}
