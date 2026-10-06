@@ -46,21 +46,21 @@ describe("validarTipoSelecionado", () => {
 });
 
 describe("diasDesdeTratamento", () => {
-  it("conta dias corridos no fuso de Brasília, ignorando a hora", () => {
+  it("não conta o dia da aplicação: 25/09 até 05/10 dá 9 dias", () => {
     const tratamento = new Date("2026-09-25T12:00:00-03:00");
     const hoje = new Date("2026-10-05T08:00:00-03:00");
-    expect(diasDesdeTratamento(tratamento, hoje)).toBe(10);
+    expect(diasDesdeTratamento(tratamento, hoje)).toBe(9);
   });
 
-  it("tratamento feito no mesmo dia retorna 0", () => {
-    const tratamento = new Date("2026-10-05T07:00:00-03:00");
+  it("tratamento feito hoje ou ontem retorna 0", () => {
     const hoje = new Date("2026-10-05T23:30:00-03:00");
-    expect(diasDesdeTratamento(tratamento, hoje)).toBe(0);
+    expect(diasDesdeTratamento(new Date("2026-10-05T07:00:00-03:00"), hoje)).toBe(0);
+    expect(diasDesdeTratamento(new Date("2026-10-04T10:00:00-03:00"), hoje)).toBe(0);
   });
 
   it("não cai para o dia anterior por causa do fuso UTC", () => {
     // 22h de Brasília = 01h UTC do dia seguinte: sem o fuso certo, contaria 1 dia a mais.
-    const tratamento = new Date("2026-10-04T22:00:00-03:00");
+    const tratamento = new Date("2026-10-03T22:00:00-03:00");
     const hoje = new Date("2026-10-05T10:00:00-03:00");
     expect(diasDesdeTratamento(tratamento, hoje)).toBe(1);
   });

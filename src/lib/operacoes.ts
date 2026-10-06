@@ -66,14 +66,15 @@ export function validarTipoSelecionado(
 const FUSO_OPERACAO = "America/Sao_Paulo";
 
 /**
- * Dias corridos entre a data de um tratamento e hoje, contados no fuso de Brasília.
- * Compara só o dia calendário: um tratamento feito ontem à noite conta como 1 dia,
- * independente da hora em que foi lançado.
+ * Dias passados desde um tratamento, contados no fuso de Brasília e sem contar o dia da
+ * aplicação: tratamento feito ontem dá 0, feito anteontem dá 1. Tratamento de hoje também dá 0.
+ * Compara só o dia calendário, independente da hora em que foi lançado.
  */
 export function diasDesdeTratamento(dataTratamento: Date, hoje: Date): number {
   const formatador = new Intl.DateTimeFormat("en-CA", { timeZone: FUSO_OPERACAO });
   const [anoT, mesT, diaT] = formatador.format(dataTratamento).split("-").map(Number);
   const [anoH, mesH, diaH] = formatador.format(hoje).split("-").map(Number);
   const msPorDia = 24 * 60 * 60 * 1000;
-  return Math.round((Date.UTC(anoH, mesH - 1, diaH) - Date.UTC(anoT, mesT - 1, diaT)) / msPorDia);
+  const diasCorridos = Math.round((Date.UTC(anoH, mesH - 1, diaH) - Date.UTC(anoT, mesT - 1, diaT)) / msPorDia);
+  return Math.max(0, diasCorridos - 1);
 }
