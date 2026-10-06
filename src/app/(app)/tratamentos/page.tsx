@@ -6,6 +6,7 @@ import { formatarData } from "@/lib/format";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
 import { buscarChuvaRegistros, calcularAcumuladoPorTratamento } from "@/lib/chuva";
+import { diasDesdeTratamento } from "@/lib/operacoes";
 import { Card } from "@/components/ui/card";
 
 export default async function OperacoesPage({
@@ -23,6 +24,20 @@ export default async function OperacoesPage({
   });
 
   const talhaoSelecionado = talhaoId && talhoes.some((t) => t.id === talhaoId) ? talhaoId : null;
+
+  // Último tratamento fitossanitário de cada quadra, para o contador nas abas. Sempre da
+  // propriedade inteira, mesmo com uma quadra selecionada, pra não mudar o que aparece nas abas.
+  const ultimosTratamentos = await db.operacaoAgricola.groupBy({
+    by: ["talhaoId"],
+    where: { tipo: "FITOSSANITARIO", talhao: { propriedadeId } },
+    _max: { data: true },
+  });
+  const agora = new Date();
+  const diasDesdeUltimoPorTalhao = new Map(
+    ultimosTratamentos
+      .filter((g) => g._max.data)
+      .map((g) => [g.talhaoId, diasDesdeTratamento(g._max.data as Date, agora)]),
+  );
 
   const operacoesBase = await db.operacaoAgricola.findMany({
     where: talhaoSelecionado ? { talhaoId: talhaoSelecionado } : { talhao: { propriedadeId } },
@@ -90,7 +105,11 @@ export default async function OperacoesPage({
             key={t.id}
             href={`/tratamentos?talhaoId=${t.id}`}
             ativo={talhaoSelecionado === t.id}
-            label={t.nomeCodinome}
+            label={
+              diasDesdeUltimoPorTalhao.has(t.id)
+                ? `${t.nomeCodinome} · ${diasDesdeUltimoPorTalhao.get(t.id)}d`
+                : t.nomeCodinome
+            }
           />
         ))}
       </div>
