@@ -61,7 +61,7 @@ export function PlanilhaTabela({ aba }: { aba: AbaTabela }) {
                       {celula.valor instanceof Date
                         ? formatarData(celula.valor)
                         : typeof celula.valor === "number"
-                          ? Math.round(celula.valor)
+                          ? celula.valor.toFixed(1)
                           : (celula.valor ?? <span className="text-neutral-300">—</span>)}
                     </td>
                   );
