@@ -14,6 +14,9 @@ import { Card } from "@/components/ui/card";
 export default async function HomePage() {
   const [session, propriedadeId] = await Promise.all([auth(), propriedadeAtualId()]);
   const primeiroNome = session?.user?.name?.split(" ")[0];
+  const propriedade = propriedadeId
+    ? await db.propriedade.findUnique({ where: { id: propriedadeId }, select: { nome: true } })
+    : null;
 
   return (
     <div className="-mx-4 -mt-4 flex flex-col gap-5 md:-mx-6">
@@ -36,6 +39,12 @@ export default async function HomePage() {
           priority
           className="absolute left-4 top-4 h-14 w-auto drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)] md:left-8 md:top-6 md:h-20"
         />
+
+        {propriedade?.nome && (
+          <span className="absolute right-4 top-4 rounded-full bg-green-700 px-3 py-1.5 text-sm font-bold text-white shadow-lg md:right-8 md:top-6 md:px-4 md:py-2 md:text-base">
+            {propriedade.nome}
+          </span>
+        )}
 
         <div className="absolute inset-x-4 bottom-5 md:inset-x-8 md:bottom-8">
           <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-white/70 md:text-xs">
