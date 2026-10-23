@@ -41,7 +41,7 @@ export default async function HomePage() {
         />
 
         {propriedade?.nome && (
-          <span className="absolute right-4 top-4 rounded-full bg-green-700 px-3 py-1.5 text-sm font-bold text-white shadow-lg md:right-8 md:top-6 md:px-4 md:py-2 md:text-base">
+          <span className="absolute right-4 top-4 rounded-full bg-green-700 px-4 py-2 text-lg font-bold text-white shadow-lg md:right-8 md:top-6 md:px-5 md:py-2.5 md:text-xl">
             {propriedade.nome}
           </span>
         )}
