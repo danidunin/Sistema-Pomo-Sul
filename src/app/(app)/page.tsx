@@ -100,6 +100,8 @@ async function ResumoDaPropriedade({ propriedadeId }: { propriedadeId: string })
 
   return (
     <>
+      <PainelRadar />
+
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold text-neutral-900">
           {propriedade?.nome ?? "Propriedade"}
@@ -132,8 +134,6 @@ async function ResumoDaPropriedade({ propriedadeId }: { propriedadeId: string })
           label="Funcionários ativos"
           valor={String(resumo.numeroFuncionarios)}
         />
-
-        <PainelRadar />
 
         <Cartao
           spanDuasColunas
