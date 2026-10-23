@@ -6,10 +6,9 @@ import { propriedadeAtualId } from "@/lib/propriedade";
 import { definirPropriedadeAtual, esquecerPropriedadeAtual } from "@/actions/propriedade";
 import { buscarResumoPropriedade, buscarResumoBasicoPropriedades, buscarAlertasPragas } from "@/lib/dashboard";
 import { TIPO_PRAGA_LABELS } from "@/lib/pragas";
-import { buscarClima } from "@/lib/clima";
 import { CulturaDot, corBarraCultura } from "@/components/ui/cultura-tag";
 import { IconArea, IconParcelas, IconMaquina, IconFuncionario, IconSync } from "@/components/ui/icons";
-import { PainelClima } from "@/components/clima/painel-clima";
+import { PainelRadar } from "@/components/clima/painel-radar";
 import { Card } from "@/components/ui/card";
 
 export default async function HomePage() {
@@ -91,10 +90,9 @@ async function SeletorPropriedade() {
 }
 
 async function ResumoDaPropriedade({ propriedadeId }: { propriedadeId: string }) {
-  const [propriedade, resumo, clima, alertasPragas] = await Promise.all([
+  const [propriedade, resumo, alertasPragas] = await Promise.all([
     db.propriedade.findUnique({ where: { id: propriedadeId }, select: { nome: true } }),
     buscarResumoPropriedade(propriedadeId),
-    buscarClima(),
     buscarAlertasPragas(propriedadeId),
   ]);
 
@@ -135,7 +133,7 @@ async function ResumoDaPropriedade({ propriedadeId }: { propriedadeId: string })
           valor={String(resumo.numeroFuncionarios)}
         />
 
-        <PainelClima clima={clima} />
+        <PainelRadar />
 
         <Cartao
           spanDuasColunas
