@@ -22,7 +22,10 @@ export function AppShell({
           <div className="flex items-center gap-4">
             <span className="hidden text-sm text-neutral-500 md:inline">Olá, {userName}</span>
             <form action={logout}>
-              <button type="submit" className="text-sm font-medium text-neutral-500">
+              <button
+                type="submit"
+                className="rounded-md px-2 py-1 text-sm font-medium text-neutral-500 active:bg-neutral-100"
+              >
                 Sair
               </button>
             </form>

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Work_Sans } from "next/font/google";
 import { RegisterSW } from "@/components/register-sw";
+import { TouchFeedback } from "@/components/touch-feedback";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -54,6 +55,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <RegisterSW />
+        <TouchFeedback />
       </body>
     </html>
   );

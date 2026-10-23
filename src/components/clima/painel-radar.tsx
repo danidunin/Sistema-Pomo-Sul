@@ -19,7 +19,7 @@ export async function PainelRadar() {
       href="https://www.simepar.br/simepar/radar_msc"
       target="_blank"
       rel="noopener noreferrer"
-      className="flex flex-col gap-2 overflow-hidden rounded-xl bg-[#1c2321] p-4 text-[#f2efe7]"
+      className="flex flex-col gap-2 overflow-hidden rounded-xl bg-[#1c2321] p-4 text-[#f2efe7] transition-opacity active:opacity-70"
     >
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-bold uppercase tracking-wider text-[#8fa398]">
