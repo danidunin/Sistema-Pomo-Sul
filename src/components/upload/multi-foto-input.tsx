@@ -50,7 +50,7 @@ export function MultiFotoInput({ name, pasta, label }: { name: string; pasta: st
                 type="button"
                 onClick={() => setUrls((atual) => atual.filter((u) => u !== url))}
                 aria-label="Remover foto"
-                className="absolute right-1 top-1 rounded-full bg-black/60 px-1.5 py-0.5 text-xs text-white"
+                className="absolute right-1 top-1 rounded-full bg-black/60 px-1.5 py-0.5 text-xs text-white active:bg-black/80"
               >
                 ✕
               </button>

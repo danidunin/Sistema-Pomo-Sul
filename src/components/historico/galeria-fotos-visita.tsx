@@ -76,7 +76,7 @@ export function GaleriaFotosVisita({ visitaId, fotosIniciais }: { visitaId: stri
                     type="button"
                     onClick={() => handleExcluir(foto.id)}
                     aria-label="Confirmar exclusão da foto"
-                    className="rounded-full bg-red-600 px-2 py-1.5 text-xs font-medium text-white"
+                    className="rounded-full bg-red-600 px-2 py-1.5 text-xs font-medium text-white active:bg-red-700"
                   >
                     Excluir
                   </button>
@@ -84,7 +84,7 @@ export function GaleriaFotosVisita({ visitaId, fotosIniciais }: { visitaId: stri
                     type="button"
                     onClick={() => setConfirmandoExclusao(null)}
                     aria-label="Cancelar exclusão"
-                    className="rounded-full bg-black/60 px-2 py-1.5 text-xs text-white"
+                    className="rounded-full bg-black/60 px-2 py-1.5 text-xs text-white active:bg-black/80"
                   >
                     Cancelar
                   </button>
@@ -94,7 +94,7 @@ export function GaleriaFotosVisita({ visitaId, fotosIniciais }: { visitaId: stri
                   type="button"
                   onClick={() => setConfirmandoExclusao(foto.id)}
                   aria-label="Excluir foto"
-                  className="absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-sm text-white"
+                  className="absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-sm text-white active:bg-black/80"
                 >
                   ✕
                 </button>

@@ -89,7 +89,7 @@ export default async function HistoricoPomarPage({
         <div className="flex items-center justify-between gap-4">
           <Link
             href={hrefPagina(pagina - 1)}
-            className={`rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 ${
+            className={`rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 active:bg-neutral-100 ${
               pagina <= 1 ? "pointer-events-none opacity-40" : ""
             }`}
           >
@@ -100,7 +100,7 @@ export default async function HistoricoPomarPage({
           </span>
           <Link
             href={hrefPagina(pagina + 1)}
-            className={`rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 ${
+            className={`rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 active:bg-neutral-100 ${
               pagina >= totalPaginas ? "pointer-events-none opacity-40" : ""
             }`}
           >

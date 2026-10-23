@@ -37,7 +37,7 @@ export function FotoMiniatura({
       alt={alt}
       onError={() => setErro(true)}
       onClick={onClick}
-      className={`${className} shrink-0 rounded-md border border-neutral-200 object-cover ${onClick ? "cursor-pointer" : ""}`}
+      className={`${className} shrink-0 rounded-md border border-neutral-200 object-cover ${onClick ? "cursor-pointer transition-opacity active:opacity-70" : ""}`}
     />
   );
 }

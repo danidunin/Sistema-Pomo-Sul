@@ -60,7 +60,7 @@ export function MultiArquivoInput({ name, pasta, label }: { name: string; pasta:
                 type="button"
                 onClick={() => setArquivos((atual) => atual.filter((a) => a.url !== arquivo.url))}
                 aria-label="Remover arquivo"
-                className="shrink-0 rounded-full px-2 py-0.5 text-xs text-neutral-500"
+                className="shrink-0 rounded-full px-2 py-0.5 text-xs text-neutral-500 active:bg-neutral-200"
               >
                 ✕
               </button>

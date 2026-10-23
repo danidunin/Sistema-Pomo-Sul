@@ -11,7 +11,7 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
     <Link
       href={item.href}
       className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium ${
-        active ? "bg-green-50 text-green-700" : "text-neutral-600 hover:bg-neutral-50"
+        active ? "bg-green-50 text-green-700 active:bg-green-100" : "text-neutral-600 hover:bg-neutral-50 active:bg-neutral-100"
       }`}
     >
       <Icon className="h-5 w-5" strokeWidth={1.75} />

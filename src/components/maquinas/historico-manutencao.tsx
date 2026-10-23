@@ -63,7 +63,7 @@ export function HistoricoManutencao({ maquinaId, manutencoes }: { maquinaId: str
                   href={doc.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-green-700"
+                  className="flex items-center gap-2 rounded-md text-sm text-green-700 active:bg-green-50"
                 >
                   <span>📄</span>
                   <span className="truncate underline">{doc.nome}</span>
@@ -75,7 +75,7 @@ export function HistoricoManutencao({ maquinaId, manutencoes }: { maquinaId: str
           <div className="mt-3 flex items-center gap-3 border-t border-neutral-100 pt-3">
             <Link
               href={`/maquinas/${maquinaId}/manutencoes/${m.id}/editar`}
-              className="rounded-md px-2 py-1.5 text-sm font-medium text-green-700"
+              className="rounded-md px-2 py-1.5 text-sm font-medium text-green-700 active:bg-green-50"
             >
               Editar
             </Link>

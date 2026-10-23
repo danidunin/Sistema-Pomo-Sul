@@ -25,7 +25,7 @@ export function ConfirmarExclusao({ action, onConfirm, pergunta = "Confirma excl
       <button
         type="button"
         onClick={() => setConfirmando(true)}
-        className={className ?? "rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600"}
+        className={`active:bg-red-50 ${className ?? "rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600"}`}
       >
         Excluir
       </button>

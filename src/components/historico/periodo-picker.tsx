@@ -52,7 +52,7 @@ export function PeriodoPicker({ valorInicial }: { valorInicial?: string }) {
           <button
             type="button"
             onClick={() => setAnoVisivel((a) => a - 1)}
-            className="rounded-lg px-3 py-1 text-lg text-neutral-500 hover:bg-neutral-100"
+            className="rounded-lg px-3 py-1 text-lg text-neutral-500 hover:bg-neutral-100 active:bg-neutral-200"
             aria-label="Ano anterior"
           >
             ‹
@@ -61,7 +61,7 @@ export function PeriodoPicker({ valorInicial }: { valorInicial?: string }) {
           <button
             type="button"
             onClick={() => setAnoVisivel((a) => a + 1)}
-            className="rounded-lg px-3 py-1 text-lg text-neutral-500 hover:bg-neutral-100"
+            className="rounded-lg px-3 py-1 text-lg text-neutral-500 hover:bg-neutral-100 active:bg-neutral-200"
             aria-label="Próximo ano"
           >
             ›
@@ -78,7 +78,9 @@ export function PeriodoPicker({ valorInicial }: { valorInicial?: string }) {
                 type="button"
                 onClick={() => escolherMes(mes)}
                 className={`rounded-lg px-2 py-2 text-sm font-medium ${
-                  selecionado ? "bg-green-700 text-white" : "text-neutral-700 hover:bg-neutral-100"
+                  selecionado
+                    ? "bg-green-700 text-white active:bg-green-800"
+                    : "text-neutral-700 hover:bg-neutral-100 active:bg-neutral-200"
                 }`}
               >
                 {nome}
@@ -91,7 +93,7 @@ export function PeriodoPicker({ valorInicial }: { valorInicial?: string }) {
           <button
             type="button"
             onClick={limpar}
-            className="mt-3 w-full rounded-lg border border-neutral-200 py-2 text-xs font-medium text-neutral-500 hover:bg-neutral-50"
+            className="mt-3 w-full rounded-lg border border-neutral-200 py-2 text-xs font-medium text-neutral-500 hover:bg-neutral-50 active:bg-neutral-100"
           >
             Limpar filtro de período
           </button>

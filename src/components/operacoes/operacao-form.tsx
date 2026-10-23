@@ -506,7 +506,7 @@ function LinhaProduto({
           <button
             type="button"
             onClick={onRemover}
-            className="rounded-lg border border-neutral-300 px-3 py-3 text-sm text-neutral-500"
+            className="rounded-lg border border-neutral-300 px-3 py-3 text-sm text-neutral-500 active:bg-neutral-100"
             aria-label="Remover produto"
           >
             ✕

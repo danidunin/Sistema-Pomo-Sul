@@ -13,7 +13,7 @@ export default function MaisPage() {
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3 text-sm font-medium text-neutral-900 last:border-b-0 hover:bg-neutral-50"
+              className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3 text-sm font-medium text-neutral-900 last:border-b-0 hover:bg-neutral-50 active:bg-neutral-100"
             >
               <Icon className="h-5 w-5 text-neutral-500" strokeWidth={1.75} />
               {item.label}
