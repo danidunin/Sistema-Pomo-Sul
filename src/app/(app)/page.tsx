@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowLeftRight } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { propriedadeAtualId } from "@/lib/propriedade";
@@ -10,6 +11,7 @@ import { CulturaDot, corBarraCultura } from "@/components/ui/cultura-tag";
 import { IconArea, IconParcelas, IconMaquina, IconFuncionario, IconSync } from "@/components/ui/icons";
 import { PainelRadar } from "@/components/clima/painel-radar";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default async function HomePage() {
   const [session, propriedadeId] = await Promise.all([auth(), propriedadeAtualId()]);
@@ -116,9 +118,10 @@ async function ResumoDaPropriedade({ propriedadeId }: { propriedadeId: string })
           {propriedade?.nome ?? "Propriedade"}
         </h1>
         <form action={esquecerPropriedadeAtual}>
-          <button type="submit" className="text-sm font-medium text-green-700">
+          <Button type="submit" variant="secondary" size="sm" className="inline-flex items-center gap-1.5">
+            <ArrowLeftRight className="h-3.5 w-3.5" strokeWidth={2} />
             Trocar propriedade
-          </button>
+          </Button>
         </form>
       </div>
 
