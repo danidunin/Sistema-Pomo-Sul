@@ -12,6 +12,7 @@ import { IconArea, IconParcelas, IconMaquina, IconFuncionario, IconSync } from "
 import { PainelRadar } from "@/components/clima/painel-radar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { fotoHeroAtual } from "@/lib/hero";
 
 export default async function HomePage() {
   const [session, propriedadeId] = await Promise.all([auth(), propriedadeAtualId()]);
@@ -19,13 +20,14 @@ export default async function HomePage() {
   const propriedade = propriedadeId
     ? await db.propriedade.findUnique({ where: { id: propriedadeId }, select: { nome: true } })
     : null;
+  const fotoHero = fotoHeroAtual();
 
   return (
     <div className="-mx-4 -mt-4 flex flex-col gap-5 md:-mx-6">
       <section className="relative h-72 overflow-hidden md:h-96">
         <Image
-          src="/images/hero-pomar.jpg"
-          alt="Macieiras carregadas de frutos no pomar Pomo Sul"
+          src={fotoHero.src}
+          alt={fotoHero.alt}
           fill
           priority
           className="object-cover [object-position:50%_50%]"
