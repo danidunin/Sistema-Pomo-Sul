@@ -40,7 +40,7 @@ export default async function TalhaoDetalhePage({ params }: { params: Promise<{ 
         <h1 className="text-xl font-semibold text-neutral-900">{talhao.nomeCodinome}</h1>
         <Link
           href={`/talhoes/${talhao.id}/editar`}
-          className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+          className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 active:bg-neutral-100"
         >
           Editar
         </Link>
@@ -77,7 +77,10 @@ export default async function TalhaoDetalhePage({ params }: { params: Promise<{ 
       <div>
         <div className="mb-2 flex items-center justify-between">
           <h2 className="text-sm font-medium text-neutral-700">Histórico</h2>
-          <Link href={`/historico-pomar/nova?talhaoId=${talhao.id}`} className="text-sm font-medium text-green-700">
+          <Link
+            href={`/historico-pomar/nova?talhaoId=${talhao.id}`}
+            className="text-sm font-medium text-green-700 active:text-green-900"
+          >
             + Registrar visita
           </Link>
         </div>

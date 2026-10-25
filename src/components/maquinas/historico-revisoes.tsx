@@ -32,7 +32,7 @@ export function HistoricoRevisoes({ maquinaId, revisoes }: { maquinaId: string; 
           <div className="mt-3 flex items-center gap-3 border-t border-neutral-100 pt-3">
             <Link
               href={`/maquinas/${maquinaId}/revisoes/${r.id}/editar`}
-              className="rounded-md px-2 py-1.5 text-sm font-medium text-green-700"
+              className="rounded-md px-2 py-1.5 text-sm font-medium text-green-700 active:bg-green-50"
             >
               Editar
             </Link>

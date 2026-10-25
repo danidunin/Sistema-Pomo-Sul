@@ -33,7 +33,7 @@ export default async function MaquinaDetalhePage({ params }: { params: Promise<{
         <div className="flex gap-2 sm:shrink-0">
           <Link
             href={`/maquinas/${maquina.id}/editar`}
-            className="flex-1 rounded-lg border border-neutral-300 px-4 py-2 text-center text-sm font-medium text-neutral-700 sm:flex-none"
+            className="flex-1 rounded-lg border border-neutral-300 px-4 py-2 text-center text-sm font-medium text-neutral-700 active:bg-neutral-100 sm:flex-none"
           >
             Editar
           </Link>

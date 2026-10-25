@@ -80,21 +80,30 @@ export default async function MonitoramentoPragasPage({
             {/* px-3/text-sm não existe como preset do Button sem conflito de classe — mantido como button simples. */}
             <button
               type="submit"
-              className="rounded-lg border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700"
+              className="rounded-lg border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700 active:bg-neutral-100"
             >
               Ver
             </button>
           </form>
         )}
-        <Link href="/monitoramento-pragas/pontos" className="text-sm font-medium text-green-700">
+        <Link
+          href="/monitoramento-pragas/pontos"
+          className="text-sm font-medium text-green-700 active:text-green-900"
+        >
           Pontos de monitoramento
         </Link>
         <span className="text-neutral-300">·</span>
-        <Link href="/monitoramento-pragas/armadilhas" className="text-sm font-medium text-green-700">
+        <Link
+          href="/monitoramento-pragas/armadilhas"
+          className="text-sm font-medium text-green-700 active:text-green-900"
+        >
           Armadilhas
         </Link>
         <span className="text-neutral-300">·</span>
-        <Link href="/monitoramento-pragas/planilha" className="text-sm font-medium text-green-700">
+        <Link
+          href="/monitoramento-pragas/planilha"
+          className="text-sm font-medium text-green-700 active:text-green-900"
+        >
           Planilha
         </Link>
       </div>
@@ -102,7 +111,7 @@ export default async function MonitoramentoPragasPage({
       {pontos.length === 0 ? (
         <p className="text-sm text-neutral-500">
           Nenhum ponto de monitoramento cadastrado ainda.{" "}
-          <Link href="/monitoramento-pragas/pontos/novo" className="font-medium text-green-700">
+          <Link href="/monitoramento-pragas/pontos/novo" className="font-medium text-green-700 active:text-green-900">
             Cadastrar o primeiro ponto
           </Link>
         </p>

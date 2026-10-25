@@ -19,7 +19,7 @@ export function HeaderIdentidade({ propriedadeNome }: { propriedadeNome?: string
     <div className={`items-center gap-3 ${naHome ? "hidden md:flex" : "flex"}`}>
       <span className="text-sm font-medium text-neutral-500 md:hidden">POMO SUL</span>
       {propriedadeNome && (
-        <Link href="/" className={badgeClassName("green")}>
+        <Link href="/" className={`${badgeClassName("green")} active:bg-green-100`}>
           {propriedadeNome}
         </Link>
       )}

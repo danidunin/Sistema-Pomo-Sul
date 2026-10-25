@@ -65,7 +65,7 @@ export function ManutencaoForm({
           {TIPOS_CONSERTO.map(([valor, label]) => (
             <label
               key={valor}
-              className="flex items-center gap-2 rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-700"
+              className="flex items-center gap-2 rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-700 transition-colors active:bg-neutral-100"
             >
               <input
                 type="checkbox"

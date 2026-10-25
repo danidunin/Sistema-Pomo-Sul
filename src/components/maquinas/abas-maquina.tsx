@@ -5,7 +5,7 @@ export function AbasMaquina({ maquinaId, atual }: { maquinaId: string; atual: "m
     <div className="flex gap-1 border-b border-neutral-200">
       <Link
         href={`/maquinas/${maquinaId}`}
-        className={`px-3 py-2 text-sm font-medium ${
+        className={`px-3 py-2 text-sm font-medium active:bg-neutral-100 ${
           atual === "manutencoes" ? "border-b-2 border-green-700 text-green-800" : "text-neutral-500"
         }`}
       >
@@ -13,7 +13,7 @@ export function AbasMaquina({ maquinaId, atual }: { maquinaId: string; atual: "m
       </Link>
       <Link
         href={`/maquinas/${maquinaId}/revisoes`}
-        className={`px-3 py-2 text-sm font-medium ${
+        className={`px-3 py-2 text-sm font-medium active:bg-neutral-100 ${
           atual === "revisoes" ? "border-b-2 border-green-700 text-green-800" : "text-neutral-500"
         }`}
       >

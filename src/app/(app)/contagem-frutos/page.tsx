@@ -94,7 +94,7 @@ export default async function ContagemFrutosPage({
             <Link
               key={`${grupo.talhaoId}::${grupo.safra}`}
               href={`/contagem-frutos/quadra/${grupo.talhaoId}?safra=${encodeURIComponent(grupo.safra)}`}
-              className="block border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50"
+              className="block border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50 active:bg-neutral-100"
             >
               <QuadraResumoConteudo grupo={grupo} />
             </Link>

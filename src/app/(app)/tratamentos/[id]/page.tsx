@@ -38,13 +38,13 @@ export default async function OperacaoDetalhePage({ params }: { params: Promise<
         <div className="flex items-center gap-3">
           <Link
             href={`/talhoes/${operacao.talhaoId}`}
-            className="text-sm font-medium text-green-700"
+            className="text-sm font-medium text-green-700 active:text-green-900"
           >
             Ver talhão
           </Link>
           <Link
             href={`/tratamentos/${operacao.id}/editar`}
-            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 active:bg-neutral-100"
           >
             Editar
           </Link>
@@ -81,7 +81,10 @@ export default async function OperacaoDetalhePage({ params }: { params: Promise<
       {operacao.mesmaAplicacaoDe && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Continuação da aplicação de{" "}
-          <Link href={`/tratamentos/${operacao.mesmaAplicacaoDe.id}`} className="font-medium underline">
+          <Link
+            href={`/tratamentos/${operacao.mesmaAplicacaoDe.id}`}
+            className="font-medium underline active:text-amber-900"
+          >
             {formatarData(operacao.mesmaAplicacaoDe.data)}
           </Link>
           — no resumo do ciclo, os produtos em comum entre as duas contam como 1 aplicação só.

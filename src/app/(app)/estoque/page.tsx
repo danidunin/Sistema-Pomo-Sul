@@ -27,13 +27,13 @@ export default async function EstoquePage({
         <div className="flex flex-wrap gap-2">
           <Link
             href="/estoque/movimentacoes/nova?tipo=entrada"
-            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 active:bg-neutral-100"
           >
             + Entrada
           </Link>
           <Link
             href="/estoque/movimentacoes/nova?tipo=saida"
-            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 active:bg-neutral-100"
           >
             + Saída
           </Link>
@@ -81,7 +81,7 @@ export default async function EstoquePage({
             <Link
               key={produto.id}
               href={`/estoque/produtos/${produto.id}/editar`}
-              className="flex items-center justify-between border-b border-neutral-100 px-4 py-3 last:border-b-0 hover:bg-neutral-50"
+              className="flex items-center justify-between border-b border-neutral-100 px-4 py-3 last:border-b-0 hover:bg-neutral-50 active:bg-neutral-100"
             >
               <div>
                 <p className="text-sm font-medium text-neutral-900">{produto.nome}</p>

@@ -238,7 +238,7 @@ export function OperacaoForm({
           <button
             type="button"
             onClick={() => setLinhas((atual) => [...atual, { chave: proximaChave++ }])}
-            className="text-sm font-medium text-green-700"
+            className="text-sm font-medium text-green-700 active:text-green-900"
           >
             + Adicionar produto
           </button>

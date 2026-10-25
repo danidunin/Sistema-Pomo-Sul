@@ -50,7 +50,7 @@ export function GaleriaFotosVisita({ visitaId, fotosIniciais }: { visitaId: stri
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium text-neutral-700">Fotos</h2>
-        <label className="cursor-pointer rounded-lg border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700">
+        <label className="cursor-pointer rounded-lg border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 transition-colors active:bg-neutral-100">
           + Adicionar foto
           <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
         </label>

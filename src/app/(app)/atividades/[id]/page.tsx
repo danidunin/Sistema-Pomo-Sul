@@ -32,13 +32,16 @@ export default async function AtividadeDetalhePage({ params }: { params: Promise
         <h1 className="text-xl font-semibold text-neutral-900">{atividade.tipoAtividade.nome}</h1>
         <div className="flex items-center gap-3">
           {atividade.talhaoId && (
-            <Link href={`/talhoes/${atividade.talhaoId}`} className="text-sm font-medium text-green-700">
+            <Link
+              href={`/talhoes/${atividade.talhaoId}`}
+              className="text-sm font-medium text-green-700 active:text-green-900"
+            >
               Ver talhão
             </Link>
           )}
           <Link
             href={`/atividades/${atividade.id}/editar`}
-            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 active:bg-neutral-100"
           >
             Editar
           </Link>

@@ -170,7 +170,7 @@ async function ResumoDaPropriedade({ propriedadeId }: { propriedadeId: string })
           {resumo.areaPorCultura.length === 0 ? (
             <p className="text-sm text-neutral-500">
               Nenhum talhão cadastrado ainda.{" "}
-              <Link href="/talhoes/novo" className="font-medium text-green-700">
+              <Link href="/talhoes/novo" className="font-medium text-green-700 active:text-green-900">
                 Cadastrar talhão
               </Link>
             </p>
@@ -206,7 +206,10 @@ async function ResumoDaPropriedade({ propriedadeId }: { propriedadeId: string })
           <ul className="flex flex-col gap-1.5">
             {alertasPragas.map((a) => (
               <li key={a.pontoId}>
-                <Link href={`/monitoramento-pragas/pontos/${a.pontoId}`} className="text-sm text-red-700 underline">
+                <Link
+                  href={`/monitoramento-pragas/pontos/${a.pontoId}`}
+                  className="text-sm text-red-700 underline active:text-red-900"
+                >
                   {TIPO_PRAGA_LABELS[a.tipoPraga]} — {a.pontoNome} ({a.talhoesNomes.join(", ")})
                 </Link>
               </li>
@@ -217,8 +220,15 @@ async function ResumoDaPropriedade({ propriedadeId }: { propriedadeId: string })
 
       {resumo.numeroMaquinas === 0 && resumo.numeroFuncionarios === 0 && (
         <p className="text-xs text-neutral-400">
-          Cadastre suas <Link href="/maquinas/novo" className="underline">máquinas</Link> e{" "}
-          <Link href="/operadores/novo" className="underline">operadores</Link> para completar o painel.
+          Cadastre suas{" "}
+          <Link href="/maquinas/novo" className="underline active:text-neutral-600">
+            máquinas
+          </Link>{" "}
+          e{" "}
+          <Link href="/operadores/novo" className="underline active:text-neutral-600">
+            operadores
+          </Link>{" "}
+          para completar o painel.
         </p>
       )}
     </>

@@ -49,7 +49,7 @@ export default async function MaquinasPage({
             <Link
               key={maquina.id}
               href={`/maquinas/${maquina.id}`}
-              className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3 last:border-b-0 hover:bg-neutral-50"
+              className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3 last:border-b-0 hover:bg-neutral-50 active:bg-neutral-100"
             >
               {maquina.fotoUrl ?? maquina.fotos[0]?.url ? (
                 // eslint-disable-next-line @next/next/no-img-element

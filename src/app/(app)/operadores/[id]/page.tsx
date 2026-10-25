@@ -24,7 +24,7 @@ export default async function OperadorDetalhePage({ params }: { params: Promise<
         <div className="flex gap-2">
           <Link
             href={`/operadores/${operador.id}/editar`}
-            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 active:bg-neutral-100"
           >
             Editar
           </Link>

@@ -58,10 +58,10 @@ export default async function ResumoCicloPage({
           <Link
             key={label}
             href={`/tratamentos/resumo?ciclo=${label}`}
-            className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium ${
+            className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
               cicloSelecionado === label
-                ? "border-green-700 bg-green-700 text-white"
-                : "border-neutral-300 bg-white text-neutral-700"
+                ? "border-green-700 bg-green-700 text-white active:bg-green-800"
+                : "border-neutral-300 bg-white text-neutral-700 active:bg-neutral-100"
             }`}
           >
             {label}

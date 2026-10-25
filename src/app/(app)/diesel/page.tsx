@@ -33,19 +33,19 @@ export default async function DieselPage() {
         <div className="flex flex-wrap gap-2">
           <Link
             href="/diesel/movimentacoes/nova?tipo=entrada"
-            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 active:bg-neutral-100"
           >
             + Entrada
           </Link>
           <Link
             href="/diesel/movimentacoes/nova?tipo=saida"
-            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 active:bg-neutral-100"
           >
             + Saída
           </Link>
           <Link
             href={`/diesel/tanque/${tanque.id}/editar`}
-            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 active:bg-neutral-100"
           >
             Editar tanque
           </Link>
@@ -72,7 +72,7 @@ export default async function DieselPage() {
         <MedidorTanque percentual={percentualOcupado} alerta={alerta} />
       </Card>
 
-      <Link href="/diesel/historico" className="text-sm font-medium text-green-700">
+      <Link href="/diesel/historico" className="text-sm font-medium text-green-700 active:text-green-900">
         Ver histórico completo →
       </Link>
     </div>

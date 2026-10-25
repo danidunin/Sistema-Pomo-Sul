@@ -83,7 +83,7 @@ export default async function OperacoesPage({
         <div className="flex gap-2">
           <Link
             href="/tratamentos/resumo"
-            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700"
+            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 active:bg-neutral-100"
           >
             Resumo do ciclo
           </Link>
@@ -158,7 +158,7 @@ export default async function OperacoesPage({
                     <Card padding="none" className="overflow-x-auto">
                       <Link
                         href={`/tratamentos/${operacao.id}`}
-                        className="flex items-center justify-between border-b border-neutral-100 bg-neutral-50 px-4 py-2 hover:bg-neutral-100"
+                        className="flex items-center justify-between border-b border-neutral-100 bg-neutral-50 px-4 py-2 hover:bg-neutral-100 active:bg-neutral-200"
                       >
                         <span className="text-sm font-medium text-neutral-900">
                           Aplicação #{indice + 1} — {TIPO_OPERACAO_LABELS[operacao.tipo]}
@@ -219,10 +219,10 @@ function Aba({ href, ativo, label }: { href: string; ativo: boolean; label: stri
   return (
     <Link
       href={href}
-      className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium ${
+      className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
         ativo
-          ? "border-green-700 bg-green-700 text-white"
-          : "border-neutral-300 bg-white text-neutral-700"
+          ? "border-green-700 bg-green-700 text-white active:bg-green-800"
+          : "border-neutral-300 bg-white text-neutral-700 active:bg-neutral-100"
       }`}
     >
       {label}

@@ -26,7 +26,10 @@ export default async function DetalhePontoPage({ params }: { params: Promise<{ i
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <VoltarLink href="/monitoramento-pragas/pontos" label="Voltar" />
-        <Link href={`/monitoramento-pragas/pontos/${ponto.id}/editar`} className="text-sm font-medium text-green-700">
+        <Link
+          href={`/monitoramento-pragas/pontos/${ponto.id}/editar`}
+          className="text-sm font-medium text-green-700 active:text-green-900"
+        >
           Editar ponto
         </Link>
       </div>
@@ -41,7 +44,10 @@ export default async function DetalhePontoPage({ params }: { params: Promise<{ i
       <Card>
         <div className="mb-3 flex items-center justify-between">
           <p className="text-sm font-medium text-neutral-700">Armadilhas</p>
-          <Link href={`/monitoramento-pragas/armadilhas/novo?pontoId=${ponto.id}`} className="text-sm font-medium text-green-700">
+          <Link
+            href={`/monitoramento-pragas/armadilhas/novo?pontoId=${ponto.id}`}
+            className="text-sm font-medium text-green-700 active:text-green-900"
+          >
             + Nova armadilha
           </Link>
         </div>
@@ -55,7 +61,10 @@ export default async function DetalhePontoPage({ params }: { params: Promise<{ i
                   {a.rotulo} <span className="text-neutral-400">· {a.talhao.nomeCodinome}</span>
                   {!a.ativo && <span className="text-neutral-400"> (inativa)</span>}
                 </span>
-                <Link href={`/monitoramento-pragas/armadilhas/${a.id}/editar`} className="text-green-700">
+                <Link
+                  href={`/monitoramento-pragas/armadilhas/${a.id}/editar`}
+                  className="text-green-700 active:text-green-900"
+                >
                   Editar
                 </Link>
               </li>
@@ -120,7 +129,7 @@ function PontoHistorico({
                     <span className="text-neutral-500">{d.armadilhaRotulo}</span>
                     <Link
                       href={`/monitoramento-pragas/leituras/${d.leituraId}/editar`}
-                      className="text-green-700"
+                      className="text-green-700 active:text-green-900"
                     >
                       {d.quantidade} · editar
                     </Link>

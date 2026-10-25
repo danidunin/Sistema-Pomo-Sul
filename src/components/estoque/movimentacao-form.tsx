@@ -22,10 +22,10 @@ export function MovimentacaoForm({ produtos, tipoInicial }: { produtos: Produto[
           {(["ENTRADA", "SAIDA"] as const).map((opcao) => (
             <label
               key={opcao}
-              className={`flex-1 cursor-pointer rounded-lg border px-4 py-3 text-center text-sm font-medium ${
+              className={`flex-1 cursor-pointer rounded-lg border px-4 py-3 text-center text-sm font-medium transition-colors ${
                 tipo === opcao
-                  ? "border-green-600 bg-green-50 text-green-800"
-                  : "border-neutral-300 text-neutral-700"
+                  ? "border-green-600 bg-green-50 text-green-800 active:bg-green-100"
+                  : "border-neutral-300 text-neutral-700 active:bg-neutral-100"
               }`}
             >
               <input

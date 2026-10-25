@@ -40,7 +40,7 @@ export function Timeline({ itens, mostrarTalhao = false }: { itens: ItemHistoric
         return (
           <div key={item.id} className="border-b border-neutral-100 last:border-b-0">
             {item.href ? (
-              <Link href={item.href} className="block hover:bg-neutral-50">
+              <Link href={item.href} className="block hover:bg-neutral-50 active:bg-neutral-100">
                 {conteudo}
               </Link>
             ) : (

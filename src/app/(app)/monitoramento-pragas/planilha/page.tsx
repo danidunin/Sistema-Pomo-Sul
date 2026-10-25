@@ -109,8 +109,8 @@ async function PlanilhaConteudo({ url, abaSelecionada }: { url: string; abaSelec
               href={`?aba=${encodeURIComponent(a.nome)}`}
               className={`rounded-lg border px-3 py-1.5 text-sm font-medium ${
                 a.nome === aba.nome
-                  ? "border-green-700 bg-green-50 text-green-800"
-                  : "border-neutral-300 text-neutral-700"
+                  ? "border-green-700 bg-green-50 text-green-800 active:bg-green-100"
+                  : "border-neutral-300 text-neutral-700 active:bg-neutral-100"
               }`}
             >
               {a.nome}

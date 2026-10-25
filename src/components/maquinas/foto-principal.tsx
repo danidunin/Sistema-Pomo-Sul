@@ -45,7 +45,7 @@ export function FotoPrincipal({
 
   return (
     <div className="flex flex-col items-center gap-1">
-      <label className="relative block h-[125px] w-[125px] cursor-pointer overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 sm:h-[146px] sm:w-[146px]">
+      <label className="relative block h-[125px] w-[125px] cursor-pointer overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 transition-colors active:bg-neutral-100 sm:h-[146px] sm:w-[146px]">
         {url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={url} alt={nome} className="h-full w-full object-cover" />

@@ -36,7 +36,7 @@ export default async function ArmadilhasPage() {
             <Link
               key={a.id}
               href={`/monitoramento-pragas/armadilhas/${a.id}/editar`}
-              className="flex items-center justify-between border-b border-neutral-100 px-4 py-3 last:border-b-0 hover:bg-neutral-50"
+              className="flex items-center justify-between border-b border-neutral-100 px-4 py-3 last:border-b-0 hover:bg-neutral-50 active:bg-neutral-100"
             >
               <div>
                 <p className="text-sm font-medium text-neutral-900">
