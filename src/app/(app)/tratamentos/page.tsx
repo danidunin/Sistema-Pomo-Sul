@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CalendarDays, Droplet } from "lucide-react";
 import { db } from "@/lib/db";
 import { TIPO_OPERACAO_LABELS, TIPO_OPERACAO_LABELS_ABA, unidadeDosagemEfetiva, tiposParaAbas, validarTipoSelecionado } from "@/lib/operacoes";
 import { UNIDADE_DOSAGEM_LABELS } from "@/lib/concentracao";
@@ -103,23 +104,16 @@ export default async function OperacoesPage({
 
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
         <Aba href="/tratamentos" ativo={!talhaoSelecionado} label="Todos" />
-        {talhoes.map((t) => {
-          const partes = [t.nomeCodinome];
-          if (diasDesdeUltimoPorTalhao.has(t.id)) {
-            partes.push(`${diasDesdeUltimoPorTalhao.get(t.id)}d`);
-          }
-          if (ultimaChuvaMm !== null) {
-            partes.push(`${ultimaChuvaMm.toLocaleString("pt-BR")}mm`);
-          }
-          return (
-            <Aba
-              key={t.id}
-              href={`/tratamentos?talhaoId=${t.id}`}
-              ativo={talhaoSelecionado === t.id}
-              label={partes.join(" · ")}
-            />
-          );
-        })}
+        {talhoes.map((t) => (
+          <Aba
+            key={t.id}
+            href={`/tratamentos?talhaoId=${t.id}`}
+            ativo={talhaoSelecionado === t.id}
+            label={t.nomeCodinome}
+            dias={diasDesdeUltimoPorTalhao.get(t.id)}
+            mm={ultimaChuvaMm}
+          />
+        ))}
       </div>
 
       {talhaoSelecionado && (
@@ -223,17 +217,53 @@ export default async function OperacoesPage({
   );
 }
 
-function Aba({ href, ativo, label }: { href: string; ativo: boolean; label: string }) {
+function Aba({
+  href,
+  ativo,
+  label,
+  dias,
+  mm,
+}: {
+  href: string;
+  ativo: boolean;
+  label: string;
+  dias?: number;
+  mm?: number | null;
+}) {
+  const temMetricas = dias !== undefined || (mm !== undefined && mm !== null);
+
   return (
     <Link
       href={href}
-      className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+      className={`shrink-0 whitespace-nowrap border px-4 py-2 text-sm font-medium transition-colors ${
+        temMetricas ? "rounded-2xl" : "rounded-full"
+      } ${
         ativo
           ? "border-green-700 bg-green-700 text-white active:bg-green-800"
           : "border-neutral-300 bg-white text-neutral-700 active:bg-neutral-100"
       }`}
     >
-      {label}
+      <span className="block">{label}</span>
+      {temMetricas && (
+        <span
+          className={`mt-0.5 flex items-center gap-2.5 text-xs font-normal ${
+            ativo ? "text-green-100" : "text-neutral-500"
+          }`}
+        >
+          {dias !== undefined && (
+            <span className="flex items-center gap-1">
+              <CalendarDays className="h-3 w-3" strokeWidth={2} />
+              {dias}d
+            </span>
+          )}
+          {mm !== undefined && mm !== null && (
+            <span className="flex items-center gap-1">
+              <Droplet className="h-3 w-3" strokeWidth={2} />
+              {mm.toLocaleString("pt-BR")}mm
+            </span>
+          )}
+        </span>
+      )}
     </Link>
   );
 }
