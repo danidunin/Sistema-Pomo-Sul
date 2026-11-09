@@ -9,18 +9,19 @@ export function NovidadesBar() {
   const recentes = atualizacoesRecentes();
 
   return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 pb-2 text-[11px] text-neutral-400">
-      <span className="font-medium text-neutral-500">v{VERSAO_ATUAL}</span>
-      <span aria-hidden>·</span>
-      <span>
-        {dias === 0 ? "Atualizado hoje" : `${dias} dia${dias === 1 ? "" : "s"} sem atualização`}
-      </span>
-      {recentes.length > 0 && (
-        <>
-          <span aria-hidden>·</span>
-          <span className="truncate">{recentes.map((item) => item.descricao).join(" · ")}</span>
-        </>
-      )}
+    <div className="flex flex-col gap-0.5 pb-2 text-[11px] text-neutral-400">
+      <div className="flex items-center gap-x-2">
+        <span className="font-medium text-neutral-500">v{VERSAO_ATUAL}</span>
+        <span aria-hidden>·</span>
+        <span>
+          {dias === 0 ? "Atualizado hoje" : `${dias} dia${dias === 1 ? "" : "s"} sem atualização`}
+        </span>
+      </div>
+      {recentes.map((item) => (
+        <p key={item.data} className="truncate">
+          {item.descricao}
+        </p>
+      ))}
     </div>
   );
 }
