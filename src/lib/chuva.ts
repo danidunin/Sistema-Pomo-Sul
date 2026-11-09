@@ -97,40 +97,6 @@ export function compararChuvaPorMes(
   return Array.from(meses.values()).sort((a, b) => b.mes.localeCompare(a.mes));
 }
 
-export type PeriodoComumChuva = { inicio: Date; desdeInicioDoAno: boolean; totais: Record<string, number> };
-
-/**
- * Soma a chuva do ano de cada propriedade só a partir do dia em que todas já registravam
- * chuva — senão uma propriedade que começou a medir em julho "perde" de quem mede desde
- * janeiro. Null se alguma propriedade não tem leitura nesse período.
- */
-export function somarPeriodoComum(
-  leituras: { propriedadeId: string; data: Date; quantidadeMm: number | string }[],
-  propriedadeIds: string[],
-  ano: string,
-): PeriodoComumChuva | null {
-  const inicioAno = new Date(`${ano}-01-01T00:00:00.000Z`);
-  const fimAno = new Date(`${Number(ano) + 1}-01-01T00:00:00.000Z`);
-
-  let inicio = inicioAno;
-  for (const id of propriedadeIds) {
-    const datas = leituras.filter((l) => l.propriedadeId === id).map((l) => l.data.getTime());
-    if (datas.length === 0) return null;
-    const primeira = Math.min(...datas);
-    if (primeira > inicio.getTime()) inicio = new Date(primeira);
-  }
-  if (inicio >= fimAno) return null;
-
-  const totais: Record<string, number> = Object.fromEntries(propriedadeIds.map((id) => [id, 0]));
-  for (const l of leituras) {
-    if (l.propriedadeId in totais && l.data >= inicio && l.data < fimAno) {
-      totais[l.propriedadeId] += Number(l.quantidadeMm);
-    }
-  }
-
-  return { inicio, desdeInicioDoAno: inicio.getTime() === inicioAno.getTime(), totais };
-}
-
 export type OperacaoParaAcumulo = {
   id: string;
   talhaoId: string;

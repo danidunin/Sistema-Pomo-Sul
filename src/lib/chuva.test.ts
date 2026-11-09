@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compararChuvaPorMes, somarPeriodoComum } from "@/lib/chuva";
+import { compararChuvaPorMes } from "@/lib/chuva";
 
 function leitura(propriedadeId: string, data: string, quantidadeMm: number | string) {
   return { propriedadeId, data: new Date(`${data}T00:00:00.000Z`), quantidadeMm };
@@ -45,53 +45,5 @@ describe("compararChuvaPorMes", () => {
 
   it("lista vazia não gera meses", () => {
     expect(compararChuvaPorMes([])).toEqual([]);
-  });
-});
-
-describe("somarPeriodoComum", () => {
-  it("só compara a partir do dia em que a última propriedade começou a medir", () => {
-    const resultado = somarPeriodoComum(
-      [
-        leitura("lapinha", "2026-03-22", 60),
-        leitura("lapinha", "2026-07-07", 89),
-        leitura("pomo", "2026-07-07", 50),
-        leitura("lapinha", "2026-07-23", 40),
-      ],
-      ["lapinha", "pomo"],
-      "2026",
-    );
-
-    expect(resultado?.inicio.toISOString().slice(0, 10)).toBe("2026-07-07");
-    expect(resultado?.desdeInicioDoAno).toBe(false);
-    expect(resultado?.totais).toEqual({ lapinha: 129, pomo: 50 });
-  });
-
-  it("se as duas já mediam antes do ano, usa o ano inteiro", () => {
-    const resultado = somarPeriodoComum(
-      [
-        leitura("lapinha", "2025-05-01", 10),
-        leitura("pomo", "2025-08-01", 10),
-        leitura("lapinha", "2026-02-10", 30),
-        leitura("pomo", "2026-02-10", 25),
-      ],
-      ["lapinha", "pomo"],
-      "2026",
-    );
-
-    expect(resultado?.desdeInicioDoAno).toBe(true);
-    expect(resultado?.totais).toEqual({ lapinha: 30, pomo: 25 });
-  });
-
-  it("propriedade sem nenhuma leitura não tem período comum", () => {
-    expect(somarPeriodoComum([leitura("lapinha", "2026-03-22", 60)], ["lapinha", "pomo"], "2026")).toBeNull();
-  });
-
-  it("propriedade que só começou a medir depois do ano não tem período comum nele", () => {
-    const resultado = somarPeriodoComum(
-      [leitura("lapinha", "2025-03-01", 60), leitura("pomo", "2026-07-07", 50)],
-      ["lapinha", "pomo"],
-      "2025",
-    );
-    expect(resultado).toBeNull();
   });
 });

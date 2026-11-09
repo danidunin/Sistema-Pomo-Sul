@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ComparativoMensalChuva, PeriodoComumChuva } from "@/lib/chuva";
+import type { ComparativoMensalChuva } from "@/lib/chuva";
 import { Card } from "@/components/ui/card";
 
 export type PropriedadeChuva = {
@@ -19,14 +19,12 @@ function mm(valor: number) {
 export function ComparativoChuva({
   propriedades,
   linhas,
-  periodoComum,
   ano,
   anos,
   hrefAno,
 }: {
   propriedades: PropriedadeChuva[];
   linhas: ComparativoMensalChuva[];
-  periodoComum: PeriodoComumChuva | null;
   ano: string;
   anos: string[];
   hrefAno: (ano: string) => string;
@@ -102,7 +100,7 @@ export function ComparativoChuva({
         ))}
       </div>
 
-      {doisLados && <ResumoDiferenca totais={totais} periodoComum={periodoComum} ano={ano} />}
+      {doisLados && <ResumoDiferenca totais={totais} ano={ano} />}
 
       {linhas.length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhuma leitura registrada em {ano}.</p>
@@ -168,11 +166,9 @@ export function ComparativoChuva({
 
 function ResumoDiferenca({
   totais,
-  periodoComum,
   ano,
 }: {
-  totais: { propriedade: PropriedadeChuva; leituras: number }[];
-  periodoComum: PeriodoComumChuva | null;
+  totais: { propriedade: PropriedadeChuva; totalMm: number; leituras: number }[];
   ano: string;
 }) {
   const semLeitura = totais.find((t) => t.leituras === 0);
@@ -184,30 +180,20 @@ function ResumoDiferenca({
       </p>
     );
   }
-  if (!periodoComum) return null;
 
   const [maior, menor] = totais
-    .map((t) => ({ nome: t.propriedade.nome, totalMm: periodoComum.totais[t.propriedade.id] ?? 0 }))
+    .map((t) => ({ nome: t.propriedade.nome, totalMm: t.totalMm }))
     .sort((a, b) => b.totalMm - a.totalMm);
   const diferenca = maior.totalMm - menor.totalMm;
   const percentual = menor.totalMm > 0 ? Math.round((diferenca / menor.totalMm) * 100) : null;
-  const periodo = periodoComum.desdeInicioDoAno ? (
-    `Em ${ano}`
-  ) : (
-    <>
-      Desde{" "}
-      {periodoComum.inicio.toLocaleDateString("pt-BR", { timeZone: "UTC", day: "2-digit", month: "2-digit" })}, quando
-      as duas passaram a registrar ({maior.nome} {mm(maior.totalMm)} × {menor.nome} {mm(menor.totalMm)})
-    </>
-  );
 
   if (diferenca < 0.05) {
-    return <p className="text-sm text-neutral-600">{periodo}, as duas propriedades receberam o mesmo volume.</p>;
+    return <p className="text-sm text-neutral-600">Em {ano}, as duas propriedades receberam o mesmo volume.</p>;
   }
 
   return (
     <p className="text-sm text-neutral-600">
-      {periodo}, <span className="font-medium text-neutral-900">{maior.nome}</span> recebeu{" "}
+      Em {ano}, <span className="font-medium text-neutral-900">{maior.nome}</span> recebeu{" "}
       <span className="font-medium text-neutral-900">{mm(diferenca)}</span> a mais que {menor.nome}
       {percentual !== null && ` (+${percentual}%)`}.
     </p>

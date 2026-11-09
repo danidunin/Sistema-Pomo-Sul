@@ -2,7 +2,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { formatarData } from "@/lib/format";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
-import { buscarChuvaTodasPropriedades, compararChuvaPorMes, somarPeriodoComum } from "@/lib/chuva";
+import { buscarChuvaTodasPropriedades, compararChuvaPorMes } from "@/lib/chuva";
 import { Card } from "@/components/ui/card";
 import { ComparativoChuva, type PropriedadeChuva } from "@/components/chuva/comparativo-chuva";
 
@@ -79,11 +79,6 @@ export default async function ChuvaPage({
         <ComparativoChuva
           propriedades={propriedades}
           linhas={comparativo.filter((l) => l.mes.startsWith(`${ano}-`))}
-          periodoComum={somarPeriodoComum(
-            leiturasNumericas,
-            propriedades.map((p) => p.id),
-            ano,
-          )}
           ano={ano}
           anos={anos}
           hrefAno={(a) => montarHref({ ver: verParam, ano: a })}
