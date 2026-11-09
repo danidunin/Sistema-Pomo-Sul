@@ -59,6 +59,9 @@ export default async function OperacoesPage({
     : operacoesBase;
 
   const chuvas = await buscarChuvaRegistros(propriedadeId);
+  // Chuva é registrada por propriedade (um pluviômetro só), não por talhão — a última
+  // leitura vale igual pra todas as quadras da propriedade atual.
+  const ultimaChuvaMm = chuvas[0] ? Number(chuvas[0].quantidadeMm) : null;
   const fitossanitarios = operacoesBase
     .filter((o) => o.tipo === "FITOSSANITARIO")
     .map((o) => ({ id: o.id, talhaoId: o.talhaoId, data: o.data, createdAt: o.createdAt }));
@@ -100,18 +103,23 @@ export default async function OperacoesPage({
 
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
         <Aba href="/tratamentos" ativo={!talhaoSelecionado} label="Todos" />
-        {talhoes.map((t) => (
-          <Aba
-            key={t.id}
-            href={`/tratamentos?talhaoId=${t.id}`}
-            ativo={talhaoSelecionado === t.id}
-            label={
-              diasDesdeUltimoPorTalhao.has(t.id)
-                ? `${t.nomeCodinome} · ${diasDesdeUltimoPorTalhao.get(t.id)}d`
-                : t.nomeCodinome
-            }
-          />
-        ))}
+        {talhoes.map((t) => {
+          const partes = [t.nomeCodinome];
+          if (diasDesdeUltimoPorTalhao.has(t.id)) {
+            partes.push(`${diasDesdeUltimoPorTalhao.get(t.id)}d`);
+          }
+          if (ultimaChuvaMm !== null) {
+            partes.push(`${ultimaChuvaMm.toLocaleString("pt-BR")}mm`);
+          }
+          return (
+            <Aba
+              key={t.id}
+              href={`/tratamentos?talhaoId=${t.id}`}
+              ativo={talhaoSelecionado === t.id}
+              label={partes.join(" · ")}
+            />
+          );
+        })}
       </div>
 
       {talhaoSelecionado && (
