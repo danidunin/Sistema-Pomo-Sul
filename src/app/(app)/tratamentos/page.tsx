@@ -116,6 +116,19 @@ export default async function OperacoesPage({
         ))}
       </div>
 
+      {(diasDesdeUltimoPorTalhao.size > 0 || ultimaChuvaMm !== null) && (
+        <div className="-mt-2 flex items-center gap-3 px-1 text-[11px] text-neutral-400">
+          <span className="flex items-center gap-1">
+            <CalendarDays className="h-3 w-3" strokeWidth={2} />
+            Dias desde o tratamento
+          </span>
+          <span className="flex items-center gap-1">
+            <Droplet className="h-3 w-3" strokeWidth={2} />
+            Chuva na última leitura
+          </span>
+        </div>
+      )}
+
       {talhaoSelecionado && (
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
           <Aba
