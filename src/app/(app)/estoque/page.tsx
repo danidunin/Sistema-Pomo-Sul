@@ -26,6 +26,12 @@ export default async function EstoquePage({
         <h1 className="text-xl font-semibold text-neutral-900">Estoque</h1>
         <div className="flex flex-wrap gap-2">
           <Link
+            href="/estoque/consolidado"
+            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 active:bg-neutral-100"
+          >
+            Estoque consolidado
+          </Link>
+          <Link
             href="/estoque/movimentacoes/nova?tipo=entrada"
             className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 active:bg-neutral-100"
           >
