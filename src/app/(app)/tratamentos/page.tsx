@@ -102,7 +102,7 @@ export default async function OperacoesPage({
 
       <ExportarBotoes recurso="tratamentos" />
 
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+      <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1">
         <Aba href="/tratamentos" ativo={!talhaoSelecionado} label="Todos" />
         {talhoes.map((t) => (
           <Aba
@@ -130,7 +130,7 @@ export default async function OperacoesPage({
       )}
 
       {talhaoSelecionado && (
-        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+        <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1">
           <Aba
             href={`/tratamentos?talhaoId=${talhaoSelecionado}`}
             ativo={!tipoSelecionado}
