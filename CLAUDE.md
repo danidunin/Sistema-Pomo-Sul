@@ -428,6 +428,19 @@ Criar inicialmente:
 
 ---
 
+## 17. CHANGELOG DA TELA INICIAL
+
+A Home mostra uma faixa discreta com a versão atual do sistema e um resumo das atualizações recentes (`src/lib/changelog.ts`).
+
+**Regra para quem desenvolve (humano ou IA) nesse repositório:**
+
+- Uma entrada por **dia** com atualização — nunca uma por commit ou PR.
+- Antes de encerrar uma sessão de trabalho, confira o `git log` do `main` desde a data da última entrada do changelog. Se houver merges sem entrada correspondente (inclusive os que não passaram por essa sessão), adicione ou atualize a entrada do dia.
+- A descrição deve resumir os temas principais do dia numa frase curta, voltada para quem usa o sistema — não listar cada commit técnico.
+- A versão sobe uma casa decimal (1.1 → 1.2 → 1.3...) a cada **dia** com atualização nova, não a cada commit.
+
+---
+
 ## REGRA FINAL DO PROJETO
 
 > O POMO SUL deve ser uma ferramenta **simples, integrada e utilizada diariamente.**
