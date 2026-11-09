@@ -51,33 +51,31 @@ export default async function EstoqueConsolidadoPage({
       {itens.length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhum produto encontrado.</p>
       ) : (
-        <div className="flex flex-col gap-3">
-          {itens.map((item) => (
-            <Card key={item.nome} padding="md" className="flex flex-col gap-3">
-              <p className="text-sm font-medium text-neutral-900">{item.nome}</p>
-
-              {item.porUnidade.map((grupoUnidade) => (
-                <div key={grupoUnidade.unidade} className="flex flex-col gap-1.5 border-t border-neutral-100 pt-2 first:border-t-0 first:pt-0">
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-xs uppercase tracking-wide text-neutral-400">
-                      {item.porUnidade.length > 1 ? `Em ${grupoUnidade.unidade}` : "Total"}
-                    </span>
-                    <span className="text-base font-semibold text-neutral-900">
-                      {formatarQuantidade(grupoUnidade.totalDisponivel)} {grupoUnidade.unidade}
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-neutral-500">
-                    {grupoUnidade.porPropriedade.map((p) => (
-                      <span key={p.propriedadeId}>
-                        {p.propriedadeNome}: {formatarQuantidade(p.quantidadeDisponivel)} {grupoUnidade.unidade}
-                      </span>
-                    ))}
-                  </div>
+        <Card padding="none" className="overflow-hidden">
+          {itens.flatMap((item) =>
+            item.porUnidade.map((grupoUnidade) => (
+              <div
+                key={`${item.nome}-${grupoUnidade.unidade}`}
+                className="flex items-center justify-between border-b border-neutral-100 px-4 py-3 last:border-b-0"
+              >
+                <div>
+                  <p className="text-sm font-medium text-neutral-900">
+                    {item.nome}
+                    {item.porUnidade.length > 1 ? ` (${grupoUnidade.unidade})` : ""}
+                  </p>
+                  <p className="text-xs text-neutral-400">
+                    {grupoUnidade.porPropriedade
+                      .map((p) => `${p.propriedadeNome}: ${formatarQuantidade(p.quantidadeDisponivel)} ${grupoUnidade.unidade}`)
+                      .join(" · ")}
+                  </p>
                 </div>
-              ))}
-            </Card>
-          ))}
-        </div>
+                <span className="text-sm text-neutral-700">
+                  {formatarQuantidade(grupoUnidade.totalDisponivel)} {grupoUnidade.unidade}
+                </span>
+              </div>
+            )),
+          )}
+        </Card>
       )}
     </div>
   );
