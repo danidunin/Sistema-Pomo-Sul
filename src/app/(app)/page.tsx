@@ -12,6 +12,7 @@ import { IconArea, IconParcelas, IconMaquina, IconFuncionario, IconSync } from "
 import { PainelRadar } from "@/components/clima/painel-radar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { NovidadesBar } from "@/components/ui/novidades-bar";
 import { fotoHeroAtual } from "@/lib/hero";
 
 export default async function HomePage() {
@@ -23,7 +24,9 @@ export default async function HomePage() {
   const fotoHero = fotoHeroAtual();
 
   return (
-    <div className="-mx-4 -mt-4 flex flex-col gap-5 md:-mx-6">
+    <>
+      <NovidadesBar />
+      <div className="-mx-4 flex flex-col gap-5 md:-mx-6">
       <section className="relative h-72 overflow-hidden md:h-96">
         <Image
           src={fotoHero.src}
@@ -63,7 +66,8 @@ export default async function HomePage() {
       <div className="flex flex-col gap-4 px-4 md:px-6">
         {propriedadeId ? <ResumoDaPropriedade propriedadeId={propriedadeId} /> : <SeletorPropriedade />}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
