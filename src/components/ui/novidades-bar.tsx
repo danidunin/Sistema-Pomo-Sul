@@ -1,12 +1,18 @@
-import { VERSAO_ATUAL, atualizacoesRecentes, diasSemAtualizacao } from "@/lib/changelog";
+import {
+  VERSAO_ATUAL,
+  atualizacoesRecentes,
+  dataUltimaAtualizacaoFormatada,
+  diasSemAtualizacao,
+} from "@/lib/changelog";
 
 /**
- * Faixa discreta no topo da Home: versão do sistema, há quantos dias foi a
- * última atualização, e um resumo bem curto do que mudou nos últimos 7 dias.
+ * Faixa discreta no topo da Home: versão do sistema, quando foi a última
+ * atualização, e um resumo bem curto do que mudou nos últimos 7 dias.
  */
 export function NovidadesBar() {
   const dias = diasSemAtualizacao();
   const recentes = atualizacoesRecentes();
+  const data = dataUltimaAtualizacaoFormatada();
 
   return (
     <div className="flex flex-col gap-0.5 pb-2 text-[11px] text-neutral-400">
@@ -14,7 +20,7 @@ export function NovidadesBar() {
         <span className="font-medium text-neutral-500">v{VERSAO_ATUAL}</span>
         <span aria-hidden>·</span>
         <span>
-          {dias === 0 ? "Atualizado hoje" : `${dias} dia${dias === 1 ? "" : "s"} sem atualização`}
+          {dias === 0 ? `Atualizado hoje (${data})` : `Última atualização em ${data} (${dias} dia${dias === 1 ? "" : "s"})`}
         </span>
       </div>
       {recentes.map((item) => (

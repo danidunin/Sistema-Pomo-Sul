@@ -41,6 +41,16 @@ export function diasSemAtualizacao(): number {
   return Math.max(0, Math.round((hojeEpochUTC() - paraEpochUTC(ultima)) / UM_DIA_MS));
 }
 
+export function dataUltimaAtualizacaoFormatada(): string {
+  const ultima = CHANGELOG[0]?.data;
+  if (!ultima) return "";
+  return new Date(`${ultima}T00:00:00Z`).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "UTC",
+  });
+}
+
 export function atualizacoesRecentes(): EntradaChangelog[] {
   const limite = hojeEpochUTC() - 7 * UM_DIA_MS;
   return CHANGELOG.filter((item) => paraEpochUTC(item.data) >= limite);
