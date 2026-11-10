@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { chaveNomeProduto } from "@/lib/produto-nome";
 
 export type ItemEstoqueConsolidadoPropriedade = {
   propriedadeId: string;
@@ -31,6 +32,26 @@ export async function buscarEstoqueConsolidado(opts?: { apenasAtivos?: boolean }
     orderBy: { nome: "asc" },
   });
 
+  return agruparEstoqueConsolidado(produtos);
+}
+
+export type ProdutoParaConsolidar = {
+  nome: string;
+  unidade: string;
+  quantidadeDisponivel: number | { toString(): string };
+  propriedadeId: string;
+  propriedade: { nome: string };
+};
+
+/**
+ * Mesmo produto = mesmo nome ignorando acento, maiúscula, espaço e pontuação
+ * ("ÁCIDO PERACÉTICO 15%" e "ACIDO PERACETICO 15%" viram uma linha só).
+ */
+function chaveAgrupamentoNome(nome: string): string {
+  return chaveNomeProduto(nome) || nome.trim().toLowerCase();
+}
+
+export function agruparEstoqueConsolidado(produtos: ProdutoParaConsolidar[]): ItemEstoqueConsolidado[] {
   type GrupoUnidade = {
     unidade: string;
     totalDisponivel: number;
@@ -41,7 +62,7 @@ export async function buscarEstoqueConsolidado(opts?: { apenasAtivos?: boolean }
   const porNome = new Map<string, GrupoNome>();
 
   for (const produto of produtos) {
-    const chaveNome = produto.nome.trim().toLowerCase();
+    const chaveNome = chaveAgrupamentoNome(produto.nome);
     if (!porNome.has(chaveNome)) {
       porNome.set(chaveNome, { nomeExibicao: produto.nome.trim(), porUnidade: new Map() });
     }
