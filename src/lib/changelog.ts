@@ -1,7 +1,8 @@
 export type EntradaChangelog = {
   versao: string;
   data: string; // "YYYY-MM-DD"
-  descricao: string;
+  // Uma frase = uma linha no card. Use array quando o dia tiver mais de um tema.
+  descricao: string | string[];
 };
 
 /**
@@ -10,15 +11,19 @@ export type EntradaChangelog = {
  *
  * Uma entrada por DIA com atualização, nunca uma por commit/PR — veja a
  * seção "Changelog da tela inicial" no CLAUDE.md para o processo completo.
- * Resuma os temas principais do dia numa frase curta e suba uma casa
- * decimal da versão (1.1 → 1.2 → 1.3...).
+ * Cada tema do dia é uma frase curta (string ou item do array `descricao`),
+ * e a versão sobe uma casa decimal por dia com atualização (1.1 → 1.2 → 1.3...).
  */
 export const CHANGELOG: EntradaChangelog[] = [
   {
     versao: "1.1",
     data: "2026-11-09",
-    descricao:
-      "Estoque consolidado, nomes de produtos padronizados em maiúsculo com aviso de produto repetido, comparativo de chuva entre propriedades e resumo de novidades na tela inicial",
+    descricao: [
+      "Estoque consolidado entre propriedades",
+      "Nomes de produtos padronizados, com aviso de duplicidade",
+      "Comparativo de chuva entre propriedades",
+      "Resumo de novidades na tela inicial",
+    ],
   },
 ];
 

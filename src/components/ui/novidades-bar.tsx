@@ -9,10 +9,21 @@ import {
  * Faixa discreta no topo da Home: versão do sistema, quando foi a última
  * atualização, e um resumo bem curto do que mudou nos últimos 7 dias.
  */
+const MAX_LINHAS = 6;
+
 export function NovidadesBar() {
   const dias = diasSemAtualizacao();
   const recentes = atualizacoesRecentes();
   const data = dataUltimaAtualizacaoFormatada();
+
+  const linhas = recentes
+    .flatMap((item) =>
+      (Array.isArray(item.descricao) ? item.descricao : [item.descricao]).map((texto, indice) => ({
+        chave: `${item.data}-${indice}`,
+        texto,
+      })),
+    )
+    .slice(0, MAX_LINHAS);
 
   return (
     <div className="flex flex-col gap-0.5 pb-2 text-[11px] text-neutral-400">
@@ -23,9 +34,9 @@ export function NovidadesBar() {
           {dias === 0 ? `Atualizado hoje (${data})` : `Última atualização em ${data} (${dias} dia${dias === 1 ? "" : "s"})`}
         </span>
       </div>
-      {recentes.map((item) => (
-        <p key={item.data} className="truncate">
-          {item.descricao}
+      {linhas.map((linha) => (
+        <p key={linha.chave} className="truncate">
+          {linha.texto}
         </p>
       ))}
     </div>
