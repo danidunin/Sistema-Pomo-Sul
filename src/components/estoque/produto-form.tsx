@@ -5,6 +5,7 @@ import { UNIDADE_DOSAGEM_LABELS } from "@/lib/concentracao";
 import {
   UNIDADES_ESTOQUE,
   buscarParecidos,
+  chaveNomeProduto,
   mesmoProduto,
   unidadeDaLista,
   type ProdutoExistente,
@@ -30,12 +31,19 @@ export function ProdutoForm({
   defaultValues,
   submitLabel,
   produtosExistentes,
+  editando = false,
 }: {
   action: ProdutoAction;
   defaultValues?: Partial<ProdutoFormValues>;
   submitLabel: string;
   /** Produtos já cadastrados em todas as fazendas — liga as sugestões de nome parecido. */
   produtosExistentes?: ProdutoExistente[];
+  /**
+   * Editando um produto que já existe: o aviso só aparece quando o nome é
+   * mudado, e "Usar este nome" copia só o nome — a unidade do produto nunca
+   * é trocada pelo aviso.
+   */
+  editando?: boolean;
 }) {
   const { formAction, isPending, erro, rotulo } = useFormularioAcao(action);
   const [nome, setNome] = useState(defaultValues?.nome ?? "");
@@ -51,17 +59,24 @@ export function ProdutoForm({
     return opcoes;
   }, [defaultValues?.unidade, unidade]);
 
+  const nomeOriginal = defaultValues?.nome ?? "";
   const parecidos = useMemo(() => {
     if (!produtosExistentes) return [];
-    return buscarParecidos(nome, produtosExistentes).filter(
-      // Some da lista quando o nome e a unidade já batem com um produto de outra fazenda.
-      (p) => p.nestaFazenda || !mesmoProduto(p, { nome, unidade }),
-    );
-  }, [nome, unidade, produtosExistentes]);
+    if (editando && chaveNomeProduto(nome) === chaveNomeProduto(nomeOriginal)) return [];
+    return buscarParecidos(nome, produtosExistentes).filter((p) => {
+      if (p.nestaFazenda) return true;
+      // Some da lista quando já está escrito igual ao produto da outra fazenda.
+      return editando ? chaveNomeProduto(p.nome) !== chaveNomeProduto(nome) : !mesmoProduto(p, { nome, unidade });
+    });
+  }, [nome, unidade, nomeOriginal, editando, produtosExistentes]);
 
   function usarExistente(produto: ProdutoExistente) {
     setNome(produto.nome);
-    setUnidade(unidadeDaLista(produto.unidade));
+    if (!editando) setUnidade(unidadeDaLista(produto.unidade));
+  }
+
+  function unidadeDiferente(produto: ProdutoExistente) {
+    return produto.unidade.trim().toLowerCase() !== unidade.trim().toLowerCase();
   }
 
   return (
@@ -94,6 +109,9 @@ export function ProdutoForm({
                   </p>
                   <p className="text-xs text-neutral-500">
                     {p.nestaFazenda ? "Já cadastrado nesta fazenda" : `Cadastrado na ${p.fazendas.join(" e na ")}`}
+                    {editando && unidade && unidadeDiferente(p) && (
+                      <span className="text-amber-700"> · unidade diferente deste produto</span>
+                    )}
                   </p>
                 </div>
                 {!p.nestaFazenda && (
@@ -102,7 +120,7 @@ export function ProdutoForm({
                     onClick={() => usarExistente(p)}
                     className="shrink-0 rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-medium text-amber-900 active:bg-amber-100"
                   >
-                    Usar este
+                    {editando ? "Usar este nome" : "Usar este"}
                   </button>
                 )}
               </div>

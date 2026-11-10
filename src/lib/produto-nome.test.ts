@@ -34,6 +34,10 @@ describe("pontuacaoParecido", () => {
       ["Malation", "MALATHION"],
       ["Citoblom", "CITOBLOON"],
       ["Coraza", "COROZA"],
+      ["ACIDO PERACETICU", "ACIDO PARACETICO 15%"],
+      ["SUPER TRIPLO", "SUPER FOSFATO TRIPLO"],
+      ["MIREX", "FORMICIDA MIREX"],
+      ["ETHREL", "ETHREL 720"],
     ];
     for (const [digitado, existente] of pares) {
       expect(pontuacaoParecido(digitado, existente), `${digitado} x ${existente}`).not.toBeNull();
@@ -52,6 +56,9 @@ describe("pontuacaoParecido", () => {
     expect(pontuacaoParecido("DECIS", "DELAN")).toBeNull();
     expect(pontuacaoParecido("BION", "BIOSTIN CAB")).toBeNull();
     expect(pontuacaoParecido("MANFIL", "FINALE")).toBeNull();
+    expect(pontuacaoParecido("ACIDO BORICO", "ACIDO PARACETICO 15%")).toBeNull();
+    expect(pontuacaoParecido("WISER CAB", "CAB")).toBeNull();
+    expect(pontuacaoParecido("KLOPANTO", "KLORPAN")).toBeNull();
   });
 });
 
