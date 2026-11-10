@@ -61,6 +61,22 @@ export function distanciaEdicao(a: string, b: string): number {
   return anterior[b.length];
 }
 
+/** Só as letras, sem números e símbolos ("ACIDO PARACETICO 15%" → "acidoparacetico"). */
+function chaveSoLetras(nome: string): string {
+  return semAcento(nome).replace(/[^a-z]/g, "");
+}
+
+function palavrasSoLetras(nome: string): string[] {
+  return semAcento(nome).split(/[^a-z]+/).filter(Boolean);
+}
+
+/** Quantas letras podem estar diferentes, conforme o tamanho do nome. */
+function letrasDiferentesAceitas(tamanho: number): number {
+  if (tamanho >= 12) return 3;
+  if (tamanho >= 6) return 2;
+  return 1;
+}
+
 /**
  * Pontuação de parecença entre o que está sendo digitado e um produto
  * existente. `null` = não é parecido. Quanto menor, mais parecido.
@@ -72,9 +88,27 @@ export function pontuacaoParecido(digitado: string, existente: string): number |
   if (a === b) return 0;
   if (chavePalavras(digitado) === chavePalavras(existente)) return 0;
   if (b.startsWith(a) || (b.length >= 3 && a.startsWith(b))) return 1;
+
   const distancia = distanciaEdicao(a, b);
-  const limite = Math.min(a.length, b.length) >= 6 ? 2 : 1;
-  return distancia <= limite ? 1 + distancia : null;
+  if (distancia <= letrasDiferentesAceitas(Math.min(a.length, b.length))) return 1 + distancia;
+
+  // De novo, só com as letras: números como "15%" ou "720" não podem esconder
+  // um nome parecido ("ACIDO PERACETICU" x "ACIDO PARACETICO 15%").
+  const la = chaveSoLetras(digitado);
+  const lb = chaveSoLetras(existente);
+  if (la.length >= 3 && lb.length >= 3) {
+    const distanciaLetras = distanciaEdicao(la, lb);
+    if (distanciaLetras <= letrasDiferentesAceitas(Math.min(la.length, lb.length))) return 1 + distanciaLetras;
+  }
+
+  // Um nome contido no outro, palavra por palavra
+  // ("SUPER TRIPLO" x "SUPER FOSFATO TRIPLO", "MIREX" x "FORMICIDA MIREX").
+  const pa = palavrasSoLetras(digitado);
+  const pb = palavrasSoLetras(existente);
+  const [curto, longo] = pa.length <= pb.length ? [pa, pb] : [pb, pa];
+  if (curto.join("").length >= 5 && curto.every((p) => longo.includes(p))) return 4;
+
+  return null;
 }
 
 /** Mesmo produto = mesmo nome (ignorando acento/maiúscula/espaço) e mesma unidade. */
