@@ -436,7 +436,7 @@ A Home mostra uma faixa discreta com a versão atual do sistema e um resumo das 
 
 - Uma entrada por **dia** com atualização — nunca uma por commit ou PR.
 - Antes de encerrar uma sessão de trabalho, confira o `git log` do `main` desde a data da última entrada do changelog. Se houver merges sem entrada correspondente (inclusive os que não passaram por essa sessão), adicione ou atualize a entrada do dia.
-- A descrição deve resumir os temas principais do dia numa frase curta, voltada para quem usa o sistema — não listar cada commit técnico.
+- `descricao` é uma frase curta, voltada para quem usa o sistema — não listar cada commit técnico. Se o dia teve mais de um tema, use um array de frases curtas (uma por tema) em vez de juntar tudo numa frase só — cada item vira uma linha no card.
 - A versão sobe uma casa decimal (1.1 → 1.2 → 1.3...) a cada **dia** com atualização nova, não a cada commit.
 
 ---
