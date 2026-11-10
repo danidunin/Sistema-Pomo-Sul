@@ -1,6 +1,14 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { UNIDADE_DOSAGEM_LABELS } from "@/lib/concentracao";
+import {
+  UNIDADES_ESTOQUE,
+  buscarParecidos,
+  mesmoProduto,
+  unidadeDaLista,
+  type ProdutoExistente,
+} from "@/lib/produto-nome";
 import { useFormularioAcao } from "@/hooks/use-formulario-acao";
 import { Button } from "@/components/ui/button";
 
@@ -21,12 +29,40 @@ export function ProdutoForm({
   action,
   defaultValues,
   submitLabel,
+  produtosExistentes,
 }: {
   action: ProdutoAction;
   defaultValues?: Partial<ProdutoFormValues>;
   submitLabel: string;
+  /** Produtos já cadastrados em todas as fazendas — liga as sugestões de nome parecido. */
+  produtosExistentes?: ProdutoExistente[];
 }) {
   const { formAction, isPending, erro, rotulo } = useFormularioAcao(action);
+  const [nome, setNome] = useState(defaultValues?.nome ?? "");
+  const [unidade, setUnidade] = useState(defaultValues?.unidade ?? "");
+
+  // A unidade atual do produto entra na lista mesmo fora do padrão (ex: "KG"),
+  // para que salvar sem mexer nela nunca troque a unidade gravada.
+  const opcoesUnidade = useMemo(() => {
+    const opcoes: { valor: string; rotulo: string }[] = [...UNIDADES_ESTOQUE];
+    for (const extra of [defaultValues?.unidade, unidade]) {
+      if (extra && !opcoes.some((o) => o.valor === extra)) opcoes.push({ valor: extra, rotulo: extra });
+    }
+    return opcoes;
+  }, [defaultValues?.unidade, unidade]);
+
+  const parecidos = useMemo(() => {
+    if (!produtosExistentes) return [];
+    return buscarParecidos(nome, produtosExistentes).filter(
+      // Some da lista quando o nome e a unidade já batem com um produto de outra fazenda.
+      (p) => p.nestaFazenda || !mesmoProduto(p, { nome, unidade }),
+    );
+  }, [nome, unidade, produtosExistentes]);
+
+  function usarExistente(produto: ProdutoExistente) {
+    setNome(produto.nome);
+    setUnidade(unidadeDaLista(produto.unidade));
+  }
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -38,23 +74,64 @@ export function ProdutoForm({
           id="nome"
           name="nome"
           required
-          defaultValue={defaultValues?.nome}
-          className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
+          autoComplete="off"
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+          className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base uppercase focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
         />
+        <p className="mt-1 text-xs text-neutral-500">O nome é salvo sempre em maiúsculo.</p>
+
+        {parecidos.length > 0 && (
+          <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2">
+            <p className="px-2 pb-1 text-xs font-medium text-amber-800">
+              Já existe produto com nome parecido. Se for o mesmo, use o mesmo nome:
+            </p>
+            {parecidos.map((p) => (
+              <div key={`${p.nome}|${p.unidade}`} className="flex items-center justify-between gap-2 px-2 py-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-neutral-900">
+                    {p.nome} <span className="font-normal text-neutral-500">({p.unidade})</span>
+                  </p>
+                  <p className="text-xs text-neutral-500">
+                    {p.nestaFazenda ? "Já cadastrado nesta fazenda" : `Cadastrado na ${p.fazendas.join(" e na ")}`}
+                  </p>
+                </div>
+                {!p.nestaFazenda && (
+                  <button
+                    type="button"
+                    onClick={() => usarExistente(p)}
+                    className="shrink-0 rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-medium text-amber-900 active:bg-amber-100"
+                  >
+                    Usar este
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div>
         <label htmlFor="unidade" className="mb-1 block text-sm font-medium text-neutral-700">
           Unidade de estoque *
         </label>
-        <input
+        <select
           id="unidade"
           name="unidade"
-          placeholder="ex: L, kg, un, sc"
           required
-          defaultValue={defaultValues?.unidade}
+          value={unidade}
+          onChange={(e) => setUnidade(e.target.value)}
           className="w-full rounded-lg border border-neutral-300 px-4 py-3 text-base focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
-        />
+        >
+          <option value="" disabled>
+            Selecione
+          </option>
+          {opcoesUnidade.map((o) => (
+            <option key={o.valor} value={o.valor}>
+              {o.rotulo}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div>

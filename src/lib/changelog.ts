@@ -17,7 +17,8 @@ export const CHANGELOG: EntradaChangelog[] = [
   {
     versao: "1.1",
     data: "2026-11-09",
-    descricao: "Estoque consolidado, comparativo de chuva entre propriedades e resumo de novidades na tela inicial",
+    descricao:
+      "Estoque consolidado, nomes de produtos padronizados em maiúsculo com aviso de produto repetido, comparativo de chuva entre propriedades e resumo de novidades na tela inicial",
   },
 ];
 

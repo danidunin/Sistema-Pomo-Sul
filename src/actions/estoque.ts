@@ -6,17 +6,38 @@ import { revalidatePath } from "next/cache";
 import { UnidadeDosagem } from "@/generated/prisma/enums";
 import { exigirPropriedadeAtual, garantirProdutoDaPropriedade } from "@/lib/propriedade";
 import { ehValorDoEnum } from "@/lib/enum";
+import { mesmoProduto, padronizarNomeProduto } from "@/lib/produto-nome";
 
 function parseProdutoForm(formData: FormData) {
   const unidadeDosagemRaw = String(formData.get("unidadeDosagem") ?? "");
   const limiteRaw = String(formData.get("limiteAplicacoesCiclo") ?? "").trim();
   return {
-    nome: String(formData.get("nome") ?? "").trim(),
+    nome: padronizarNomeProduto(String(formData.get("nome") ?? "")),
     unidade: String(formData.get("unidade") ?? "").trim(),
     unidadeDosagem: (unidadeDosagemRaw || null) as UnidadeDosagem | null,
     limiteAplicacoesCiclo: limiteRaw ? Number(limiteRaw) : null,
     observacoes: String(formData.get("observacoes") ?? "").trim() || null,
   };
+}
+
+/**
+ * Mensagem de erro se já existir, na mesma fazenda, um produto com o mesmo nome
+ * (ignorando acento/maiúscula/espaço) e a mesma unidade. Conta também os inativos.
+ */
+async function mensagemProdutoRepetido(
+  propriedadeId: string,
+  novo: { nome: string; unidade: string },
+  ignorarProdutoId?: string,
+): Promise<string | undefined> {
+  const produtos = await db.produto.findMany({
+    where: { propriedadeId },
+    select: { id: true, nome: true, unidade: true, ativo: true },
+  });
+  const repetido = produtos.find((p) => p.id !== ignorarProdutoId && mesmoProduto(p, novo));
+  if (!repetido) return undefined;
+  return repetido.ativo
+    ? `Já existe ${repetido.nome} (${repetido.unidade}) nesta fazenda.`
+    : `Já existe ${repetido.nome} (${repetido.unidade}) nesta fazenda, marcado como inativo. Reative ele em vez de cadastrar outro.`;
 }
 
 export async function criarProduto(
@@ -41,6 +62,9 @@ export async function criarProduto(
   }
 
   const propriedadeId = await exigirPropriedadeAtual();
+  const repetido = await mensagemProdutoRepetido(propriedadeId, dados);
+  if (repetido) return repetido;
+
   await db.produto.create({ data: { ...dados, propriedadeId } });
 
   revalidatePath("/estoque");
@@ -72,6 +96,14 @@ export async function atualizarProduto(
   const propriedadeId = await exigirPropriedadeAtual();
   if (!(await garantirProdutoDaPropriedade(produtoId, propriedadeId))) {
     return "Produto inválido para a propriedade atual.";
+  }
+
+  // Só checa repetição se o nome ou a unidade mudou — assim editar outro campo
+  // (ex: observações) de um produto antigo nunca fica bloqueado.
+  const atual = await db.produto.findUnique({ where: { id: produtoId }, select: { nome: true, unidade: true } });
+  if (!atual || !mesmoProduto(atual, dados)) {
+    const repetido = await mensagemProdutoRepetido(propriedadeId, dados, produtoId);
+    if (repetido) return repetido;
   }
 
   await db.produto.update({ where: { id: produtoId }, data: dados });
