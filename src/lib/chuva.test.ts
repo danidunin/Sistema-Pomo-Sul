@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compararChuvaPorMes } from "@/lib/chuva";
+import { calcularChuvaDesdeUltimoTratamentoPorTalhao, compararChuvaPorMes } from "@/lib/chuva";
 
 function leitura(propriedadeId: string, data: string, quantidadeMm: number | string) {
   return { propriedadeId, data: new Date(`${data}T00:00:00.000Z`), quantidadeMm };
@@ -45,5 +45,72 @@ describe("compararChuvaPorMes", () => {
 
   it("lista vazia não gera meses", () => {
     expect(compararChuvaPorMes([])).toEqual([]);
+  });
+});
+
+function dia(data: string) {
+  return new Date(`${data}T00:00:00.000Z`);
+}
+
+function trat(id: string, talhaoId: string, data: string, criadoEm = "2026-01-01T00:00:00.000Z") {
+  return { id, talhaoId, data: dia(data), createdAt: new Date(criadoEm) };
+}
+
+function chuva(data: string, quantidadeMm: number, relacaoTratamentoDia: "ANTES" | "DEPOIS" | null = null) {
+  return { data: dia(data), quantidadeMm, relacaoTratamentoDia };
+}
+
+describe("calcularChuvaDesdeUltimoTratamentoPorTalhao", () => {
+  it("soma toda a chuva depois do último tratamento, não só a última leitura", () => {
+    const resultado = calcularChuvaDesdeUltimoTratamentoPorTalhao(
+      [trat("t1", "q16", "2026-11-03")],
+      [chuva("2026-11-01", 50), chuva("2026-11-05", 12), chuva("2026-11-08", 7.5), chuva("2026-11-10", 19)],
+    );
+    expect(resultado.get("q16")).toBe(38.5);
+  });
+
+  it("cada quadra conta a partir do seu próprio último tratamento", () => {
+    const resultado = calcularChuvaDesdeUltimoTratamentoPorTalhao(
+      [trat("a1", "A", "2026-10-20"), trat("a2", "A", "2026-11-06"), trat("b1", "B", "2026-11-02")],
+      [chuva("2026-11-01", 10), chuva("2026-11-04", 20), chuva("2026-11-08", 5)],
+    );
+    expect(resultado.get("A")).toBe(5);
+    expect(resultado.get("B")).toBe(25);
+  });
+
+  it("chuva no dia do tratamento só conta se foi depois da aplicação", () => {
+    const resultado = calcularChuvaDesdeUltimoTratamentoPorTalhao(
+      [trat("t1", "q1", "2026-11-05")],
+      [chuva("2026-11-05", 8, "ANTES"), chuva("2026-11-05", 3, "DEPOIS"), chuva("2026-11-05", 4, null)],
+    );
+    expect(resultado.get("q1")).toBe(3);
+  });
+
+  it("sem chuva depois do tratamento dá zero; quadra sem tratamento fica de fora", () => {
+    const resultado = calcularChuvaDesdeUltimoTratamentoPorTalhao(
+      [trat("t1", "q1", "2026-11-09")],
+      [chuva("2026-11-01", 10)],
+    );
+    expect(resultado.get("q1")).toBe(0);
+    expect(resultado.has("q2")).toBe(false);
+  });
+
+  it("dois tratamentos no mesmo dia: vale o último lançado", () => {
+    const resultado = calcularChuvaDesdeUltimoTratamentoPorTalhao(
+      [
+        trat("depois", "q1", "2026-11-05", "2026-11-05T15:00:00.000Z"),
+        trat("antes", "q1", "2026-11-05", "2026-11-05T09:00:00.000Z"),
+      ],
+      [chuva("2026-11-07", 6)],
+    );
+    expect(resultado.get("q1")).toBe(6);
+  });
+
+  it("arredonda pra uma casa decimal", () => {
+    const resultado = calcularChuvaDesdeUltimoTratamentoPorTalhao(
+      [trat("t1", "q1", "2026-11-01")],
+      [chuva("2026-11-02", 0.1), chuva("2026-11-03", 0.2)],
+    );
+    expect(resultado.get("q1")).toBe(0.3);
   });
 });
