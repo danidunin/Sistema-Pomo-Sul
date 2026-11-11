@@ -16,6 +16,11 @@ export type EntradaChangelog = {
  */
 export const CHANGELOG: EntradaChangelog[] = [
   {
+    versao: "1.2",
+    data: "2026-11-11",
+    descricao: "Abas de tratamentos mostram a chuva acumulada desde a última aplicação de cada quadra",
+  },
+  {
     versao: "1.1",
     data: "2026-11-09",
     descricao: [

@@ -165,3 +165,30 @@ export function calcularAcumuladoPorTratamento(
 
   return resultado;
 }
+
+/**
+ * Quanto choveu em cima do último tratamento fitossanitário de cada talhão: soma toda a
+ * chuva desde a aplicação mais recente até hoje (mesma regra de "ANTES"/"DEPOIS" no dia
+ * da aplicação usada em calcularAcumuladoPorTratamento). Talhão sem tratamento não entra.
+ */
+export function calcularChuvaDesdeUltimoTratamentoPorTalhao(
+  operacoes: OperacaoParaAcumulo[],
+  chuvas: ChuvaParaAcumulo[],
+): Map<string, number> {
+  const ultimaPorTalhao = new Map<string, OperacaoParaAcumulo>();
+  for (const op of operacoes) {
+    const atual = ultimaPorTalhao.get(op.talhaoId);
+    const maisRecente =
+      !atual ||
+      op.data.getTime() > atual.data.getTime() ||
+      (op.data.getTime() === atual.data.getTime() && op.createdAt.getTime() > atual.createdAt.getTime());
+    if (maisRecente) ultimaPorTalhao.set(op.talhaoId, op);
+  }
+
+  const ultimas = Array.from(ultimaPorTalhao.values());
+  const acumulados = calcularAcumuladoPorTratamento(ultimas, chuvas);
+
+  return new Map(
+    ultimas.map((op) => [op.talhaoId, Math.round((acumulados.get(op.id) ?? 0) * 10) / 10]),
+  );
+}

@@ -6,7 +6,11 @@ import { UNIDADE_DOSAGEM_LABELS } from "@/lib/concentracao";
 import { formatarData } from "@/lib/format";
 import { exigirPropriedadeAtual } from "@/lib/propriedade";
 import { ExportarBotoes } from "@/components/relatorios/exportar-botoes";
-import { buscarChuvaRegistros, calcularAcumuladoPorTratamento } from "@/lib/chuva";
+import {
+  buscarChuvaRegistros,
+  calcularAcumuladoPorTratamento,
+  calcularChuvaDesdeUltimoTratamentoPorTalhao,
+} from "@/lib/chuva";
 import { diasDesdeTratamento } from "@/lib/operacoes";
 import { Card } from "@/components/ui/card";
 
@@ -26,18 +30,21 @@ export default async function OperacoesPage({
 
   const talhaoSelecionado = talhaoId && talhoes.some((t) => t.id === talhaoId) ? talhaoId : null;
 
-  // Último tratamento fitossanitário de cada quadra, para o contador nas abas. Sempre da
-  // propriedade inteira, mesmo com uma quadra selecionada, pra não mudar o que aparece nas abas.
-  const ultimosTratamentos = await db.operacaoAgricola.groupBy({
-    by: ["talhaoId"],
+  // Tratamentos fitossanitários da propriedade inteira, para os contadores nas abas (dias e
+  // chuva desde o último tratamento de cada quadra). Sempre da propriedade inteira, mesmo com
+  // uma quadra selecionada, pra não mudar o que aparece nas abas.
+  const fitossanitariosPropriedade = await db.operacaoAgricola.findMany({
     where: { tipo: "FITOSSANITARIO", talhao: { propriedadeId } },
-    _max: { data: true },
+    select: { id: true, talhaoId: true, data: true, createdAt: true },
   });
   const agora = new Date();
+  const ultimaDataPorTalhao = new Map<string, Date>();
+  for (const op of fitossanitariosPropriedade) {
+    const atual = ultimaDataPorTalhao.get(op.talhaoId);
+    if (!atual || op.data > atual) ultimaDataPorTalhao.set(op.talhaoId, op.data);
+  }
   const diasDesdeUltimoPorTalhao = new Map(
-    ultimosTratamentos
-      .filter((g) => g._max.data)
-      .map((g) => [g.talhaoId, diasDesdeTratamento(g._max.data as Date, agora)]),
+    Array.from(ultimaDataPorTalhao, ([talhaoId, data]) => [talhaoId, diasDesdeTratamento(data, agora)]),
   );
 
   const operacoesBase = await db.operacaoAgricola.findMany({
@@ -59,17 +66,18 @@ export default async function OperacoesPage({
     ? operacoesBase.filter((o) => o.tipo === tipoSelecionado)
     : operacoesBase;
 
-  const chuvas = await buscarChuvaRegistros(propriedadeId);
-  // Chuva é registrada por propriedade (um pluviômetro só), não por talhão — a última
-  // leitura vale igual pra todas as quadras da propriedade atual.
-  const ultimaChuvaMm = chuvas[0] ? Number(chuvas[0].quantidadeMm) : null;
+  const chuvas = (await buscarChuvaRegistros(propriedadeId)).map((c) => ({
+    data: c.data,
+    quantidadeMm: c.quantidadeMm.toString(),
+    relacaoTratamentoDia: c.relacaoTratamentoDia,
+  }));
+  // Chuva é registrada por propriedade (um pluviômetro só), mas cada quadra soma só o que
+  // choveu desde o seu último tratamento — é o que lavou (ou não) aquela aplicação.
+  const chuvaDesdeUltimoPorTalhao = calcularChuvaDesdeUltimoTratamentoPorTalhao(fitossanitariosPropriedade, chuvas);
   const fitossanitarios = operacoesBase
     .filter((o) => o.tipo === "FITOSSANITARIO")
     .map((o) => ({ id: o.id, talhaoId: o.talhaoId, data: o.data, createdAt: o.createdAt }));
-  const acumulados = calcularAcumuladoPorTratamento(
-    fitossanitarios,
-    chuvas.map((c) => ({ data: c.data, quantidadeMm: c.quantidadeMm.toString(), relacaoTratamentoDia: c.relacaoTratamentoDia })),
-  );
+  const acumulados = calcularAcumuladoPorTratamento(fitossanitarios, chuvas);
 
   // Agrupa por data e numera as aplicações do dia em ordem cronológica de lançamento.
   const grupos = new Map<string, typeof operacoes>();
@@ -111,12 +119,12 @@ export default async function OperacoesPage({
             ativo={talhaoSelecionado === t.id}
             label={t.nomeCodinome}
             dias={diasDesdeUltimoPorTalhao.get(t.id)}
-            mm={ultimaChuvaMm}
+            mm={chuvaDesdeUltimoPorTalhao.get(t.id)}
           />
         ))}
       </div>
 
-      {(diasDesdeUltimoPorTalhao.size > 0 || ultimaChuvaMm !== null) && (
+      {diasDesdeUltimoPorTalhao.size > 0 && (
         <div className="-mt-2 flex items-center gap-3 px-1 text-[11px] text-neutral-400">
           <span className="flex items-center gap-1">
             <CalendarDays className="h-3 w-3" strokeWidth={2} />
@@ -124,7 +132,7 @@ export default async function OperacoesPage({
           </span>
           <span className="flex items-center gap-1">
             <Droplet className="h-3 w-3" strokeWidth={2} />
-            Chuva na última leitura
+            Chuva desde o tratamento
           </span>
         </div>
       )}
